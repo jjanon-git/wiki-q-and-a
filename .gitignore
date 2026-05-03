@@ -1,0 +1,36 @@
+# Environments
+.env
+.venv/
+venv/
+env/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+build/
+dist/
+
+# uv
+.uv-cache/
+
+# Tooling
+.coverage
+htmlcov/
+.tox/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+.DS_Store
+
+# Eval runs (results may be large; commit summaries only)
+eval_runs/
+
+# Transcripts (raw, pre-redaction)
+transcripts/raw/

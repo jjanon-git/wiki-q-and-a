@@ -1,0 +1,28 @@
+{
+  "batchcomplete": "",
+  "query": {
+    "pages": {
+      "736": {
+        "pageid": 736,
+        "ns": 0,
+        "title": "Albert Einstein",
+        "index": 1,
+        "extract": "Albert Einstein (14 March 1879 – 18 April 1955) was a German-born theoretical physicist who is widely held to be one of the greatest and most influential scientists of all time."
+      },
+      "905": {
+        "pageid": 905,
+        "ns": 0,
+        "title": "Niels Bohr",
+        "index": 2,
+        "extract": "Niels Henrik David Bohr was a Danish theoretical physicist who made foundational contributions to understanding atomic structure and quantum theory."
+      },
+      "1453": {
+        "pageid": 1453,
+        "ns": 0,
+        "title": "Theory of relativity",
+        "index": 3,
+        "extract": "The theory of relativity usually encompasses two interrelated physics theories by Albert Einstein: special relativity and general relativity, proposed and published in 1905 and 1915, respectively."
+      }
+    }
+  }
+}
