@@ -1,0 +1,85 @@
+# Canned AgentResult outputs for the dev placeholder cases, keyed by
+# question text. Used by src/wiki_qa/agent_stub.py to drive the runner
+# end-to-end without API calls.
+#
+# Format reflects the system prompt v1 output structure:
+# - evidence: parsed <evidence> block content (quoted passages from
+#   cited articles)
+# - answer:   parsed <answer> block content (prose, with bracket-only
+#   inline citations and a Title - URL plain-text Sources section)
+# - raw_output: full model text before parsing (omit to auto-construct
+#   from <evidence>...</evidence>\n<answer>...</answer>)
+#
+# Outputs are deliberately healthy (all behavior checks should pass)
+# so the runner has a green baseline.
+
+- question: "When was the Battle of Hastings?"
+  evidence: |
+    [Battle of Hastings] - "The Battle of Hastings was fought on 14 October 1066 between the Norman-French army of William, Duke of Normandy, and an English army under King Harold Godwinson."
+  answer: |
+    The Battle of Hastings was fought on 14 October 1066, between the
+    Norman-French army of William, Duke of Normandy, and an English
+    army under King Harold Godwinson, per [Battle of Hastings].
+
+    Sources:
+    Battle of Hastings - https://en.wikipedia.org/wiki/Battle_of_Hastings
+  tool_calls:
+    - query: "Battle of Hastings 1066"
+      raw_result_str: |
+        <search_results query="Battle of Hastings 1066" count="1">
+        <result index="1">
+        <title>Battle of Hastings</title>
+        <url>https://en.wikipedia.org/wiki/Battle_of_Hastings</url>
+        <extract>The Battle of Hastings was fought on 14 October 1066...</extract>
+        </result>
+        </search_results>
+      latency_ms: 240
+  stop_reason: end_turn
+  usage:
+    input_tokens: 1200
+    output_tokens: 90
+    cache_read_tokens: 0
+    cache_creation_tokens: 0
+
+- question: "What is 17 multiplied by 23?"
+  evidence: ""
+  answer: |
+    17 multiplied by 23 is 391. (Arithmetic — answered directly without
+    a Wikipedia search.)
+  tool_calls: []
+  stop_reason: end_turn
+  usage:
+    input_tokens: 800
+    output_tokens: 40
+    cache_read_tokens: 0
+    cache_creation_tokens: 0
+
+- question: "When did Einstein win the Nobel Prize for relativity?"
+  evidence: |
+    [Albert Einstein] - "Einstein was awarded the 1921 Nobel Prize in Physics 'for his services to Theoretical Physics, and especially for his discovery of the law of the photoelectric effect.' The Nobel committee deliberately avoided naming relativity, which was still considered contentious at the time."
+  answer: |
+    According to [Albert Einstein], Einstein was awarded the 1921 Nobel
+    Prize in Physics — but for his discovery of the law of the
+    photoelectric effect, not for the theory of relativity. Wikipedia
+    notes that the Nobel committee explicitly avoided naming relativity,
+    which was still considered contentious at the time.
+
+    Sources:
+    Albert Einstein - https://en.wikipedia.org/wiki/Albert_Einstein
+  tool_calls:
+    - query: "Albert Einstein Nobel Prize 1921 photoelectric effect"
+      raw_result_str: |
+        <search_results query="Albert Einstein Nobel Prize 1921 photoelectric effect" count="1">
+        <result index="1">
+        <title>Albert Einstein</title>
+        <url>https://en.wikipedia.org/wiki/Albert_Einstein</url>
+        <extract>...awarded the 1921 Nobel Prize in Physics "for his services to Theoretical Physics, and especially for his discovery of the law of the photoelectric effect"...</extract>
+        </result>
+        </search_results>
+      latency_ms: 320
+  stop_reason: end_turn
+  usage:
+    input_tokens: 1400
+    output_tokens: 130
+    cache_read_tokens: 0
+    cache_creation_tokens: 0

@@ -442,3 +442,23 @@ Each cluster's check fails independently; details list the exact codes that fire
 **Judge integration coordination**: `parse_warnings` will also be passed into the judge prompt as **informational context** (not a scoring directive) when the judge lands. The judge needs to know structural state to interpret the answer correctly — "claim unsupported because evidence block was empty" reads differently from "claim unsupported because the model hallucinated." But the deterministic checks already record structural failure as their own signal; the judge should not double-count by docking rubric points on `parse_warnings`. Captured in `plans/eval_harness.md` under behavior_checks; will be enforced in the judge prompt copy when built.
 
 107/107 unit tests green; ruff + mypy --strict clean.
+
+## 2026-05-03 19:24 — Judge integration: build_judge_input as deliberate subset, parse_warnings as context, retry-once-on-malformed
+
+Three-layer architecture in `src/wiki_qa/eval/judge.py`:
+
+1. **`build_judge_input(case, agent_result) -> JudgeInput`** — pure, picks the deliberate subset of fields sent to the judge. Implemented as a Pydantic model with `extra="forbid"`, so accidental field additions break loud. Includes: `question`, `expected_answer`, `expected_behavior` (judge-context flags), `evidence`, `answer`, `parse_warnings`, `tool_calls`. Excludes: `raw_output` (we have parsed `evidence`/`answer`), `raw_messages` (full conversation including system prompt — bloat), and convenience fields (`queries`, `n_searches`, `stop_reason`, `usage`) that duplicate or aren't relevant. User push: "Construct the judge input as a deliberate subset of AgentResult — the structured fields, not the raw_output."
+
+2. **`build_judge_prompt(judge_input) -> str`** — pure formatter. Includes `parse_warnings` as informational context with explicit guidance: use them to *interpret* the answer (an unsupported claim alongside `empty_evidence_block` reads differently than the same claim with no warnings) but do NOT apply additional rubric penalties on this basis — the harness records structural failures separately via `behavior_checks`. User push: "parse_warnings could be used as a signal for the judge... I think it'll be helpful to just send it out."
+
+3. **`parse_judge_output(text) -> JudgeOutput`** — pure parser. Extracts the `<evaluation>` block (tolerant of surrounding prose), parses each `<dimension>`. Out-of-range scores clamped to 0–3 with `clamped_from_N` flag. Missing dimensions kept in the output as `score=None` with `missing` flag (so the rest of the dims still score). Malformed XML sets `judge_failure=True`.
+
+**`evaluate(case, agent_result, *, llm_fn)`** orchestrates: build → call → parse. On malformed first response, retries once with explicit "return only the `<evaluation>` block" guidance. Second malformed → `judge_failure=True`, `retries=1`. `llm_fn` injected for tests; default (`default_llm_fn`) lazy-imports the Anthropic SDK and respects `WIKI_QA_JUDGE_MODEL` (default `claude-opus-4-7`).
+
+Runner wiring: new `judge_fn` and `judge_enabled` keyword args; default `judge_enabled=True`. When the agent errors, judge is skipped (its output is None on errored cases). Judge exceptions are isolated per-case the same way agent exceptions are. CLI gains `--judge/--no-judge` flag (default judge on); `--no-judge` keeps the fast deterministic-only mode available.
+
+Defensive tests: `test_evaluate_does_not_call_real_anthropic_api` asserts the SDK isn't even imported when `llm_fn` is passed; `test_runner_does_not_call_default_judge_when_judge_fn_provided` mirrors the agent-side guard. No real API calls in any unit test.
+
+136/136 unit tests green; ruff + mypy --strict clean; end-to-end smoke against dev fixture works with both `--judge` (fake judge_fn) and `--no-judge` modes.
+
+Deferred to follow-up: judge-output meta-checks (`judge_cited_evidence`, `judge_score_in_range`, `judge_all_dimensions_present`) — sanity checks on the judge's own output, not the agent's. Listed in plan; will add alongside scoring/aggregation.

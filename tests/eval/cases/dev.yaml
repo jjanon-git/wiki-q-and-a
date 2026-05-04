@@ -1,0 +1,33 @@
+# Placeholder cases used during harness development.
+# Spans 3 categories with 3 distinct expected_behavior configurations,
+# so the runner exercises the deterministic-search check, the
+# do-not-search check, and the judge-context premise-discrepancy flag.
+# Real ~35-case dataset is a separate later pass.
+
+- id: dev_factual_001
+  category: simple_factual
+  difficulty: easy
+  question: "When was the Battle of Hastings?"
+  expected_answer: "1066"
+  expected_behavior:
+    must_search: true
+  notes: "Baseline factual lookup. Exercises must_search deterministic check + citation checks."
+
+- id: dev_negcap_001
+  category: negative_capability
+  difficulty: easy
+  question: "What is 17 multiplied by 23?"
+  expected_answer: "391 (arithmetic — should not search Wikipedia)."
+  expected_behavior:
+    must_not_search: true
+  notes: "Pure arithmetic. Exercises must_not_search deterministic check; citation checks should be NA."
+
+- id: dev_falseprem_001
+  category: false_premise
+  difficulty: medium
+  question: "When did Einstein win the Nobel Prize for relativity?"
+  expected_answer: "Einstein won the 1921 Nobel Prize in Physics for the photoelectric effect, not for relativity."
+  expected_behavior:
+    must_search: true
+    must_surface_premise_discrepancy: true
+  notes: "Exercises judge-context flag (must_surface_premise_discrepancy). Agent should describe what Wikipedia says vs what the question assumed, without correcting the user assertively."

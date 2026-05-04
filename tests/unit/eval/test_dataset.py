@@ -193,7 +193,7 @@ def test_load_rejects_unknown_expected_behavior_flag(tmp_path: Path) -> None:
 """
     write_yaml(tmp_path, "bad.yaml", yaml_bad_flag)
 
-    with pytest.raises(ValueError, match="must_juggle|expected_behavior"):
+    with pytest.raises(ValueError, match=r"must_juggle|expected_behavior"):
         load_cases(tmp_path / "*.yaml")
 
 
