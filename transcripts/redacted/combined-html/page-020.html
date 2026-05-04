@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claude Code transcript - page 20</title>
+    <style>
+:root { --bg-color: #f5f5f5; --card-bg: #ffffff; --user-bg: #e3f2fd; --user-border: #1976d2; --assistant-bg: #f5f5f5; --assistant-border: #9e9e9e; --thinking-bg: #fff8e1; --thinking-border: #ffc107; --thinking-text: #666; --tool-bg: #f3e5f5; --tool-border: #9c27b0; --tool-result-bg: #e8f5e9; --tool-error-bg: #ffebee; --text-color: #212121; --text-muted: #757575; --code-bg: #263238; --code-text: #aed581; }
+* { box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg-color); color: var(--text-color); margin: 0; padding: 16px; line-height: 1.6; }
+.container { max-width: 800px; margin: 0 auto; }
+h1 { font-size: 1.5rem; margin-bottom: 24px; padding-bottom: 8px; border-bottom: 2px solid var(--user-border); }
+.header-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; border-bottom: 2px solid var(--user-border); padding-bottom: 8px; margin-bottom: 24px; }
+.header-row h1 { border-bottom: none; padding-bottom: 0; margin-bottom: 0; flex: 1; min-width: 200px; }
+.message { margin-bottom: 16px; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.message.user { background: var(--user-bg); border-left: 4px solid var(--user-border); }
+.message.assistant { background: var(--card-bg); border-left: 4px solid var(--assistant-border); }
+.message.tool-reply { background: #fff8e1; border-left: 4px solid #ff9800; }
+.tool-reply .role-label { color: #e65100; }
+.tool-reply .tool-result { background: transparent; padding: 0; margin: 0; }
+.tool-reply .tool-result .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff8e1); }
+.message-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; background: rgba(0,0,0,0.03); font-size: 0.85rem; }
+.role-label { font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+.user .role-label { color: var(--user-border); }
+time { color: var(--text-muted); font-size: 0.8rem; }
+.timestamp-link { color: inherit; text-decoration: none; }
+.timestamp-link:hover { text-decoration: underline; }
+.message:target { animation: highlight 2s ease-out; }
+@keyframes highlight { 0% { background-color: rgba(25, 118, 210, 0.2); } 100% { background-color: transparent; } }
+.message-content { padding: 16px; }
+.message-content p { margin: 0 0 12px 0; }
+.message-content p:last-child { margin-bottom: 0; }
+.thinking { background: var(--thinking-bg); border: 1px solid var(--thinking-border); border-radius: 8px; padding: 12px; margin: 12px 0; font-size: 0.9rem; color: var(--thinking-text); }
+.thinking-label { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; color: #f57c00; margin-bottom: 8px; }
+.thinking p { margin: 8px 0; }
+.assistant-text { margin: 8px 0; }
+.tool-use { background: var(--tool-bg); border: 1px solid var(--tool-border); border-radius: 8px; padding: 12px; margin: 12px 0; }
+.tool-header { font-weight: 600; color: var(--tool-border); margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+.tool-icon { font-size: 1.1rem; }
+.tool-description { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 8px; font-style: italic; }
+.tool-result { background: var(--tool-result-bg); border-radius: 8px; padding: 12px; margin: 12px 0; }
+.tool-result.tool-error { background: var(--tool-error-bg); }
+.file-tool { border-radius: 8px; padding: 12px; margin: 12px 0; }
+.write-tool { background: linear-gradient(135deg, #e3f2fd 0%, #e8f5e9 100%); border: 1px solid #4caf50; }
+.edit-tool { background: linear-gradient(135deg, #fff3e0 0%, #fce4ec 100%); border: 1px solid #ff9800; }
+.file-tool-header { font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
+.write-header { color: #2e7d32; }
+.edit-header { color: #e65100; }
+.file-tool-icon { font-size: 1rem; }
+.file-tool-path { font-family: monospace; background: rgba(0,0,0,0.08); padding: 2px 8px; border-radius: 4px; }
+.file-tool-fullpath { font-family: monospace; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px; word-break: break-all; }
+.file-content { margin: 0; }
+.edit-section { display: flex; margin: 4px 0; border-radius: 4px; overflow: hidden; }
+.edit-label { padding: 8px 12px; font-weight: bold; font-family: monospace; display: flex; align-items: flex-start; }
+.edit-old { background: #fce4ec; }
+.edit-old .edit-label { color: #b71c1c; background: #f8bbd9; }
+.edit-old .edit-content { color: #880e4f; }
+.edit-new { background: #e8f5e9; }
+.edit-new .edit-label { color: #1b5e20; background: #a5d6a7; }
+.edit-new .edit-content { color: #1b5e20; }
+.edit-content { margin: 0; flex: 1; background: transparent; font-size: 0.85rem; }
+.edit-replace-all { font-size: 0.75rem; font-weight: normal; color: var(--text-muted); }
+.write-tool .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #e6f4ea); }
+.edit-tool .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff0e5); }
+.todo-list { background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%); border: 1px solid #81c784; border-radius: 8px; padding: 12px; margin: 12px 0; }
+.todo-header { font-weight: 600; color: #2e7d32; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
+.todo-items { list-style: none; margin: 0; padding: 0; }
+.todo-item { display: flex; align-items: flex-start; gap: 10px; padding: 6px 0; border-bottom: 1px solid rgba(0,0,0,0.06); font-size: 0.9rem; }
+.todo-item:last-child { border-bottom: none; }
+.todo-icon { flex-shrink: 0; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-weight: bold; border-radius: 50%; }
+.todo-completed .todo-icon { color: #2e7d32; background: rgba(46, 125, 50, 0.15); }
+.todo-completed .todo-content { color: #558b2f; text-decoration: line-through; }
+.todo-in-progress .todo-icon { color: #f57c00; background: rgba(245, 124, 0, 0.15); }
+.todo-in-progress .todo-content { color: #e65100; font-weight: 500; }
+.todo-pending .todo-icon { color: #757575; background: rgba(0,0,0,0.05); }
+.todo-pending .todo-content { color: #616161; }
+pre { background: var(--code-bg); color: var(--code-text); padding: 12px; border-radius: 6px; overflow-x: auto; font-size: 0.85rem; line-height: 1.5; margin: 8px 0; white-space: pre-wrap; word-wrap: break-word; }
+pre.json { color: #e0e0e0; }
+code { background: rgba(0,0,0,0.08); padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+pre code { background: none; padding: 0; }
+.user-content { margin: 0; }
+.truncatable { position: relative; }
+.truncatable.truncated .truncatable-content { max-height: 200px; overflow: hidden; }
+.truncatable.truncated::after { content: ''; position: absolute; bottom: 32px; left: 0; right: 0; height: 60px; background: linear-gradient(to bottom, transparent, var(--card-bg)); pointer-events: none; }
+.message.user .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--user-bg)); }
+.message.tool-reply .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff8e1); }
+.tool-use .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--tool-bg)); }
+.tool-result .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--tool-result-bg)); }
+.expand-btn { display: none; width: 100%; padding: 8px 16px; margin-top: 4px; background: rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.1); border-radius: 6px; cursor: pointer; font-size: 0.85rem; color: var(--text-muted); }
+.expand-btn:hover { background: rgba(0,0,0,0.1); }
+.truncatable.truncated .expand-btn, .truncatable.expanded .expand-btn { display: block; }
+.pagination { display: flex; justify-content: center; gap: 8px; margin: 24px 0; flex-wrap: wrap; }
+.pagination a, .pagination span { padding: 5px 10px; border-radius: 6px; text-decoration: none; font-size: 0.85rem; }
+.pagination a { background: var(--card-bg); color: var(--user-border); border: 1px solid var(--user-border); }
+.pagination a:hover { background: var(--user-bg); }
+.pagination .current { background: var(--user-border); color: white; }
+.pagination .disabled { color: var(--text-muted); border: 1px solid #ddd; }
+.pagination .index-link { background: var(--user-border); color: white; }
+details.continuation { margin-bottom: 16px; }
+details.continuation summary { cursor: pointer; padding: 12px 16px; background: var(--user-bg); border-left: 4px solid var(--user-border); border-radius: 12px; font-weight: 500; color: var(--text-muted); }
+details.continuation summary:hover { background: rgba(25, 118, 210, 0.15); }
+details.continuation[open] summary { border-radius: 12px 12px 0 0; margin-bottom: 0; }
+.index-item { margin-bottom: 16px; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); background: var(--user-bg); border-left: 4px solid var(--user-border); }
+.index-item a { display: block; text-decoration: none; color: inherit; }
+.index-item a:hover { background: rgba(25, 118, 210, 0.1); }
+.index-item-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; background: rgba(0,0,0,0.03); font-size: 0.85rem; }
+.index-item-number { font-weight: 600; color: var(--user-border); }
+.index-item-content { padding: 16px; }
+.index-item-stats { padding: 8px 16px 12px 32px; font-size: 0.85rem; color: var(--text-muted); border-top: 1px solid rgba(0,0,0,0.06); }
+.index-item-commit { margin-top: 6px; padding: 4px 8px; background: #fff3e0; border-radius: 4px; font-size: 0.85rem; color: #e65100; }
+.index-item-commit code { background: rgba(0,0,0,0.08); padding: 1px 4px; border-radius: 3px; font-size: 0.8rem; margin-right: 6px; }
+.commit-card { margin: 8px 0; padding: 10px 14px; background: #fff3e0; border-left: 4px solid #ff9800; border-radius: 6px; }
+.commit-card a { text-decoration: none; color: #5d4037; display: block; }
+.commit-card a:hover { color: #e65100; }
+.commit-card-hash { font-family: monospace; color: #e65100; font-weight: 600; margin-right: 8px; }
+.index-commit { margin-bottom: 12px; padding: 10px 16px; background: #fff3e0; border-left: 4px solid #ff9800; border-radius: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+.index-commit a { display: block; text-decoration: none; color: inherit; }
+.index-commit a:hover { background: rgba(255, 152, 0, 0.1); margin: -10px -16px; padding: 10px 16px; border-radius: 8px; }
+.index-commit-header { display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; margin-bottom: 4px; }
+.index-commit-hash { font-family: monospace; color: #e65100; font-weight: 600; }
+.index-commit-msg { color: #5d4037; }
+.index-item-long-text { margin-top: 8px; padding: 12px; background: var(--card-bg); border-radius: 8px; border-left: 3px solid var(--assistant-border); }
+.index-item-long-text .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--card-bg)); }
+.index-item-long-text-content { color: var(--text-color); }
+#search-box { display: none; align-items: center; gap: 8px; }
+#search-box input { padding: 6px 12px; border: 1px solid var(--assistant-border); border-radius: 6px; font-size: 16px; width: 180px; }
+#search-box button, #modal-search-btn, #modal-close-btn { background: var(--user-border); color: white; border: none; border-radius: 6px; padding: 6px 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+#search-box button:hover, #modal-search-btn:hover { background: #1565c0; }
+#modal-close-btn { background: var(--text-muted); margin-left: 8px; }
+#modal-close-btn:hover { background: #616161; }
+#search-modal[open] { border: none; border-radius: 12px; box-shadow: 0 4px 24px rgba(0,0,0,0.2); padding: 0; width: 90vw; max-width: 900px; height: 80vh; max-height: 80vh; display: flex; flex-direction: column; }
+#search-modal::backdrop { background: rgba(0,0,0,0.5); }
+.search-modal-header { display: flex; align-items: center; gap: 8px; padding: 16px; border-bottom: 1px solid var(--assistant-border); background: var(--bg-color); border-radius: 12px 12px 0 0; }
+.search-modal-header input { flex: 1; padding: 8px 12px; border: 1px solid var(--assistant-border); border-radius: 6px; font-size: 16px; }
+#search-status { padding: 8px 16px; font-size: 0.85rem; color: var(--text-muted); border-bottom: 1px solid rgba(0,0,0,0.06); }
+#search-results { flex: 1; overflow-y: auto; padding: 16px; }
+.search-result { margin-bottom: 16px; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.search-result a { display: block; text-decoration: none; color: inherit; }
+.search-result a:hover { background: rgba(25, 118, 210, 0.05); }
+.search-result-page { padding: 6px 12px; background: rgba(0,0,0,0.03); font-size: 0.8rem; color: var(--text-muted); border-bottom: 1px solid rgba(0,0,0,0.06); }
+.search-result-content { padding: 12px; }
+.search-result mark { background: #fff59d; padding: 1px 2px; border-radius: 2px; }
+@media (max-width: 600px) { body { padding: 8px; } .message, .index-item { border-radius: 8px; } .message-content, .index-item-content { padding: 12px; } pre { font-size: 0.8rem; padding: 8px; } #search-box input { width: 120px; } #search-modal[open] { width: 95vw; height: 90vh; } }
+</style>
+</head>
+<body>
+    <div class="container">
+        <h1><a href="index.html" style="color: inherit; text-decoration: none;">Claude Code transcript</a> - page 20/21</h1>
+        
+
+<div class="pagination">
+<a href="index.html" class="index-link">Index</a>
+<a href="page-019.html">&larr; Prev</a>
+<a href="page-001.html">1</a>
+<a href="page-002.html">2</a>
+<a href="page-003.html">3</a>
+<a href="page-004.html">4</a>
+<a href="page-005.html">5</a>
+<a href="page-006.html">6</a>
+<a href="page-007.html">7</a>
+<a href="page-008.html">8</a>
+<a href="page-009.html">9</a>
+<a href="page-010.html">10</a>
+<a href="page-011.html">11</a>
+<a href="page-012.html">12</a>
+<a href="page-013.html">13</a>
+<a href="page-014.html">14</a>
+<a href="page-015.html">15</a>
+<a href="page-016.html">16</a>
+<a href="page-017.html">17</a>
+<a href="page-018.html">18</a>
+<a href="page-019.html">19</a>
+<span class="current">20</span>
+<a href="page-021.html">21</a>
+<a href="page-021.html">Next &rarr;</a>
+</div>
+
+        
+<div class="message user" id="msg-2026-05-04T03-32-48-380Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-05-04T03-32-48-380Z" class="timestamp-link"><time datetime="2026-05-04T03:32:48.380Z" data-timestamp="2026-05-04T03:32:48.380Z">2026-05-04T03:32:48.380Z</time></a></div><div class="message-content">
+<div class="user-content"><p>give me the command to run (and location) for the demo please</p></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T03-32-52-967Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T03-32-52-967Z" class="timestamp-link"><time datetime="2026-05-04T03:32:52.967Z" data-timestamp="2026-05-04T03:32:52.967Z">2026-05-04T03:32:52.967Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T03-32-57-225Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T03-32-57-225Z" class="timestamp-link"><time datetime="2026-05-04T03:32:57.225Z" data-timestamp="2026-05-04T03:32:57.225Z">2026-05-04T03:32:57.225Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>From the project root (<code>/Users/<user>/projects/wiki-q-and-a</code>):</p>
+<pre><code class="language-bash">uv run python -m wiki_qa --demo
+</code></pre>
+<p>That runs the four sample questions across categories (<code>simple_factual</code>, <code>multi_source</code>, <code>false_premise</code>, <code>negative_capability</code>). Expect ~30-60s total wall-clock and ~$0.50 in Anthropic spend.</p>
+<p><strong>Prereqs</strong> (already set up on your machine):
+- <code>.env</code> with <code>ANTHROPIC_API_KEY</code> (you fixed the typo earlier)
+- <code>uv sync</code> has been run (the venv is in place from earlier work)</p>
+<p><strong>Add <code>-v</code> for verbose</strong> if you want token usage and stop reasons too:</p>
+<pre><code class="language-bash">uv run python -m wiki_qa -v --demo
+</code></pre>
+<p><strong>Single-question form</strong> (in case you want a one-off):</p>
+<pre><code class="language-bash">uv run python -m wiki_qa &quot;When was the Battle of Hastings?&quot;
+</code></pre></div></div></div>
+<div class="message user" id="msg-2026-05-04T03-33-51-346Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-05-04T03-33-51-346Z" class="timestamp-link"><time datetime="2026-05-04T03:33:51.346Z" data-timestamp="2026-05-04T03:33:51.346Z">2026-05-04T03:33:51.346Z</time></a></div><div class="message-content">
+<div class="user-content"><h1>&gt; [4/4] What is 1247 multiplied by 393?</h1>
+<h1>Q: What is 1247 multiplied by 393?</h1>
+<p>1247 × 393 = 490,071.
+Why was this returned?</p></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T03-34-27-861Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T03-34-27-861Z" class="timestamp-link"><time datetime="2026-05-04T03:34:27.861Z" data-timestamp="2026-05-04T03:34:27.861Z">2026-05-04T03:34:27.861Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T03-34-35-956Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T03-34-35-956Z" class="timestamp-link"><time datetime="2026-05-04T03:34:35.956Z" data-timestamp="2026-05-04T03:34:35.956Z">2026-05-04T03:34:35.956Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Two things happening, one of them is a real concern:</p>
+<p><strong>1. The CLI only shows <code>result.answer</code>, not evidence or raw_output.</strong> What the model actually emitted was likely:</p>
+<pre><code class="language-xml">&lt;evidence&gt;
+No Wikipedia retrieval performed. This is an arithmetic calculation; Wikipedia is not the appropriate source.
+&lt;/evidence&gt;
+&lt;answer&gt;
+1247 × 393 = 490,071.
+&lt;/answer&gt;
+</code></pre>
+<p>The parser extracted just the <code>&lt;answer&gt;</code> block, and <code>format_result()</code> prints that. Run with <code>-v</code> and we still won't see evidence — the CLI doesn't surface that field. (Easy fix if you want to see it: I can add evidence to the CLI output.)</p>
+<p><strong>2. The bigger issue: the prompt has this exact problem as its worked example.</strong> Look at <code>prompts/system_v1_1.md</code> — the "For genuinely non-search responses" section literally uses <code>1247 × 393 = 490,071</code> as the demo:</p>
+<pre><code>**For genuinely non-search responses** — arithmetic, code generation, opinion, creative writing — evidence states why retrieval was skipped:
+
+&lt;evidence&gt;
+No Wikipedia retrieval performed. This is an arithmetic calculation...
+&lt;/evidence&gt;
+&lt;answer&gt;
+1247 × 393 = 490,071.
+&lt;/answer&gt;
+</code></pre>
+<p>So when the demo asks the same question, the model is essentially regurgitating the worked example verbatim — both the structure AND the numeric answer. We can't tell from this case whether the agent actually computed the math or just pattern-matched the prompt example.</p>
+<p>Two reasonable cleanups before submission:
+- <strong>Swap the demo question</strong> for one not in the prompt example. Something like <code>"What is 4738 multiplied by 271?"</code> — same category, different numbers, forces the model to actually compute.
+- <strong>Swap the prompt example</strong> for a different non-search question (different math, or a code/opinion example). Fixes the leak at the source.</p>
+<p>Either is fine; both is best. Want me to apply the swap?</p></div></div></div>
+<div class="message user" id="msg-2026-05-04T03-34-59-517Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-05-04T03-34-59-517Z" class="timestamp-link"><time datetime="2026-05-04T03:34:59.517Z" data-timestamp="2026-05-04T03:34:59.517Z">2026-05-04T03:34:59.517Z</time></a></div><div class="message-content">
+<div class="user-content"><p>yes please</p></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T03-35-32-753Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T03-35-32-753Z" class="timestamp-link"><time datetime="2026-05-04T03:35:32.753Z" data-timestamp="2026-05-04T03:35:32.753Z">2026-05-04T03:35:32.753Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T03-35-33-505Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T03-35-33-505Z" class="timestamp-link"><time datetime="2026-05-04T03:35:33.505Z" data-timestamp="2026-05-04T03:35:33.505Z">2026-05-04T03:35:33.505Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Going. Will Python-verify the arithmetic since I'm unreliable at it.</p></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T03-35-34-308Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T03-35-34-308Z" class="timestamp-link"><time datetime="2026-05-04T03:35:34.308Z" data-timestamp="2026-05-04T03:35:34.308Z">2026-05-04T03:35:34.308Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01CNuBKDV6wkgwbBrGgKkTBA">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Compute the two arithmetic problems</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">python3 -c &#34;print(&#39;47 × 89 =&#39;, 47 * 89); print(&#39;4738 × 271 =&#39;, 4738 * 271)&#34;</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-05-04T03-35-34-363Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-05-04T03-35-34-363Z" class="timestamp-link"><time datetime="2026-05-04T03:35:34.363Z" data-timestamp="2026-05-04T03:35:34.363Z">2026-05-04T03:35:34.363Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>47 × 89 = 4183
+4738 × 271 = 1283998</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T03-35-52-236Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T03-35-52-236Z" class="timestamp-link"><time datetime="2026-05-04T03:35:52.236Z" data-timestamp="2026-05-04T03:35:52.236Z">2026-05-04T03:35:52.236Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message tool-reply" id="msg-2026-05-04T03-35-56-342Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-05-04T03-35-56-342Z" class="timestamp-link"><time datetime="2026-05-04T03:35:56.342Z" data-timestamp="2026-05-04T03:35:56.342Z">2026-05-04T03:35:56.342Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file /Users/<user>/projects/wiki-q-and-a/prompts/system_v1_1.md has been updated successfully.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T03-35-52-978Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T03-35-52-978Z" class="timestamp-link"><time datetime="2026-05-04T03:35:52.978Z" data-timestamp="2026-05-04T03:35:52.978Z">2026-05-04T03:35:52.978Z</time></a></div><div class="message-content">
+<div class="assistant-text"><ul>
+<li>Prompt example: <code>47 × 89 = 4,183</code>  </li>
+<li>Demo question: <code>What is 4738 multiplied by 271?</code> → 1,283,998</li>
+</ul>
+<p>Both distinct from each other and from the existing eval case (1247 × 393). Updating.</p></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T03-35-56-317Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T03-35-56-317Z" class="timestamp-link"><time datetime="2026-05-04T03:35:56.317Z" data-timestamp="2026-05-04T03:35:56.317Z">2026-05-04T03:35:56.317Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_019hDwHSKGpiqVLXUbcScHqi">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">system_v1_1.md</span></div>
+<div class="file-tool-fullpath">/Users/<user>/projects/wiki-q-and-a/prompts/system_v1_1.md</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">**For genuinely non-search responses** — arithmetic, code generation, opinion, creative writing — evidence states why retrieval was skipped:
+
+```
+&lt;evidence&gt;
+No Wikipedia retrieval performed. This is an arithmetic calculation; Wikipedia is not the appropriate source.
+&lt;/evidence&gt;
+&lt;answer&gt;
+1247 × 393 = 490,071.
+&lt;/answer&gt;
+```</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">**For genuinely non-search responses** — arithmetic, code generation, opinion, creative writing — evidence states why retrieval was skipped:
+
+```
+&lt;evidence&gt;
+No Wikipedia retrieval performed. This is an arithmetic calculation; Wikipedia is not the appropriate source.
+&lt;/evidence&gt;
+&lt;answer&gt;
+47 × 89 = 4,183.
+&lt;/answer&gt;
+```</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message assistant" id="msg-2026-05-04T03-36-06-013Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T03-36-06-013Z" class="timestamp-link"><time datetime="2026-05-04T03:36:06.013Z" data-timestamp="2026-05-04T03:36:06.013Z">2026-05-04T03:36:06.013Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_01XcSbVEY2pet346QLqx3uSP">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">cli.py</span></div>
+<div class="file-tool-fullpath">/Users/<user>/projects/wiki-q-and-a/src/wiki_qa/cli.py</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content"># A small, deliberately diverse sample for `--demo`. One case per
+# representative category — fast enough to run as a smoke test, broad
+# enough to show the agent&#39;s range.
+DEMO_QUESTIONS: tuple[str, ...] = (
+    &#34;When was the Battle of Hastings?&#34;,  # simple_factual
+    &#34;Which is taller, K2 or Kangchenjunga?&#34;,  # multi_source
+    &#34;When did Magellan complete the first circumnavigation of the globe?&#34;,  # false_premise
+    &#34;What is 1247 multiplied by 393?&#34;,  # negative_capability
+)</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content"># A small, deliberately diverse sample for `--demo`. One case per
+# representative category — fast enough to run as a smoke test, broad
+# enough to show the agent&#39;s range. Each demo question is intentionally
+# different from any worked example in the system prompt so we&#39;re testing
+# the model&#39;s actual behavior, not its ability to regurgitate.
+DEMO_QUESTIONS: tuple[str, ...] = (
+    &#34;When was the Battle of Hastings?&#34;,  # simple_factual
+    &#34;Which is taller, K2 or Kangchenjunga?&#34;,  # multi_source
+    &#34;When did Magellan complete the first circumnavigation of the globe?&#34;,  # false_premise
+    &#34;What is 4738 multiplied by 271?&#34;,  # negative_capability (= 1,283,998)
+)</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-05-04T03-36-06-040Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-05-04T03-36-06-040Z" class="timestamp-link"><time datetime="2026-05-04T03:36:06.040Z" data-timestamp="2026-05-04T03:36:06.040Z">2026-05-04T03:36:06.040Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file /Users/<user>/projects/wiki-q-and-a/src/wiki_qa/cli.py has been updated successfully.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T03-36-09-057Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T03-36-09-057Z" class="timestamp-link"><time datetime="2026-05-04T03:36:09.057Z" data-timestamp="2026-05-04T03:36:09.057Z">2026-05-04T03:36:09.057Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Quick sanity: tests still green, then a single live verification on the new demo math case.</p></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T03-36-09-900Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T03-36-09-900Z" class="timestamp-link"><time datetime="2026-05-04T03:36:09.900Z" data-timestamp="2026-05-04T03:36:09.900Z">2026-05-04T03:36:09.900Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01REy2ub83mv9sbw6Xchg9dE">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">CLI tests still pass</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">uv run pytest tests/unit/test_cli.py -q 2&gt;&amp;1 | tail -3</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-05-04T03-36-10-300Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-05-04T03-36-10-300Z" class="timestamp-link"><time datetime="2026-05-04T03:36:10.300Z" data-timestamp="2026-05-04T03:36:10.300Z">2026-05-04T03:36:10.300Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>...........                                                              [100%]
+11 passed in 0.06s</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T03-36-13-832Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T03-36-13-832Z" class="timestamp-link"><time datetime="2026-05-04T03:36:13.832Z" data-timestamp="2026-05-04T03:36:13.832Z">2026-05-04T03:36:13.832Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01SDn62QiUzd6Pp9a9k1krPf">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Live single-question check on the new demo math case</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">uv run python -m wiki_qa &#34;What is 4738 multiplied by 271?&#34; 2&gt;&amp;1 | tail -15</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-05-04T03-36-17-359Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-05-04T03-36-17-359Z" class="timestamp-link"><time datetime="2026-05-04T03:36:17.359Z" data-timestamp="2026-05-04T03:36:17.359Z">2026-05-04T03:36:17.359Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>======================================================================
+Q: What is 4738 multiplied by 271?
+======================================================================
+4738 × 271 = 1,283,998.
+
+To break it down: 4738 × 271 = 4738 × 200 + 4738 × 70 + 4738 × 1 = 947,600 + 331,660 + 4,738 = 1,283,998.
+
+----------------------------------------------------------------------
+Searches: 0</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T03-36-23-311Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T03-36-23-311Z" class="timestamp-link"><time datetime="2026-05-04T03:36:23.311Z" data-timestamp="2026-05-04T03:36:23.311Z">2026-05-04T03:36:23.311Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T03-36-24-519Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T03-36-24-519Z" class="timestamp-link"><time datetime="2026-05-04T03:36:24.519Z" data-timestamp="2026-05-04T03:36:24.519Z">2026-05-04T03:36:24.519Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Verified: real computation. <code>1,283,998</code> matches Python; the model also showed the digit-by-digit breakdown (<code>4738 × 200 + 4738 × 70 + 4738 × 1 = 947,600 + 331,660 + 4,738</code>). It's reasoning about the arithmetic, not pattern-matching the prompt example.</p>
+<p>Capturing the lesson in DECISIONS, then committing.</p></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T03-36-25-060Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T03-36-25-060Z" class="timestamp-link"><time datetime="2026-05-04T03:36:25.060Z" data-timestamp="2026-05-04T03:36:25.060Z">2026-05-04T03:36:25.060Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01EM4Z7LxVdYmpdpDvsTWk3a">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Get timestamp</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">date &#34;+%Y-%m-%d %H:%M&#34;</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-05-04T03-36-25-115Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-05-04T03-36-25-115Z" class="timestamp-link"><time datetime="2026-05-04T03:36:25.115Z" data-timestamp="2026-05-04T03:36:25.115Z">2026-05-04T03:36:25.115Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>2026-05-03 20:36</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T03-36-44-573Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T03-36-44-573Z" class="timestamp-link"><time datetime="2026-05-04T03:36:44.573Z" data-timestamp="2026-05-04T03:36:44.573Z">2026-05-04T03:36:44.573Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01RnXYFkbNfRgLZYyJy7QqWC">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Append DECISIONS entry on the leak</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">cat &gt;&gt; /Users/<user>/projects/wiki-q-and-a/DECISIONS.md &lt;&lt;&#39;EOF&#39;
+
+## 2026-05-03 20:36 — Prompt-example leak in v1.1 demo: fixed
+
+User observed during the `--demo` run that the negative_capability case (&#34;What is 1247 multiplied by 393?&#34;) came back with `1247 × 393 = 490,071.` and asked why. Two issues:
+
+1. **The CLI&#39;s `format_result()` only shows `result.answer`** — not the `&lt;evidence&gt;` block, not `raw_output`. The model probably emitted the proper non-search evidence wrapper; we just don&#39;t surface it. Lower priority, but worth noting.
+
+2. **The bigger issue**: the v1.1 prompt&#39;s worked example for &#34;genuinely non-search responses&#34; used the literal string `1247 × 393 = 490,071` — and the demo asked the same question. The model was very likely regurgitating the example verbatim rather than computing. The eval baseline numbers for `negative_capability_001` are technically suspect for the same reason (the prompt example leaked the answer to the eval case).
+
+Fix: split into three distinct arithmetic problems so neither the demo nor the eval can be answered by reproducing the prompt:
+- **Prompt example** (`prompts/system_v1_1.md`): `47 × 89 = 4,183` (small, distinct)
+- **Demo question** (`src/wiki_qa/cli.py:DEMO_QUESTIONS`): `What is 4738 multiplied by 271?` (= 1,283,998)
+- **Eval case** (`tests/eval/cases/v1.yaml:negative_capability_001`): `1247 × 393 = 490,071` (unchanged)
+
+All three numerically verified via Python before the change. Live re-run of the demo math question (post-fix) shows the model now produces a worked digit-by-digit breakdown — `4738 × 271 = 4738 × 200 + 4738 × 70 + 4738 × 1 = 947,600 + 331,660 + 4,738 = 1,283,998` — confirming actual computation rather than regurgitation.
+
+**Lesson worth carrying forward**: when designing eval datasets and demos against a system prompt, *every* concrete example in the prompt is a potential leak. Worked examples are necessary (the v1 → v1.1 fix depended on a worked example for non-search responses), but they should use illustrative-but-different content from anything in the eval set or demo. Add to the writeup as a methodological note.
+
+The v1.1 eval baseline numbers stand for `negative_capability_001` (the eval case wasn&#39;t changed and the prompt example was the same when the eval ran), but the result on that one case is partly a regurgitation artifact. Future v1.x runs against this dataset will be cleaner: the prompt example is now `47 × 89` and the eval case is `1247 × 393`.
+
+`prompts/system_v1_2.md` is left as-is (it&#39;s a historical iteration artifact). If we run a v1.3 we&#39;d start by re-cloning v1.1 with the fix already applied.
+EOF
+echo &#34;Appended.&#34;</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-05-04T03-36-44-632Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-05-04T03-36-44-632Z" class="timestamp-link"><time datetime="2026-05-04T03:36:44.632Z" data-timestamp="2026-05-04T03:36:44.632Z">2026-05-04T03:36:44.632Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Appended.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T03-36-54-138Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T03-36-54-138Z" class="timestamp-link"><time datetime="2026-05-04T03:36:54.138Z" data-timestamp="2026-05-04T03:36:54.138Z">2026-05-04T03:36:54.138Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01Uuziq1XtemxSXRWQzHCGBD">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Commit and push the leak fix</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">git add prompts/system_v1_1.md src/wiki_qa/cli.py DECISIONS.md &amp;&amp; git commit -m &#34;$(cat &lt;&lt;&#39;EOF&#39;
+Fix prompt-example leak in v1.1 demo arithmetic case
+
+User&#39;s --demo run surfaced this: the v1.1 prompt&#39;s worked example for
+non-search responses used `1247 × 393 = 490,071` — and the demo asked
+literally the same question. The model was almost certainly
+regurgitating the example rather than computing.
+
+Same hazard applied to the eval (negative_capability_001 used the same
+question), so v1.1&#39;s baseline numbers for that one case are a partial
+regurgitation artifact, not a clean test of arithmetic-skip behavior.
+
+Three distinct arithmetic problems now, all numerically verified:
+
+- Prompt example (system_v1_1.md):  47 × 89 = 4,183
+- Demo question (cli.py):           4738 × 271 = 1,283,998
+- Eval case (v1.yaml, unchanged):   1247 × 393 = 490,071
+
+Live verification on the new demo question — the model produced a
+worked digit-by-digit breakdown (&#34;4738 × 200 + 4738 × 70 + 4738 × 1
+= 947,600 + 331,660 + 4,738 = 1,283,998&#34;) — confirming actual
+computation rather than pattern-matching the prompt.
+
+Methodological lesson added to DECISIONS: every concrete example in
+a system prompt is a potential leak against the eval and demo. Worked
+examples are necessary but must use illustrative-but-different content
+from anything in the eval set or demo.
+
+system_v1_2.md left as-is (historical iteration artifact). Future
+v1.x prompts re-clone v1.1 with the fix already applied.
+
+Co-Authored-By: Claude Opus 4.7 &lt;noreply@anthropic.com&gt;
+EOF
+)&#34; 2&gt;&amp;1 | tail -3 &amp;&amp; git push 2&gt;&amp;1 | tail -3</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-05-04T03-36-55-084Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-05-04T03-36-55-084Z" class="timestamp-link"><time datetime="2026-05-04T03:36:55.084Z" data-timestamp="2026-05-04T03:36:55.084Z">2026-05-04T03:36:55.084Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><div class="commit-card"><a href="https://github.com/jjanon-git/wiki-q-and-a/commit/31079ae"><span class="commit-card-hash">31079ae</span> Fix prompt-example leak in v1.1 demo arithmetic case</a></div><pre>3 files changed, 26 insertions(+), 3 deletions(-)
+To https://github.com/jjanon-git/wiki-q-and-a.git
+   8d036ac..31079ae  main -&gt; main</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T03-37-05-093Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T03-37-05-093Z" class="timestamp-link"><time datetime="2026-05-04T03:37:05.093Z" data-timestamp="2026-05-04T03:37:05.093Z">2026-05-04T03:37:05.093Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Pushed <code>31079ae</code>. The demo command is the same as before:</p>
+<pre><code class="language-bash">uv run python -m wiki_qa --demo
+</code></pre>
+<p>But now the math case actually exercises the model's arithmetic instead of having it parrot back the prompt example.</p>
+<p>Quick state check on what's left from the brief:
+- ✅ Runnable prototype + setup + demo
+- ✅ GitHub repo
+- ✅ Written design rationale (<code>WRITEUP.md</code>)
+- ✅ Iteration cycles documented (<code>tests/eval/iterations.md</code>)
+- ✅ Calibration workflow (sample + analyze)
+- ⏳ 5-min video walkthrough (your work)
+- ⏳ AI transcripts export (at submission time)</p>
+<p>The <code>_eval_baseline.py</code> / <code>_eval_v1_1.py</code> / <code>_eval_v1_2.py</code> driver scripts are still loose at the repo root as untracked. Want me to fold them into a <code>scripts/</code> directory with a small README so they're committed and reproducible, or leave them as throwaway one-offs?</p></div></div></div>
+<div class="message user" id="msg-2026-05-04T03-37-05-188Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-05-04T03-37-05-188Z" class="timestamp-link"><time datetime="2026-05-04T03:37:05.188Z" data-timestamp="2026-05-04T03:37:05.188Z">2026-05-04T03:37:05.188Z</time></a></div><div class="message-content">
+<div class="user-content"><p>ok walk me through the calibration process again please</p></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T03-37-14-917Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T03-37-14-917Z" class="timestamp-link"><time datetime="2026-05-04T03:37:14.917Z" data-timestamp="2026-05-04T03:37:14.917Z">2026-05-04T03:37:14.917Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T03-37-38-744Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T03-37-38-744Z" class="timestamp-link"><time datetime="2026-05-04T03:37:38.744Z" data-timestamp="2026-05-04T03:37:38.744Z">2026-05-04T03:37:38.744Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>The artifact already exists from when I ran the sampler — <code>eval_runs/v1_1_2026-05-04T02-06-51Z/calibration.md</code> and <code>.scores.yaml</code>. Walking through what you actually do with them:</p>
+<p><strong>1. Read the context</strong> — open <code>calibration.md</code>. It has 8 cases, each showing:
+- The question
+- The gold (expected) answer from the dataset
+- The model's actual answer
+- The tool-call trace (what it searched for and how long)
+- The judge's per-dimension scores with the reasoning the judge gave for each</p>
+<p>You read this to ground yourself in what each case looked like end-to-end. Don't look at the YAML yet.</p>
+<p><strong>2. Score each case yourself</strong> — open <code>calibration.scores.yaml</code>. For each of the 8 cases, fill in the <code>human:</code> block with your own 0-3 scores per dimension:</p>
+<pre><code class="language-yaml">- case_id: false_premise_002
+  category: false_premise
+  judge:
+    factual_accuracy: 3
+    groundedness: 3
+    citation_quality: 3
+    search_efficiency: 3
+    calibration: 1
+  human:
+    factual_accuracy: 3       # ← your scores go here
+    groundedness: 2           # ← agree, ±1 is fine
+    citation_quality: 3       # ← agree
+    search_efficiency: 3      # ← agree
+    calibration: 1            # ← agree
+  notes: &quot;judge correctly flagged the missing joint-discovery nuance&quot;
+</code></pre>
+<p>The rubric is in <code>tests/eval/rubric.md</code> (<code>0</code> = wrong/missing, <code>3</code> = fully correct/grounded/cited/efficient/calibrated). The point is <em>your</em> read, not what the judge said — score independently, then compare.</p>
+<p>If you don't want to score a dim, leave it <code>null</code>. If you didn't read a case carefully, leave the whole <code>human:</code> block null and it'll be skipped.</p>
+<p><strong>3. Run the analyzer:</strong></p>
+<pre><code class="language-bash">uv run python -m wiki_qa.eval calibrate analyze \
+  --in eval_runs/v1_1_2026-05-04T02-06-51Z
+</code></pre>
+<p>You'll get back something like:</p>
+<pre><code>Calibration analysis (8 cases x 5 dims)
+
+dimension                agree  disagree   skipped      rate    flag
+----------------------------------------------------------------------
+factual_accuracy             8         0         0      100%      ok
+groundedness                 7         1         0       88%      ok
+citation_quality             6         2         0       75%   ⚠ FLAG
+search_efficiency            8         0         0      100%      ok
+calibration                  5         3         0       63%   ⚠ FLAG
+
+Disagreements (per dim, where |human - judge| &gt; 1):
+
+  citation_quality:
+    false_premise_002    human=1  judge=3  delta=-2  -- judge gave full credit but model listed sources never cited
+  ...
+</code></pre>
+<p><strong>Definition of agreement</strong>: <code>|human - judge| ≤ 1</code>. So scoring a dim 2 when the judge said 3 = agree. Scoring 1 when the judge said 3 = disagree.</p>
+<p><strong>Definition of "flag"</strong>: any dimension with &gt;25% disagreement on the sampled cases. That's the design rule from when we set the calibration up — it's the threshold above which we'd revise the judge prompt or rubric for that dimension.</p>
+<p><strong>What the result tells you:</strong></p>
+<ul>
+<li><strong>All dimensions clean (≤25% disagreement)</strong>: the judge is calibrated against your reading. The eval numbers in <code>tests/eval/iterations.md</code> are trustworthy.</li>
+<li><strong>One or more dimensions flagged</strong>: the judge is grading that dimension differently from how you would. Two responses:</li>
+<li>Adjust the <strong>rubric text</strong> in <code>tests/eval/rubric.md</code> to be more explicit about what the judge should weight (the judge prompt builds from this).</li>
+<li>Or adjust the <strong>judge prompt</strong> in <code>src/wiki_qa/eval/judge.py</code> if the rubric is fine but the framing is steering wrong.</li>
+</ul>
+<p><strong>Time estimate</strong>: reading the 8 cases is ~15-20 minutes if you're being careful (the judge reasonings are right there to anchor against). Scoring takes another ~10. Then analyze is instant.</p>
+<p>If you want to start now:</p>
+<pre><code class="language-bash"># Open the markdown for context
+open eval_runs/v1_1_2026-05-04T02-06-51Z/calibration.md
+
+# Open the scoring sheet to fill in
+open eval_runs/v1_1_2026-05-04T02-06-51Z/calibration.scores.yaml
+</code></pre>
+<p>Or you can resample with a different seed / different N if you'd rather see different cases:</p>
+<pre><code class="language-bash">uv run python -m wiki_qa.eval calibrate sample \
+  --in eval_runs/v1_1_2026-05-04T02-06-51Z \
+  --cases tests/eval/cases/v1.yaml \
+  --n 8 --seed 99
+</code></pre></div></div></div>
+<div class="message user" id="msg-2026-05-04T03-44-50-958Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-05-04T03-44-50-958Z" class="timestamp-link"><time datetime="2026-05-04T03:44:50.958Z" data-timestamp="2026-05-04T03:44:50.958Z">2026-05-04T03:44:50.958Z</time></a></div><div class="message-content">
+<div class="user-content"><p>for the gates question,</p>
+<blockquote>
+<p><code>groundedness</code> | 2 | Core claims (enrolled 1973, dropped out 1975) are directly supported by retrieved extract. Honorary degree mention in 2007 is not in retrieved content - minor unsupported addition. |
+but that honorary degree is in the article. was it not in the returned context (which i cant see)?</p>
+</blockquote></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T03-45-23-843Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T03-45-23-843Z" class="timestamp-link"><time datetime="2026-05-04T03:45:23.843Z" data-timestamp="2026-05-04T03:45:23.843Z">2026-05-04T03:45:23.843Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T03-45-24-219Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T03-45-24-219Z" class="timestamp-link"><time datetime="2026-05-04T03:45:24.219Z" data-timestamp="2026-05-04T03:45:24.219Z">2026-05-04T03:45:24.219Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Good catch — let me check exactly what the agent saw.</p></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T03-45-30-614Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T03-45-30-614Z" class="timestamp-link"><time datetime="2026-05-04T03:45:30.614Z" data-timestamp="2026-05-04T03:45:30.614Z">2026-05-04T03:45:30.614Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01EFoaUksdegHD4dHBXnLrkt">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Inspect what the agent actually retrieved for the Gates case</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">uv run python &lt;&lt;&#39;EOF&#39;
+&#34;&#34;&#34;Load the Gates case from the v1.1 baseline and inspect the actual
+tool_result_str the agent retrieved — was &#39;honorary degree&#39; in there?&#34;&#34;&#34;
+import json
+from pathlib import Path
+
+results_path = Path(&#34;eval_runs/v1_1_2026-05-04T02-06-51Z/results.jsonl&#34;)
+for line in results_path.read_text().splitlines():
+    if not line.strip():
+        continue
+    r = json.loads(line)
+    if r[&#34;case_id&#34;] != &#34;false_premise_004&#34;:
+        continue
+    ar = r[&#34;agent_result&#34;]
+    print(f&#34;Case: {r[&#39;case_id&#39;]}&#34;)
+    print(f&#34;Question: {r[&#39;question&#39;]}&#34;)
+    print(f&#34;n_searches: {ar[&#39;n_searches&#39;]}&#34;)
+    print(f&#34;queries: {ar[&#39;queries&#39;]}&#34;)
+    print()
+    for i, tc in enumerate(ar[&#34;tool_calls&#34;], 1):
+        print(f&#34;--- Tool call {i}: query=&#39;{tc[&#39;query&#39;]}&#39; ---&#34;)
+        result_str = tc[&#34;raw_result_str&#34;]
+        # Check for honorary degree mention
+        for needle in [&#34;honorary degree&#34;, &#34;honorary&#34;, &#34;2007&#34;, &#34;Harvard&#34;]:
+            present = needle.lower() in result_str.lower()
+            print(f&#34;  contains {needle!r}: {present}&#34;)
+        print()
+        # Show the relevant chunk if found
+        idx = result_str.lower().find(&#34;honorary&#34;)
+        if idx &gt;= 0:
+            print(f&#34;  CONTEXT for &#39;honorary&#39;:&#34;)
+            print(f&#34;  ...{result_str[max(0, idx-150):idx+250]}...&#34;)
+        # Show the result length
+        print(f&#34;  result length: {len(result_str)} chars&#34;)
+        print()
+    print(&#34;--- Model&#39;s actual answer ---&#34;)
+    print(ar[&#34;answer&#34;])
+    break
+EOF</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-05-04T03-45-30-734Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-05-04T03-45-30-734Z" class="timestamp-link"><time datetime="2026-05-04T03:45:30.734Z" data-timestamp="2026-05-04T03:45:30.734Z">2026-05-04T03:45:30.734Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Case: false_premise_004
+Question: When did Bill Gates graduate from Harvard?
+n_searches: 1
+queries: [&#x27;Bill Gates Harvard education&#x27;]
+
+--- Tool call 1: query=&#x27;Bill Gates Harvard education&#x27; ---
+  contains &#x27;honorary degree&#x27;: False
+  contains &#x27;honorary&#x27;: False
+  contains &#x27;2007&#x27;: True
+  contains &#x27;Harvard&#x27;: True
+
+  result length: 3138 chars
+
+--- Model&#x27;s actual answer ---
+Bill Gates did not graduate from Harvard. According to [Bill Gates], he enrolled at Harvard University in 1973 and dropped out in 1975 to co-found Microsoft with Paul Allen.
+
+(Note: Harvard later awarded Gates an honorary degree in 2007, but he never completed a degree there as a regular student. If that&#x27;s what you were thinking of, let me know and I can look further.)
+
+Sources:
+Bill Gates - https://en.wikipedia.org/wiki/Bill_Gates</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T03-45-49-808Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T03-45-49-808Z" class="timestamp-link"><time datetime="2026-05-04T03:45:49.808Z" data-timestamp="2026-05-04T03:45:49.808Z">2026-05-04T03:45:49.808Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T03-46-00-195Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T03-46-00-195Z" class="timestamp-link"><time datetime="2026-05-04T03:46:00.195Z" data-timestamp="2026-05-04T03:46:00.195Z">2026-05-04T03:46:00.195Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Confirmed: the judge was right. Here's what actually happened:</p>
+<ul>
+<li>Agent searched <code>"Bill Gates Harvard education"</code> → got back a 3,138-char lead extract.</li>
+<li>The lead extract contained <code>"Harvard"</code> and <code>"2007"</code> but <strong>not</strong> <code>"honorary degree"</code> or <code>"honorary"</code>.</li>
+<li>The model's answer included <em>"Harvard later awarded Gates an honorary degree in 2007"</em> — but that fact was <strong>not</strong> in the retrieved content.</li>
+</ul>
+<p>So the gap is: <strong>the honorary degree IS in the Bill Gates Wikipedia article (we verified that), but it's in the article body, not the lead extract</strong> that <code>search_wikipedia</code> returns (<code>exintro=true</code>). The model knew it from training and added it without grounding.</p>
+<p>The interesting bit is what the model did <em>try</em> to do — look at the answer:</p>
+<blockquote>
+<p>Bill Gates did not graduate from Harvard. According to [Bill Gates], he enrolled at Harvard University in 1973 and dropped out in 1975 to co-found Microsoft with Paul Allen.</p>
+<p><em>(Note: Harvard later awarded Gates an honorary degree in 2007, but he never completed a degree there as a regular student. If that's what you were thinking of, let me know and I can look further.)</em></p>
+</blockquote>
+<p>The model self-flagged the addition with a parenthetical "(Note: ...)" — it knew it was adding info beyond the cited article. But it didn't use v1.1's prescribed format (<em>"Wikipedia says X; from this we infer Y because..."</em>), so the judge correctly dinged groundedness. That's exactly what v1.2's tighter binary marked-inference rule was meant to address — claim must trace to evidence OR use the inference syntax, OR not appear at all. The model's parenthetical falls in the gap.</p>
+<p><strong>For your calibration</strong>: this is genuinely a 2 on groundedness (one minor unsupported addition in an otherwise grounded answer) — your read aligning with the judge's call here is calibrated agreement, even if your initial intuition came from "the honorary degree is in the article" (which is true at the article level but not at the retrieved-extract level).</p>
+<p>This is the calibration step doing its job — surfacing the retrieved-vs-article distinction that's easy to lose track of. Worth a <code>notes:</code> entry in the YAML if you want to capture the lesson, e.g., <code>"verified the honorary degree fact IS in the WP article but NOT in the lead extract; judge correctly identified the unmarked addition"</code>.</p></div></div></div>
+        
+
+<div class="pagination">
+<a href="index.html" class="index-link">Index</a>
+<a href="page-019.html">&larr; Prev</a>
+<a href="page-001.html">1</a>
+<a href="page-002.html">2</a>
+<a href="page-003.html">3</a>
+<a href="page-004.html">4</a>
+<a href="page-005.html">5</a>
+<a href="page-006.html">6</a>
+<a href="page-007.html">7</a>
+<a href="page-008.html">8</a>
+<a href="page-009.html">9</a>
+<a href="page-010.html">10</a>
+<a href="page-011.html">11</a>
+<a href="page-012.html">12</a>
+<a href="page-013.html">13</a>
+<a href="page-014.html">14</a>
+<a href="page-015.html">15</a>
+<a href="page-016.html">16</a>
+<a href="page-017.html">17</a>
+<a href="page-018.html">18</a>
+<a href="page-019.html">19</a>
+<span class="current">20</span>
+<a href="page-021.html">21</a>
+<a href="page-021.html">Next &rarr;</a>
+</div>
+
+    </div>
+    <script>
+document.querySelectorAll('time[data-timestamp]').forEach(function(el) {
+    const timestamp = el.getAttribute('data-timestamp');
+    const date = new Date(timestamp);
+    const now = new Date();
+    const isToday = date.toDateString() === now.toDateString();
+    const timeStr = date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+    if (isToday) { el.textContent = timeStr; }
+    else { el.textContent = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) + ' ' + timeStr; }
+});
+document.querySelectorAll('pre.json').forEach(function(el) {
+    let text = el.textContent;
+    text = text.replace(/"([^"]+)":/g, '<span style="color: #ce93d8">"$1"</span>:');
+    text = text.replace(/: "([^"]*)"/g, ': <span style="color: #81d4fa">"$1"</span>');
+    text = text.replace(/: (\d+)/g, ': <span style="color: #ffcc80">$1</span>');
+    text = text.replace(/: (true|false|null)/g, ': <span style="color: #f48fb1">$1</span>');
+    el.innerHTML = text;
+});
+document.querySelectorAll('.truncatable').forEach(function(wrapper) {
+    const content = wrapper.querySelector('.truncatable-content');
+    const btn = wrapper.querySelector('.expand-btn');
+    if (content.scrollHeight > 250) {
+        wrapper.classList.add('truncated');
+        btn.addEventListener('click', function() {
+            if (wrapper.classList.contains('truncated')) { wrapper.classList.remove('truncated'); wrapper.classList.add('expanded'); btn.textContent = 'Show less'; }
+            else { wrapper.classList.remove('expanded'); wrapper.classList.add('truncated'); btn.textContent = 'Show more'; }
+        });
+    }
+});
+</script>
+</body>
+</html>

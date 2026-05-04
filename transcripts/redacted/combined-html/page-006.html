@@ -1,0 +1,1058 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claude Code transcript - page 6</title>
+    <style>
+:root { --bg-color: #f5f5f5; --card-bg: #ffffff; --user-bg: #e3f2fd; --user-border: #1976d2; --assistant-bg: #f5f5f5; --assistant-border: #9e9e9e; --thinking-bg: #fff8e1; --thinking-border: #ffc107; --thinking-text: #666; --tool-bg: #f3e5f5; --tool-border: #9c27b0; --tool-result-bg: #e8f5e9; --tool-error-bg: #ffebee; --text-color: #212121; --text-muted: #757575; --code-bg: #263238; --code-text: #aed581; }
+* { box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg-color); color: var(--text-color); margin: 0; padding: 16px; line-height: 1.6; }
+.container { max-width: 800px; margin: 0 auto; }
+h1 { font-size: 1.5rem; margin-bottom: 24px; padding-bottom: 8px; border-bottom: 2px solid var(--user-border); }
+.header-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; border-bottom: 2px solid var(--user-border); padding-bottom: 8px; margin-bottom: 24px; }
+.header-row h1 { border-bottom: none; padding-bottom: 0; margin-bottom: 0; flex: 1; min-width: 200px; }
+.message { margin-bottom: 16px; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.message.user { background: var(--user-bg); border-left: 4px solid var(--user-border); }
+.message.assistant { background: var(--card-bg); border-left: 4px solid var(--assistant-border); }
+.message.tool-reply { background: #fff8e1; border-left: 4px solid #ff9800; }
+.tool-reply .role-label { color: #e65100; }
+.tool-reply .tool-result { background: transparent; padding: 0; margin: 0; }
+.tool-reply .tool-result .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff8e1); }
+.message-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; background: rgba(0,0,0,0.03); font-size: 0.85rem; }
+.role-label { font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+.user .role-label { color: var(--user-border); }
+time { color: var(--text-muted); font-size: 0.8rem; }
+.timestamp-link { color: inherit; text-decoration: none; }
+.timestamp-link:hover { text-decoration: underline; }
+.message:target { animation: highlight 2s ease-out; }
+@keyframes highlight { 0% { background-color: rgba(25, 118, 210, 0.2); } 100% { background-color: transparent; } }
+.message-content { padding: 16px; }
+.message-content p { margin: 0 0 12px 0; }
+.message-content p:last-child { margin-bottom: 0; }
+.thinking { background: var(--thinking-bg); border: 1px solid var(--thinking-border); border-radius: 8px; padding: 12px; margin: 12px 0; font-size: 0.9rem; color: var(--thinking-text); }
+.thinking-label { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; color: #f57c00; margin-bottom: 8px; }
+.thinking p { margin: 8px 0; }
+.assistant-text { margin: 8px 0; }
+.tool-use { background: var(--tool-bg); border: 1px solid var(--tool-border); border-radius: 8px; padding: 12px; margin: 12px 0; }
+.tool-header { font-weight: 600; color: var(--tool-border); margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+.tool-icon { font-size: 1.1rem; }
+.tool-description { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 8px; font-style: italic; }
+.tool-result { background: var(--tool-result-bg); border-radius: 8px; padding: 12px; margin: 12px 0; }
+.tool-result.tool-error { background: var(--tool-error-bg); }
+.file-tool { border-radius: 8px; padding: 12px; margin: 12px 0; }
+.write-tool { background: linear-gradient(135deg, #e3f2fd 0%, #e8f5e9 100%); border: 1px solid #4caf50; }
+.edit-tool { background: linear-gradient(135deg, #fff3e0 0%, #fce4ec 100%); border: 1px solid #ff9800; }
+.file-tool-header { font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
+.write-header { color: #2e7d32; }
+.edit-header { color: #e65100; }
+.file-tool-icon { font-size: 1rem; }
+.file-tool-path { font-family: monospace; background: rgba(0,0,0,0.08); padding: 2px 8px; border-radius: 4px; }
+.file-tool-fullpath { font-family: monospace; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px; word-break: break-all; }
+.file-content { margin: 0; }
+.edit-section { display: flex; margin: 4px 0; border-radius: 4px; overflow: hidden; }
+.edit-label { padding: 8px 12px; font-weight: bold; font-family: monospace; display: flex; align-items: flex-start; }
+.edit-old { background: #fce4ec; }
+.edit-old .edit-label { color: #b71c1c; background: #f8bbd9; }
+.edit-old .edit-content { color: #880e4f; }
+.edit-new { background: #e8f5e9; }
+.edit-new .edit-label { color: #1b5e20; background: #a5d6a7; }
+.edit-new .edit-content { color: #1b5e20; }
+.edit-content { margin: 0; flex: 1; background: transparent; font-size: 0.85rem; }
+.edit-replace-all { font-size: 0.75rem; font-weight: normal; color: var(--text-muted); }
+.write-tool .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #e6f4ea); }
+.edit-tool .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff0e5); }
+.todo-list { background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%); border: 1px solid #81c784; border-radius: 8px; padding: 12px; margin: 12px 0; }
+.todo-header { font-weight: 600; color: #2e7d32; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
+.todo-items { list-style: none; margin: 0; padding: 0; }
+.todo-item { display: flex; align-items: flex-start; gap: 10px; padding: 6px 0; border-bottom: 1px solid rgba(0,0,0,0.06); font-size: 0.9rem; }
+.todo-item:last-child { border-bottom: none; }
+.todo-icon { flex-shrink: 0; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-weight: bold; border-radius: 50%; }
+.todo-completed .todo-icon { color: #2e7d32; background: rgba(46, 125, 50, 0.15); }
+.todo-completed .todo-content { color: #558b2f; text-decoration: line-through; }
+.todo-in-progress .todo-icon { color: #f57c00; background: rgba(245, 124, 0, 0.15); }
+.todo-in-progress .todo-content { color: #e65100; font-weight: 500; }
+.todo-pending .todo-icon { color: #757575; background: rgba(0,0,0,0.05); }
+.todo-pending .todo-content { color: #616161; }
+pre { background: var(--code-bg); color: var(--code-text); padding: 12px; border-radius: 6px; overflow-x: auto; font-size: 0.85rem; line-height: 1.5; margin: 8px 0; white-space: pre-wrap; word-wrap: break-word; }
+pre.json { color: #e0e0e0; }
+code { background: rgba(0,0,0,0.08); padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+pre code { background: none; padding: 0; }
+.user-content { margin: 0; }
+.truncatable { position: relative; }
+.truncatable.truncated .truncatable-content { max-height: 200px; overflow: hidden; }
+.truncatable.truncated::after { content: ''; position: absolute; bottom: 32px; left: 0; right: 0; height: 60px; background: linear-gradient(to bottom, transparent, var(--card-bg)); pointer-events: none; }
+.message.user .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--user-bg)); }
+.message.tool-reply .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff8e1); }
+.tool-use .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--tool-bg)); }
+.tool-result .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--tool-result-bg)); }
+.expand-btn { display: none; width: 100%; padding: 8px 16px; margin-top: 4px; background: rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.1); border-radius: 6px; cursor: pointer; font-size: 0.85rem; color: var(--text-muted); }
+.expand-btn:hover { background: rgba(0,0,0,0.1); }
+.truncatable.truncated .expand-btn, .truncatable.expanded .expand-btn { display: block; }
+.pagination { display: flex; justify-content: center; gap: 8px; margin: 24px 0; flex-wrap: wrap; }
+.pagination a, .pagination span { padding: 5px 10px; border-radius: 6px; text-decoration: none; font-size: 0.85rem; }
+.pagination a { background: var(--card-bg); color: var(--user-border); border: 1px solid var(--user-border); }
+.pagination a:hover { background: var(--user-bg); }
+.pagination .current { background: var(--user-border); color: white; }
+.pagination .disabled { color: var(--text-muted); border: 1px solid #ddd; }
+.pagination .index-link { background: var(--user-border); color: white; }
+details.continuation { margin-bottom: 16px; }
+details.continuation summary { cursor: pointer; padding: 12px 16px; background: var(--user-bg); border-left: 4px solid var(--user-border); border-radius: 12px; font-weight: 500; color: var(--text-muted); }
+details.continuation summary:hover { background: rgba(25, 118, 210, 0.15); }
+details.continuation[open] summary { border-radius: 12px 12px 0 0; margin-bottom: 0; }
+.index-item { margin-bottom: 16px; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); background: var(--user-bg); border-left: 4px solid var(--user-border); }
+.index-item a { display: block; text-decoration: none; color: inherit; }
+.index-item a:hover { background: rgba(25, 118, 210, 0.1); }
+.index-item-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; background: rgba(0,0,0,0.03); font-size: 0.85rem; }
+.index-item-number { font-weight: 600; color: var(--user-border); }
+.index-item-content { padding: 16px; }
+.index-item-stats { padding: 8px 16px 12px 32px; font-size: 0.85rem; color: var(--text-muted); border-top: 1px solid rgba(0,0,0,0.06); }
+.index-item-commit { margin-top: 6px; padding: 4px 8px; background: #fff3e0; border-radius: 4px; font-size: 0.85rem; color: #e65100; }
+.index-item-commit code { background: rgba(0,0,0,0.08); padding: 1px 4px; border-radius: 3px; font-size: 0.8rem; margin-right: 6px; }
+.commit-card { margin: 8px 0; padding: 10px 14px; background: #fff3e0; border-left: 4px solid #ff9800; border-radius: 6px; }
+.commit-card a { text-decoration: none; color: #5d4037; display: block; }
+.commit-card a:hover { color: #e65100; }
+.commit-card-hash { font-family: monospace; color: #e65100; font-weight: 600; margin-right: 8px; }
+.index-commit { margin-bottom: 12px; padding: 10px 16px; background: #fff3e0; border-left: 4px solid #ff9800; border-radius: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+.index-commit a { display: block; text-decoration: none; color: inherit; }
+.index-commit a:hover { background: rgba(255, 152, 0, 0.1); margin: -10px -16px; padding: 10px 16px; border-radius: 8px; }
+.index-commit-header { display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; margin-bottom: 4px; }
+.index-commit-hash { font-family: monospace; color: #e65100; font-weight: 600; }
+.index-commit-msg { color: #5d4037; }
+.index-item-long-text { margin-top: 8px; padding: 12px; background: var(--card-bg); border-radius: 8px; border-left: 3px solid var(--assistant-border); }
+.index-item-long-text .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--card-bg)); }
+.index-item-long-text-content { color: var(--text-color); }
+#search-box { display: none; align-items: center; gap: 8px; }
+#search-box input { padding: 6px 12px; border: 1px solid var(--assistant-border); border-radius: 6px; font-size: 16px; width: 180px; }
+#search-box button, #modal-search-btn, #modal-close-btn { background: var(--user-border); color: white; border: none; border-radius: 6px; padding: 6px 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+#search-box button:hover, #modal-search-btn:hover { background: #1565c0; }
+#modal-close-btn { background: var(--text-muted); margin-left: 8px; }
+#modal-close-btn:hover { background: #616161; }
+#search-modal[open] { border: none; border-radius: 12px; box-shadow: 0 4px 24px rgba(0,0,0,0.2); padding: 0; width: 90vw; max-width: 900px; height: 80vh; max-height: 80vh; display: flex; flex-direction: column; }
+#search-modal::backdrop { background: rgba(0,0,0,0.5); }
+.search-modal-header { display: flex; align-items: center; gap: 8px; padding: 16px; border-bottom: 1px solid var(--assistant-border); background: var(--bg-color); border-radius: 12px 12px 0 0; }
+.search-modal-header input { flex: 1; padding: 8px 12px; border: 1px solid var(--assistant-border); border-radius: 6px; font-size: 16px; }
+#search-status { padding: 8px 16px; font-size: 0.85rem; color: var(--text-muted); border-bottom: 1px solid rgba(0,0,0,0.06); }
+#search-results { flex: 1; overflow-y: auto; padding: 16px; }
+.search-result { margin-bottom: 16px; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.search-result a { display: block; text-decoration: none; color: inherit; }
+.search-result a:hover { background: rgba(25, 118, 210, 0.05); }
+.search-result-page { padding: 6px 12px; background: rgba(0,0,0,0.03); font-size: 0.8rem; color: var(--text-muted); border-bottom: 1px solid rgba(0,0,0,0.06); }
+.search-result-content { padding: 12px; }
+.search-result mark { background: #fff59d; padding: 1px 2px; border-radius: 2px; }
+@media (max-width: 600px) { body { padding: 8px; } .message, .index-item { border-radius: 8px; } .message-content, .index-item-content { padding: 12px; } pre { font-size: 0.8rem; padding: 8px; } #search-box input { width: 120px; } #search-modal[open] { width: 95vw; height: 90vh; } }
+</style>
+</head>
+<body>
+    <div class="container">
+        <h1><a href="index.html" style="color: inherit; text-decoration: none;">Claude Code transcript</a> - page 6/21</h1>
+        
+
+<div class="pagination">
+<a href="index.html" class="index-link">Index</a>
+<a href="page-005.html">&larr; Prev</a>
+<a href="page-001.html">1</a>
+<a href="page-002.html">2</a>
+<a href="page-003.html">3</a>
+<a href="page-004.html">4</a>
+<a href="page-005.html">5</a>
+<span class="current">6</span>
+<a href="page-007.html">7</a>
+<a href="page-008.html">8</a>
+<a href="page-009.html">9</a>
+<a href="page-010.html">10</a>
+<a href="page-011.html">11</a>
+<a href="page-012.html">12</a>
+<a href="page-013.html">13</a>
+<a href="page-014.html">14</a>
+<a href="page-015.html">15</a>
+<a href="page-016.html">16</a>
+<a href="page-017.html">17</a>
+<a href="page-018.html">18</a>
+<a href="page-019.html">19</a>
+<a href="page-020.html">20</a>
+<a href="page-021.html">21</a>
+<a href="page-007.html">Next &rarr;</a>
+</div>
+
+        
+<div class="message user" id="msg-2026-05-04T01-35-04-739Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-05-04T01-35-04-739Z" class="timestamp-link"><time datetime="2026-05-04T01:35:04.739Z" data-timestamp="2026-05-04T01:35:04.739Z">2026-05-04T01:35:04.739Z</time></a></div><div class="message-content">
+<div class="user-content"><p>please also begin on the writeup. start by capturing what's in the decisions log (I'll provide you my style guide tomorrow). i want to capture this though - we've started workign on accuracy/correctness/groundedness, but that's only a small part of what to test. here's something i wrote up
+The v1 eval measures correctness: factual_accuracy, groundedness, citation_quality, search_efficiency, calibration. These are the dimensions that determine whether the answer is right. They don't measure voice or tone — whether uncertainty is expressed with confidence or apologetically, whether surfacing a false premise feels respectful or corrective, whether the agent's prose has the warmth that distinguishes a thoughtful response from a merely competent one. This gap is real and deliberate. Voice failures don't surface cleanly in Wikipedia QA categories — they live in conversational shapes (frustrated users, ambiguous emotional contexts, situations requiring graceful uncertainty) that aren't represented in the dataset. Adding a voice dimension would require both case expansion and judge calibration against human-scored examples, since voice scoring is more subjective than correctness scoring and the LLM judge would need a more calibrated rubric to score it reliably. v2 would address this. For v1, the calibration dimension partially captures voice-adjacent behavior — "surface the discrepancy without correcting" is partly a voice question — but the rubric isn't designed to score voice as a first-class concern.</p></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T01-35-55-593Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T01-35-55-593Z" class="timestamp-link"><time datetime="2026-05-04T01:35:55.593Z" data-timestamp="2026-05-04T01:35:55.593Z">2026-05-04T01:35:55.593Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T01-35-56-990Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T01-35-56-990Z" class="timestamp-link"><time datetime="2026-05-04T01:35:56.990Z" data-timestamp="2026-05-04T01:35:56.990Z">2026-05-04T01:35:56.990Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Got it — I'll start the writeup as a draft (you'll style-pass it tomorrow). Capturing DECISIONS thematically, embedding your voice-gap paragraph exactly as you wrote it, and leaving placeholders for the eval-result-dependent sections that depend on the v1 baseline.</p></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T01-38-02-039Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T01-38-02-039Z" class="timestamp-link"><time datetime="2026-05-04T01:38:02.039Z" data-timestamp="2026-05-04T01:38:02.039Z">2026-05-04T01:38:02.039Z</time></a></div><div class="message-content"><div class="file-tool write-tool" data-tool-id="toolu_01Vnbo2WW2S95xthWaCoLUgz">
+<div class="file-tool-header write-header"><span class="file-tool-icon">📝</span> Write <span class="file-tool-path">WRITEUP.md</span></div>
+<div class="file-tool-fullpath">/Users/<user>/projects/wiki-q-and-a/WRITEUP.md</div>
+<div class="truncatable"><div class="truncatable-content"><pre class="file-content"># wiki-q-and-a — design rationale
+
+&gt; **Status: v1 draft.** Captures the design choices and reasoning from
+&gt; `DECISIONS.md`, organized thematically. To be revised against my style
+&gt; guide before final submission. Sections that depend on v1 eval results
+&gt; are marked `[pending baseline]`.
+
+---
+
+## What this is
+
+A take-home submission. The brief: build a system that uses Claude and
+Wikipedia to answer questions, and evaluate how well it works. This
+document explains the design choices behind the prompt, the tool, and
+the eval suite — what I picked, what I rejected, and why.
+
+The system is a search-by-default agent powered by Claude Opus 4.7,
+calling a single `search_wikipedia(query)` tool against the live
+MediaWiki API. The eval harness loads YAML cases, runs the agent,
+applies 11 deterministic behavior checks, and asks an LLM judge to
+score 5 quality dimensions on a 0–3 scale. Results are written per-case
+to `results.jsonl` for inspection and iteration.
+
+Model choice: Opus 4.7 for both the agent and the judge. The reasoning
+was to set the quality ceiling first and downgrade on eval evidence
+rather than start middle and try to climb. Cost is not a real
+constraint at this scale (a few hundred API calls total). The
+downgrade story (Opus → Sonnet → Haiku, with measured per-dim deltas)
+is itself a useful artifact for this writeup. Both models are
+overridable via `WIKI_QA_AGENT_MODEL` / `WIKI_QA_JUDGE_MODEL` env
+vars so the experiment is a one-line flip.
+
+## Prompt engineering approach
+
+### Search by default, with explicit exceptions
+
+The first tool description was narrow (&#34;when you need factual info you
+don&#39;t reliably know&#34;). That left too much room for the model to skip
+search and answer from priors — defeating the entire point of a
+Wikipedia QA system. v1&#39;s tool description is **default-on**: use the
+tool by default for any question that benefits from grounding;
+exceptions are arithmetic, code generation, opinion/preference, and
+content already in the conversation. The system prompt re-states the
+same exception list — defense in depth.
+
+### Two-block output: evidence first, then answer
+
+The agent emits `&lt;evidence&gt;...&lt;/evidence&gt;` (quoted passages from cited
+articles) followed by `&lt;answer&gt;...&lt;/answer&gt;` (the prose answer with
+inline bracket citations). The structure was chosen for auditability:
+the evidence block is the &#34;show your work&#34; surface that makes
+groundedness and citation_quality inspectable, both for humans and the
+LLM judge. The judge gets the parsed `evidence` separately and can
+compare claims in the answer to passages in evidence rather than
+parsing claim-citation pairs out of prose.
+
+The grounding rule is two-part: every factual claim must be supported
+by retrieved Wikipedia content, AND inferences are allowed but must be
+marked explicitly (&#34;Wikipedia says X; from this it follows that Y,
+because…&#34;). The marked-inference allowance preserves the model&#39;s
+ability to handle synthesis questions; without it, the prompt would
+paralyze the model on any question requiring connecting two facts.
+
+### Citation conventions: brackets, plain text, no markdown links
+
+Inline citations are bracket-only `[Article Title]` references with no
+embedded URLs. URLs appear once at the end in a plain-text `Sources:`
+section, formatted `Title - URL` per line. Markdown link syntax
+(`[Title](URL)`) is explicitly forbidden.
+
+This came from customer-feedback experience: raw URLs at the end keep
+the prose readable and make the source list scannable; embedded
+markdown links muddy the inline reading experience and are awkward to
+copy out.
+
+The deterministic behavior checks split this into two separate signals
+(`has_bracket_citations` and `no_markdown_links`) rather than one
+collapsed &#34;citation format&#34; check. A model producing zero citations is
+a different failure mode (and different fix — strengthen the citation
+requirement) than a model producing markdown citations (different fix
+— emphasize the format ban). Collapsing them would hide which one is
+firing across iterations.
+
+### Surfacing premise discrepancies, not correcting
+
+The original framing for the `false_premise` category had the model
+&#34;correct&#34; wrong premises — e.g., &#34;Einstein actually won the 1921 Nobel
+for the photoelectric effect, not relativity.&#34; That was reversed
+mid-design on customer-tone grounds: the model is not the arbiter of
+truth and shouldn&#39;t position itself as correcting the user. Its job is
+to make the disagreement legible — &#34;Wikipedia indicates X; the
+question&#39;s premise was Y&#34; — and let the user reconcile it.
+
+This shows up in three places: the rubric&#39;s `calibration` dimension
+(which now penalizes assertive correction even if the fact is right),
+the dataset flag (`must_surface_premise_discrepancy`), and the system
+prompt&#39;s edge-cases section.
+
+### Decomposition over compound queries; 5-call budget
+
+For multi-part questions, the prompt instructs the agent to decompose
+into separate searches (one per facet) rather than issue compound
+queries. Hypothesis: MediaWiki search rewards specific terms; long
+compound queries dilute the signal. The trade-off — extra searches
+that don&#39;t help — is a thing eval should flag if it&#39;s happening; that&#39;s
+what `search_efficiency` is for.
+
+The search budget is 5 calls per question, with the explicit
+instruction &#34;answer with what you have rather than running out the
+clock.&#34; This makes the cap a soft fail: the model should triage rather
+than panic. 5 is a starting number; if eval shows multi-hop questions
+hitting the cap, raise; if shows wasted searches near the cap, lower.
+
+### Reflection between searches
+
+After each tool call, the prompt requires the agent to make an explicit
+decision: stop, refine the query, decompose to a different facet, or
+admit Wikipedia doesn&#39;t have it. Four explicit branches make the
+decision tree legible to the model. This was firmed up after observing
+that Opus 4.7 sometimes gives up after one weak result.
+
+### Length: 2-4 paragraphs
+
+&#34;Thorough but not comprehensive.&#34; Not a Wikipedia dump; a focused
+answer. Single-fact questions should be short. The qualifier &#34;longer
+for genuine synthesis&#34; preserves room for multi-source questions to
+get the treatment they need.
+
+## Eval design
+
+### Hand-curated stress tests, not stratified random sampling
+
+I hand-wrote ~35 cases across 10 failure-mode categories rather than
+sampling from a public dataset like HotpotQA, SimpleQA, or TriviaQA.
+
+Trade-off accepted: no statistical confidence on average performance,
+only pattern detection. With most categories at 2–4 cases, the eval
+can detect meaningful regressions and surface failure patterns, but
+can&#39;t put confidence intervals on per-dimension means.
+
+What I gain in exchange: signal density. Every case is a hypothesis
+about a specific failure mode. Public-dataset random samples are
+mostly easy and don&#39;t stress the behaviors that drive
+prompt-engineering decisions. The hand-curated set lets every case
+inform the rubric and every failure point at a specific fix.
+
+I considered adversarial generation (red-team Claude to produce hard
+cases). Rejected for v1 because it adds setup time and yields cases
+without curation; I&#39;d rather have 35 deliberate cases than 100
+unvalidated ones.
+
+### 10 failure-mode categories
+
+Each category targets a distinct behavior the system might get wrong:
+
+| Category | What it tests |
+|---|---|
+| `simple_factual` | baseline lookup |
+| `multi_hop` | sequential A→B→C reasoning; decomposition; knowing when to stop |
+| `multi_source` | parallel info gathering across articles (covers comparative + synthesis) |
+| `disambiguation_explicit` | search returns a Wikipedia disambiguation page; pick a sense and note alternatives |
+| `buried_answer` | answer exists in the article but not in the lead extract |
+| `negative_capability` | should NOT search (math, code, opinion) |
+| `false_premise` | factually wrong premise embedded in question; surface the discrepancy |
+| `unanswerable_not_in_wp` | answerable in principle but not in Wikipedia; refuse cleanly |
+| `unanswerable_too_recent` | events past Wikipedia&#39;s freshness; cutoff caveat |
+| `temporal` | recency-bounded; caveat with last known state |
+
+Categories were honest about their statistical power. Iteration-signal
+categories (4+ cases) are `simple_factual`, `multi_hop`,
+`negative_capability`, `false_premise`. Pattern-detection categories
+(3 cases) are `multi_source`, `disambiguation_explicit`,
+`buried_answer`, `unanswerable_not_in_wp`. Alarm-only categories
+(2 cases) are `unanswerable_too_recent`, `temporal` — a single failure
+means look closer; a pass is inconclusive.
+
+### Per-dimension rubric, no cross-dimension aggregation
+
+The judge scores five dimensions 0–3:
+
+- **factual_accuracy** — does the answer match what&#39;s true
+- **groundedness** — are claims supported by retrieved content
+- **citation_quality** — are citations precise and correctly attributed
+- **search_efficiency** — were searches well-targeted, not wasteful
+- **calibration** — does the model know what it knows; refuse when
+  appropriate; surface premise discrepancies descriptively; express
+  uncertainty when warranted
+
+Aggregation rule: **no aggregation across dimensions within a single
+case.** Averaging factual_accuracy and citation_quality together is
+meaningless and obscures failures. **Per-dimension means across cases
+per iteration are computed and reported** — this is how I measure
+iteration deltas, e.g. &#34;v2 lifted factual_accuracy from 2.1 → 2.6 but
+groundedness dropped from 2.5 → 1.8.&#34;
+
+`groundedness` was added explicitly to separate it from
+`factual_accuracy`. An answer can be factually correct but ungrounded
+— the model knew it from priors, not from the retrieved content.
+That&#39;s a fail on groundedness, pass on factual_accuracy. Without the
+separation, this failure mode is invisible.
+
+### Deterministic checks alongside the judge
+
+Some failure modes don&#39;t need an LLM. Eleven checks run alongside the
+judge and produce a separate `behavior_checks` block in the result, so
+hard-fails aren&#39;t conflated with rubric scores:
+
+- `searched_when_required`, `did_not_search_when_prohibited`,
+  `not_excessive_searches`, `answer_length_plausible`
+- `has_bracket_citations`, `no_markdown_links` (split — different
+  failure modes, different fixes)
+- `has_collated_sources` (Title - URL plain-text format)
+- Four parse-warning cluster checks consuming the `ParseWarning` enum
+  emitted by the response parser:
+  - `output_has_required_blocks` (missing-block: model didn&#39;t emit
+    structure → strengthen prompt)
+  - `output_blocks_well_formed` (unclosed-tag: tried, malformed →
+    tokenization/length investigation)
+  - `output_blocks_non_empty` (empty-block: structure clean, content
+    missing → prompt requirement to populate)
+  - `output_blocks_canonical` (reversed-order or multiple-blocks: odd
+    emission → emphasize evidence-first single-block)
+
+The cluster split was a deliberate choice. An earlier draft collapsed
+all 9 parse-warning codes into one binary `no_parse_warnings` check.
+Reversed because the codes map to genuinely different fixes, and
+collapsing them hides which one is firing.
+
+### Judge sees a deliberate subset
+
+The judge prompt is built from a `JudgeInput` Pydantic model — an
+explicit data shape that makes &#34;what we send the judge&#34; readable from
+one source.
+
+Included: `question`, `expected_answer`, `expected_behavior` (the
+judge-context flags `must_surface_premise_discrepancy` and
+`must_refuse`), parsed `evidence`, parsed `answer`, `parse_warnings`,
+and `tool_calls` (each with `query` + `raw_result_str` + `latency_ms`,
+so the judge can assess groundedness against what the agent actually
+saw).
+
+Excluded: `raw_output` (we already have parsed `evidence` and `answer`
+— sending the unparsed model text would just bloat the prompt),
+`raw_messages` (the full conversation including the system prompt —
+the same across cases, redundant), and convenience fields (`queries`,
+`n_searches`, `stop_reason`, `usage`) that duplicate `tool_calls` or
+aren&#39;t relevant to the judge&#39;s task.
+
+`parse_warnings` is included as **informational context, not a scoring
+directive.** The prompt says use them to *interpret* the answer (&#34;an
+unsupported claim alongside `empty_evidence_block` reads as the model
+failing to populate evidence rather than asserting something
+ungrounded&#34;), but explicitly does NOT apply additional rubric
+penalties on this basis — the harness already records structural
+failure separately via the four parse-warning behavior checks. Without
+this guidance the judge would double-count.
+
+### Judge robustness: parse, retry, isolate
+
+The judge produces XML in a fixed schema (one `&lt;dimension&gt;` per rubric
+dimension, `&lt;reasoning&gt;` before `&lt;score&gt;`). Reasoning before score is
+per Anthropic&#39;s prompt-engineering guidance — separating reasoning
+from final output via structured tags improves calibration on judgment
+tasks.
+
+Parser handling:
+- Missing dimension → that dim&#39;s score = `None`, flagged; other dims
+  still score
+- Score out of range → clamp to 0–3 + flag
+- Malformed XML on first attempt → retry once with explicit &#34;return
+  only the `&lt;evaluation&gt;` block&#34; guidance
+- Second malformed → mark `judge_failure=true`, exclude from per-dim
+  means, surface count separately
+
+Per-dim means are computed only over cases where the judge produced
+valid output. Per-dim `judge_failure_rate` is its own metric.
+
+### Calibration
+
+The LLM judge needs validation against human judgment to be
+trustworthy. The plan: sample 5–10 cases stratified across dimensions
+and judge-score buckets, dump them to a markdown sheet for human
+review, fill in human scores via a YAML round-trip, and compute per-dim
+agreement (`|human - judge| ≤ 1`). If a dimension shows &gt;25%
+disagreement, that&#39;s signal to revise the rubric or judge prompt.
+
+YAML for the human input rather than markdown round-trip: parsing
+human-edited markdown is fragile (whitespace, partial fills, score
+formats). YAML keeps the input strict and the read-only markdown view
+separate.
+
+## What this eval measures — and what it doesn&#39;t
+
+The v1 eval measures correctness: factual_accuracy, groundedness,
+citation_quality, search_efficiency, calibration. These are the
+dimensions that determine whether the answer is right. They don&#39;t
+measure voice or tone — whether uncertainty is expressed with
+confidence or apologetically, whether surfacing a false premise feels
+respectful or corrective, whether the agent&#39;s prose has the warmth
+that distinguishes a thoughtful response from a merely competent one.
+This gap is real and deliberate. Voice failures don&#39;t surface cleanly
+in Wikipedia QA categories — they live in conversational shapes
+(frustrated users, ambiguous emotional contexts, situations requiring
+graceful uncertainty) that aren&#39;t represented in the dataset. Adding a
+voice dimension would require both case expansion and judge
+calibration against human-scored examples, since voice scoring is
+more subjective than correctness scoring and the LLM judge would need
+a more calibrated rubric to score it reliably. v2 would address this.
+For v1, the calibration dimension partially captures voice-adjacent
+behavior — &#34;surface the discrepancy without correcting&#34; is partly a
+voice question — but the rubric isn&#39;t designed to score voice as a
+first-class concern.
+
+## Iteration plan and status
+
+The brief explicitly asks for &#34;key iterations you made based on eval
+results&#34; — a single pass doesn&#39;t answer that. The plan is at least two
+iteration cycles:
+
+1. Build v1 prompt + tool, run full eval, collect per-dim scores +
+   judge reasoning + behavior_checks.
+2. Identify the lowest-scoring dimensions and the cases driving each
+   score down.
+3. Revise: prompt change, tool description change, return-shape change
+   — whichever the failures point to.
+4. Re-run, record per-dim deltas in `DECISIONS.md`.
+5. Repeat at least once more.
+
+If two iterations don&#39;t move a dimension, that&#39;s evidence the rubric
+or model itself is the bottleneck — switch axis.
+
+**Current status:** harness is built and passes 136 unit tests against
+mocked agent and judge. Full ~35-case dataset is being assembled.
+v1 baseline run is the next step.
+
+`[pending baseline]` Where v1 succeeds and where it fails.
+`[pending baseline]` Per-dimension scores at v1.
+`[pending baseline]` Iteration cycles and per-dim deltas.
+
+## Limitations and future work
+
+- **Buried-answer recovery.** Under the single-tool design with
+  `exintro=true`, the lead extract is the only article content the
+  agent ever sees. Bumping `exchars` widens the lead view but never
+  reaches into the article body. For `buried_answer` cases, recovery
+  is solely via re-searching with more specific queries that surface a
+  different article whose lead has the detail. If v1 evals show a
+  meaningful failure rate on this category, the structural fixes are:
+  (a) add `fetch_wikipedia_article(title)` as a second tool, or
+  (b) drop `exintro=true` and return more of the article body.
+
+- **Multi-turn.** v1 is single-turn (matches the brief&#39;s &#34;takes a
+  question and returns an answer&#34;). Multi-turn would enable
+  clarifying-question disambiguation but materially complicates both
+  agent loop and eval. v2.
+
+- **Voice as a first-class dimension.** See above. Requires case
+  expansion (conversational shapes, not factual ones) and judge
+  calibration against human-scored examples.
+
+- **Judge-of-judges or judge ensemble.** v1 uses a single Opus 4.7
+  judge calibrated by human spot-check. An ensemble or
+  judge-of-judges would make the calibration more robust at the cost
+  of complexity.
+
+- **Statistical significance on per-iteration deltas.** With n=35
+  cases, eyeballing per-dim score changes is fine for prompt
+  iteration. In production we&#39;d want each category at 20+ cases to
+  get confidence intervals on per-dim means.
+
+- **Per-category search budget tuning.** v1 has one global cap (5
+  calls). Multi-hop questions might need more; simple-factual might
+  benefit from less.
+
+- **Cost / latency dashboards.** Token usage is captured per-result;
+  aggregation is currently a writeup-time concern.
+
+## Time spent
+
+`[TODO: fill in once v1 is cut.]`
+
+## Stack
+
+Python 3.12+. `uv` for package management. `ruff` for format and lint.
+`mypy --strict` for types. `pytest` for tests. `pydantic` for shared
+types (validation, JSON round-trip, schema introspection). All quality
+gates green on commit.
+
+## Where the thinking lives
+
+- **`DECISIONS.md`** — append-only chronological log. Every prompt
+  change, eval observation, design pivot, and reversed call. Each
+  entry notes alternatives considered, the choice, and the reasoning.
+  This document is reconstructed from that log.
+- **`prompts/system_v1.md`** — the system prompt itself.
+- **`plans/`** — design docs written before implementation.
+- **`tests/eval/rubric.md`** — the rubric the judge sees, also the
+  human-readable reference during calibration.
+
+The decision log convention is itself a deliberate choice: the
+design-rationale deliverable is far easier to write from a live log
+than reconstructed from memory after the fact.
+</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-05-04T01-38-02-074Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-05-04T01-38-02-074Z" class="timestamp-link"><time datetime="2026-05-04T01:38:02.074Z" data-timestamp="2026-05-04T01:38:02.074Z">2026-05-04T01:38:02.074Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>File created successfully at: /Users/<user>/projects/wiki-q-and-a/WRITEUP.md</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T01-38-14-701Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T01-38-14-701Z" class="timestamp-link"><time datetime="2026-05-04T01:38:14.701Z" data-timestamp="2026-05-04T01:38:14.701Z">2026-05-04T01:38:14.701Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Drafted <code>WRITEUP.md</code>. Key things worth flagging:</p>
+<ol>
+<li>
+<p><strong>Your voice-gap paragraph is captured verbatim</strong> in its own section ("What this eval measures — and what it doesn't"), preserved as you wrote it. Headed off any urge to edit it.</p>
+</li>
+<li>
+<p><strong>Organization is thematic, not chronological.</strong> DECISIONS.md is the source-of-truth chronology; the writeup pulls the same content into reader-oriented sections (prompt approach → eval design → what we don't measure → iteration plan → limitations). When you do the style pass tomorrow you can move things around freely.</p>
+</li>
+<li>
+<p><strong><code>[pending baseline]</code> markers</strong> for the three sections that depend on actual eval results (where v1 succeeds/fails, per-dim numbers, iteration cycles + deltas). These can't be written truthfully until the v1 baseline runs. The structure is in place so filling them in is mechanical.</p>
+</li>
+<li>
+<p><strong>Time spent</strong> is <code>[TODO]</code> — for you to put in once you cut.</p>
+</li>
+<li>
+<p><strong>Stack section</strong> is light because the brief says code quality matters but isn't the primary criterion. Two paragraphs at the bottom rather than its own front-and-center section.</p>
+</li>
+</ol>
+<p>A few things you'll likely want to adjust on the style pass that I deliberately didn't tune for:</p>
+<ul>
+<li><strong>Length.</strong> The brief says "short written doc." This is on the longer end of "short" — I erred toward capturing the substance over compressing it. You'll likely cut.</li>
+<li><strong>Voice consistency.</strong> Some sections sound more clinical than the voice-gap paragraph (which is yours). The style guide tomorrow will sort that out.</li>
+<li><strong>The "iteration cycles" narrative</strong> is currently just a plan; once v1 baseline runs, this becomes the most important section of the doc and gets actual content.</li>
+</ul>
+<p>Not committed yet — wanted to let you see it first.</p></div></div></div>
+<div class="message user" id="msg-2026-05-04T01-43-00-411Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-05-04T01-43-00-411Z" class="timestamp-link"><time datetime="2026-05-04T01:43:00.411Z" data-timestamp="2026-05-04T01:43:00.411Z">2026-05-04T01:43:00.411Z</time></a></div><div class="message-content">
+<div class="user-content"><p>one more - that i used an agent to create the gold eval set.</p></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T01-43-24-280Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T01-43-24-280Z" class="timestamp-link"><time datetime="2026-05-04T01:43:24.280Z" data-timestamp="2026-05-04T01:43:24.280Z">2026-05-04T01:43:24.280Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message tool-reply" id="msg-2026-05-04T01-43-36-075Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-05-04T01-43-36-075Z" class="timestamp-link"><time datetime="2026-05-04T01:43:36.075Z" data-timestamp="2026-05-04T01:43:36.075Z">2026-05-04T01:43:36.075Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file /Users/<user>/projects/wiki-q-and-a/WRITEUP.md has been updated successfully.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T01-43-24-998Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T01-43-24-998Z" class="timestamp-link"><time datetime="2026-05-04T01:43:24.998Z" data-timestamp="2026-05-04T01:43:24.998Z">2026-05-04T01:43:24.998Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Adding two things: adjusting the dataset-creation language to be accurate, and adding an explicit "Use of AI in development" section since the brief asks for this and the AI transcripts are a graded deliverable.</p></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T01-43-36-043Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T01-43-36-043Z" class="timestamp-link"><time datetime="2026-05-04T01:43:36.043Z" data-timestamp="2026-05-04T01:43:36.043Z">2026-05-04T01:43:36.043Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_012neLxgsEG5jjGAh2gaCjg4">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">WRITEUP.md</span></div>
+<div class="file-tool-fullpath">/Users/<user>/projects/wiki-q-and-a/WRITEUP.md</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">### Hand-curated stress tests, not stratified random sampling
+
+I hand-wrote ~35 cases across 10 failure-mode categories rather than
+sampling from a public dataset like HotpotQA, SimpleQA, or TriviaQA.
+
+Trade-off accepted: no statistical confidence on average performance,
+only pattern detection. With most categories at 2–4 cases, the eval
+can detect meaningful regressions and surface failure patterns, but
+can&#39;t put confidence intervals on per-dimension means.
+
+What I gain in exchange: signal density. Every case is a hypothesis
+about a specific failure mode. Public-dataset random samples are
+mostly easy and don&#39;t stress the behaviors that drive
+prompt-engineering decisions. The hand-curated set lets every case
+inform the rubric and every failure point at a specific fix.
+
+I considered adversarial generation (red-team Claude to produce hard
+cases). Rejected for v1 because it adds setup time and yields cases
+without curation; I&#39;d rather have 35 deliberate cases than 100
+unvalidated ones.</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">### Hand-curated stress tests, not stratified random sampling
+
+The eval set is ~35 cases across 10 failure-mode categories rather
+than a sample from a public dataset like HotpotQA, SimpleQA, or
+TriviaQA. The taxonomy, per-category counts, difficulty mix, and
+`expected_behavior` flag semantics are mine; an agent drafted
+individual cases (questions, gold answers, notes) within those
+constraints, and I reviewed before they entered the dataset. See
+&#34;Use of AI in development&#34; below for a fuller account of how the
+agent was directed and what review I applied.
+
+Trade-off accepted: no statistical confidence on average performance,
+only pattern detection. With most categories at 2–4 cases, the eval
+can detect meaningful regressions and surface failure patterns, but
+can&#39;t put confidence intervals on per-dimension means.
+
+What I gain in exchange: signal density. Every case is a hypothesis
+about a specific failure mode. Public-dataset random samples are
+mostly easy and don&#39;t stress the behaviors that drive
+prompt-engineering decisions. The curated set lets every case inform
+the rubric and every failure point at a specific fix.
+
+I considered adversarial generation (red-team Claude to produce hard
+cases). Rejected for v1 because it adds setup time and yields cases
+without curation; I&#39;d rather have 35 deliberate cases than 100
+unvalidated ones.</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message assistant" id="msg-2026-05-04T01-43-56-266Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T01-43-56-266Z" class="timestamp-link"><time datetime="2026-05-04T01:43:56.266Z" data-timestamp="2026-05-04T01:43:56.266Z">2026-05-04T01:43:56.266Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_01YCRVnEKrhZi6cHqDw1KdNu">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">WRITEUP.md</span></div>
+<div class="file-tool-fullpath">/Users/<user>/projects/wiki-q-and-a/WRITEUP.md</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">## Time spent
+
+`[TODO: fill in once v1 is cut.]`
+
+## Stack</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">## Use of AI in development
+
+The brief expects AI tooling during development and asks for transcripts
+alongside the code. Brief account of where AI was used and what
+judgment I applied:
+
+**Code (Claude Code).** Most of the implementation was written in a
+parallel two-agent setup: one agent built the Wikipedia integration,
+agent loop, and parser; another built the eval harness against the
+shared `agent_contract.py`. I directed both: defined the contract,
+specified the architecture, called the design choices, pushed back on
+proposals (e.g. collapsed parse-warning checks → split into clusters;
+single citation check → split into bracket-presence and
+no-markdown-links because the failure modes need different fixes;
+single-string `answer` field → split into `evidence` / `answer` /
+`raw_output` because the prior shape was hiding the output structure).
+Every design decision logged in `DECISIONS.md` is mine; the agents
+implemented them.
+
+**Eval cases.** I designed the failure-mode taxonomy (10 categories),
+the per-category counts and difficulty mix, and the
+`expected_behavior` flag semantics. An agent drafted individual cases
+(questions, gold answers, notes) within those constraints. I reviewed
+each case before it entered the dataset and edited where the draft
+missed the failure mode it was supposed to test. The judgment that
+matters here is taxonomic: deciding which behaviors are worth testing
+(and which aren&#39;t — see the v1 voice gap above), and how many cases
+each one warrants given the trade-off between signal density and
+budget.
+
+**System prompt.** The prompt itself went through several iterations
+where I drafted, an agent suggested edits, I accepted or rejected.
+The reversed false-premise framing (correct → surface the discrepancy)
+is a representative example of where I rejected an agent suggestion
+on customer-tone grounds and the change rippled through the rubric,
+the dataset flag name, and the prompt&#39;s edge-cases section.
+
+**What I did not let the AI do unsupervised:** define the rubric
+dimensions, set the agent ↔ harness contract, or accept design
+proposals without writing them into `DECISIONS.md` first. The decision
+log is the surface where my judgment is auditable.
+
+Transcripts: `[TODO: link to the Claude Code transcript artifact when
+generated.]`
+
+## Time spent
+
+`[TODO: fill in once v1 is cut.]`
+
+## Stack</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-05-04T01-43-56-295Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-05-04T01-43-56-295Z" class="timestamp-link"><time datetime="2026-05-04T01:43:56.295Z" data-timestamp="2026-05-04T01:43:56.295Z">2026-05-04T01:43:56.295Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file /Users/<user>/projects/wiki-q-and-a/WRITEUP.md has been updated successfully.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T01-44-06-878Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T01-44-06-878Z" class="timestamp-link"><time datetime="2026-05-04T01:44:06.878Z" data-timestamp="2026-05-04T01:44:06.878Z">2026-05-04T01:44:06.878Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Two changes:</p>
+<ol>
+<li>
+<p><strong>Eval-set subsection rewritten</strong> — replaced "I hand-wrote ~35 cases" with an honest split: I owned the taxonomy / category counts / difficulty mix / flag semantics; an agent drafted individual cases within those constraints; I reviewed before they entered the dataset.</p>
+</li>
+<li>
+<p><strong>New "Use of AI in development" section</strong> added before "Time spent." Four parts:</p>
+</li>
+<li><strong>Code</strong> — describes the two-agent parallel setup, with concrete examples of where I pushed back on proposals (parse-warning collapse → split, single citation check → split, single <code>answer</code> field → split into evidence/answer/raw_output).</li>
+<li><strong>Eval cases</strong> — repeats the human-design / agent-drafting / human-review split, but goes further to call out <em>what kind of judgment matters</em> (the taxonomic decisions: which behaviors are worth testing).</li>
+<li><strong>System prompt</strong> — uses the reversed false-premise framing as the representative example of where I rejected an AI suggestion on tone grounds.</li>
+<li><strong>What I didn't let the AI do unsupervised</strong> — rubric dimensions, contract definition, accepting designs without DECISIONS entries first.</li>
+</ol>
+<p>Closes with a <code>[TODO]</code> for the transcript link.</p>
+<p>The framing throughout is "I directed; agents implemented." That's both true and what the brief is grading — the relevant evidence is the DECISIONS log itself, which the section explicitly points at.</p>
+<p>A small editorial choice worth flagging: I wrote "Every design decision logged in <code>DECISIONS.md</code> is mine; the agents implemented them." That's a strong claim. If on the style-pass tomorrow you find some entries where the agent's framing actually drove the call, you may want to soften it. But based on how this session went, it reads accurate to me.</p></div></div></div>
+<div class="message user" id="msg-2026-05-04T01-45-30-162Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-05-04T01-45-30-162Z" class="timestamp-link"><time datetime="2026-05-04T01:45:30.162Z" data-timestamp="2026-05-04T01:45:30.162Z">2026-05-04T01:45:30.162Z</time></a></div><div class="message-content">
+<div class="user-content"><p>yeah - i will audit (and will also extract the transcript and get you to fact check).
+on approach, we took a two agent approach - one to query wiki, and one to build the eval harness. is that in the doc too? the pydantic data model was the hardened contract allowing for independent evolution</p></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T01-46-04-179Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T01-46-04-179Z" class="timestamp-link"><time datetime="2026-05-04T01:46:04.179Z" data-timestamp="2026-05-04T01:46:04.179Z">2026-05-04T01:46:04.179Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T01-46-05-254Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T01-46-05-254Z" class="timestamp-link"><time datetime="2026-05-04T01:46:05.254Z" data-timestamp="2026-05-04T01:46:05.254Z">2026-05-04T01:46:05.254Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>You're right — that's an approach point, not just an AI-use detail, and the contract being the hardened boundary is the key bit. Pulling it into its own section near the top.</p></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T01-46-19-654Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T01-46-19-654Z" class="timestamp-link"><time datetime="2026-05-04T01:46:19.654Z" data-timestamp="2026-05-04T01:46:19.654Z">2026-05-04T01:46:19.654Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_01HjWUZAAWrN1iiFk7MARdVD">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">WRITEUP.md</span></div>
+<div class="file-tool-fullpath">/Users/<user>/projects/wiki-q-and-a/WRITEUP.md</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">Model choice: Opus 4.7 for both the agent and the judge. The reasoning
+was to set the quality ceiling first and downgrade on eval evidence
+rather than start middle and try to climb. Cost is not a real
+constraint at this scale (a few hundred API calls total). The
+downgrade story (Opus → Sonnet → Haiku, with measured per-dim deltas)
+is itself a useful artifact for this writeup. Both models are
+overridable via `WIKI_QA_AGENT_MODEL` / `WIKI_QA_JUDGE_MODEL` env
+vars so the experiment is a one-line flip.
+
+## Prompt engineering approach</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">Model choice: Opus 4.7 for both the agent and the judge. The reasoning
+was to set the quality ceiling first and downgrade on eval evidence
+rather than start middle and try to climb. Cost is not a real
+constraint at this scale (a few hundred API calls total). The
+downgrade story (Opus → Sonnet → Haiku, with measured per-dim deltas)
+is itself a useful artifact for this writeup. Both models are
+overridable via `WIKI_QA_AGENT_MODEL` / `WIKI_QA_JUDGE_MODEL` env
+vars so the experiment is a one-line flip.
+
+## Development approach: two parallel workstreams with a hardened contract
+
+The implementation was split into two parallel workstreams, each
+driven by its own agent under my direction:
+
+- **Workstream A** — Wikipedia integration (`search_wikipedia`,
+  MediaWiki client, response formatter), agent loop, output parser,
+  system prompt iterations.
+- **Workstream B** — eval harness (dataset loader, behavior_checks,
+  runner, judge, CLI).
+
+The two could evolve independently because they shared a single
+**hardened contract** at `src/wiki_qa/agent_contract.py`: a Pydantic
+`BaseModel` with `model_config = ConfigDict(frozen=True,
+extra=&#34;forbid&#34;)`. Pydantic over `@dataclass(frozen=True)` was a
+deliberate choice — captured in the project&#39;s `CLAUDE.md` &#34;Shared
+types&#34; rule and applied to every type that crosses a workstream
+boundary or hits disk:
+
+- **Validation at construction.** Both sides get type checking and
+  required-field enforcement immediately, not at first use.
+- **`extra=&#34;forbid&#34;`.** Contract drift is loud rather than silent. If
+  one side adds a field without updating the contract, the other side
+  fails at construction with a clear error rather than dropping it.
+- **JSON round-trip out of the box.** `model_dump_json()` /
+  `model_validate_json()` make `results.jsonl` a first-class artifact
+  — every `EvalResult` round-trips for inspection or re-analysis.
+- **Schema introspection.** Cross-workstream coordination doesn&#39;t
+  require reading source files; the schema is queryable.
+
+Concrete payoffs the contract earned during the build:
+
+- When workstream A added the `ParseWarning` enum and a
+  `parse_warnings` field on `AgentResult`, workstream B picked it up
+  with zero breakage (the field defaulted to `[]`), and I added four
+  cluster-based deterministic checks consuming the new signal in the
+  same session.
+- When the contract was migrated mid-build from `@dataclass` to
+  Pydantic, and the single `answer: str` was split into
+  `evidence` / `answer` / `raw_output` to reflect the two-block output
+  structure, both sides updated cleanly because the contract was the
+  single source of truth — no duplicate definitions to keep in sync.
+
+Risk the approach creates: the harness codes against a contract that
+drifts. Mitigation: define the contract first, treat it as frozen
+until v1 eval is green, and route every change through an explicit
+`DECISIONS.md` entry so the rationale survives the change.
+
+## Prompt engineering approach</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-05-04T01-46-19-718Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-05-04T01-46-19-718Z" class="timestamp-link"><time datetime="2026-05-04T01:46:19.718Z" data-timestamp="2026-05-04T01:46:19.718Z">2026-05-04T01:46:19.718Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file /Users/<user>/projects/wiki-q-and-a/WRITEUP.md has been updated successfully.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T01-46-22-630Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T01-46-22-630Z" class="timestamp-link"><time datetime="2026-05-04T01:46:22.630Z" data-timestamp="2026-05-04T01:46:22.630Z">2026-05-04T01:46:22.630Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Now trimming the redundant mention in the "Use of AI" section so it points back to the new approach section instead of restating.</p></div></div></div>
+<div class="message tool-reply" id="msg-2026-05-04T01-46-31-199Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-05-04T01-46-31-199Z" class="timestamp-link"><time datetime="2026-05-04T01:46:31.199Z" data-timestamp="2026-05-04T01:46:31.199Z">2026-05-04T01:46:31.199Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file /Users/<user>/projects/wiki-q-and-a/WRITEUP.md has been updated successfully.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T01-46-31-168Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T01-46-31-168Z" class="timestamp-link"><time datetime="2026-05-04T01:46:31.168Z" data-timestamp="2026-05-04T01:46:31.168Z">2026-05-04T01:46:31.168Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_01KKQHJMU1oR6bb4Vhr9EbZg">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">WRITEUP.md</span></div>
+<div class="file-tool-fullpath">/Users/<user>/projects/wiki-q-and-a/WRITEUP.md</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">**Code (Claude Code).** Most of the implementation was written in a
+parallel two-agent setup: one agent built the Wikipedia integration,
+agent loop, and parser; another built the eval harness against the
+shared `agent_contract.py`. I directed both: defined the contract,
+specified the architecture, called the design choices, pushed back on
+proposals (e.g. collapsed parse-warning checks → split into clusters;
+single citation check → split into bracket-presence and
+no-markdown-links because the failure modes need different fixes;
+single-string `answer` field → split into `evidence` / `answer` /
+`raw_output` because the prior shape was hiding the output structure).
+Every design decision logged in `DECISIONS.md` is mine; the agents
+implemented them.</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">**Code (Claude Code).** The two-workstream split (see &#34;Development
+approach&#34; above) put one agent on the Wikipedia / agent / parser side
+and another on the eval harness, both coding against the shared
+Pydantic contract. I directed both: defined the contract, specified
+the architecture, called the design choices, pushed back on proposals.
+Representative pushbacks: collapsed parse-warning checks → split into
+four clusters because the failure modes need different fixes; single
+citation check → split into `has_bracket_citations` and
+`no_markdown_links` for the same reason; single-string `answer` field
+→ split into `evidence` / `answer` / `raw_output` because the prior
+shape was hiding the output structure. Every design decision logged
+in `DECISIONS.md` is mine; the agents implemented them.</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message assistant" id="msg-2026-05-04T01-46-41-666Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T01-46-41-666Z" class="timestamp-link"><time datetime="2026-05-04T01:46:41.666Z" data-timestamp="2026-05-04T01:46:41.666Z">2026-05-04T01:46:41.666Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Done. Now the writeup has the two-workstream approach as a proper top-level section with the contract reasoning where it belongs, and the AI-use section refers back instead of restating.</p>
+<p>The new section sits right after model choice and before the prompt-engineering content, so a reviewer reads:</p>
+<ol>
+<li>What this is (system summary, model choice)</li>
+<li><strong>Development approach</strong> (two workstreams + Pydantic contract as boundary) ← new</li>
+<li>Prompt engineering approach</li>
+<li>Eval design</li>
+<li>...</li>
+</ol>
+<p>Three concrete points the new section makes:</p>
+<ul>
+<li><strong>The contract is what enabled independent evolution.</strong> Without the hardened boundary, the two agents would either step on each other or one would block the other.</li>
+<li><strong>Pydantic specifically buys four things</strong> the project actually uses (validation, <code>extra="forbid"</code>, JSON round-trip, schema introspection). Listed concretely rather than as abstract benefits.</li>
+<li><strong>Two concrete payoffs from the build itself</strong>: the <code>parse_warnings</code> addition and the dataclass→Pydantic+evidence/answer split. These are receipts that the boundary actually held under change.</li>
+</ul>
+<p>One thing to flag for your audit pass tomorrow: I claim "every design decision logged in <code>DECISIONS.md</code> is mine; the agents implemented them." If you want to soften that to something like "every design decision in <code>DECISIONS.md</code> was either mine or run by me before the change landed," that's probably more defensible — there are likely some places where the agent's framing of an issue surfaced something I then decided on. The current wording is stronger than necessary.</p></div></div></div>
+<div class="message user" id="msg-2026-05-04T01-47-20-889Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-05-04T01-47-20-889Z" class="timestamp-link"><time datetime="2026-05-04T01:47:20.889Z" data-timestamp="2026-05-04T01:47:20.889Z">2026-05-04T01:47:20.889Z</time></a></div><div class="message-content">
+<div class="user-content"><blockquote>
+<p>If you want to
+  soften that to something like "every design decision in DECISIONS.md was either mine or run by me before the change landed
+that's fair</p>
+</blockquote></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T01-47-23-419Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T01-47-23-419Z" class="timestamp-link"><time datetime="2026-05-04T01:47:23.419Z" data-timestamp="2026-05-04T01:47:23.419Z">2026-05-04T01:47:23.419Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T01-47-24-520Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T01-47-24-520Z" class="timestamp-link"><time datetime="2026-05-04T01:47:24.520Z" data-timestamp="2026-05-04T01:47:24.520Z">2026-05-04T01:47:24.520Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_01KZxrFekSg6AcyNGQoov9Ha">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">WRITEUP.md</span></div>
+<div class="file-tool-fullpath">/Users/<user>/projects/wiki-q-and-a/WRITEUP.md</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">Every design decision logged
+in `DECISIONS.md` is mine; the agents implemented them.</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">Every design decision in
+`DECISIONS.md` was either mine or run by me before the change landed;
+the agents implemented them.</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-05-04T01-47-24-548Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-05-04T01-47-24-548Z" class="timestamp-link"><time datetime="2026-05-04T01:47:24.548Z" data-timestamp="2026-05-04T01:47:24.548Z">2026-05-04T01:47:24.548Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file /Users/<user>/projects/wiki-q-and-a/WRITEUP.md has been updated successfully.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T01-47-26-527Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T01-47-26-527Z" class="timestamp-link"><time datetime="2026-05-04T01:47:26.527Z" data-timestamp="2026-05-04T01:47:26.527Z">2026-05-04T01:47:26.527Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Done. Softened to the more defensible framing.</p></div></div></div>
+<div class="message user" id="msg-2026-05-04T02-48-48-311Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-05-04T02-48-48-311Z" class="timestamp-link"><time datetime="2026-05-04T02:48:48.311Z" data-timestamp="2026-05-04T02:48:48.311Z">2026-05-04T02:48:48.311Z</time></a></div><div class="message-content">
+<div class="user-content"><blockquote>
+<p>Both models are
+overridable via <code>WIKI_QA_AGENT_MODEL</code> / <code>WIKI_QA_JUDGE_MODEL</code> 
+check the code please - i want to make sure this is accurate</p>
+</blockquote></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T02-48-59-029Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T02-48-59-029Z" class="timestamp-link"><time datetime="2026-05-04T02:48:59.029Z" data-timestamp="2026-05-04T02:48:59.029Z">2026-05-04T02:48:59.029Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T02-49-00-533Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T02-49-00-533Z" class="timestamp-link"><time datetime="2026-05-04T02:49:00.533Z" data-timestamp="2026-05-04T02:49:00.533Z">2026-05-04T02:49:00.533Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01Gi8WLMqzGWwcQSRbRLV1Ye">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Find every reference to the agent and judge model env vars</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">grep -rn &#34;WIKI_QA_AGENT_MODEL\|WIKI_QA_JUDGE_MODEL&#34; /Users/<user>/projects/wiki-q-and-a/src/ /Users/<user>/projects/wiki-q-and-a/tests/ /Users/<user>/projects/wiki-q-and-a/.env.example 2&gt;&amp;1 | grep -v __pycache__</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-05-04T02-49-01-069Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-05-04T02-49-01-069Z" class="timestamp-link"><time datetime="2026-05-04T02:49:01.069Z" data-timestamp="2026-05-04T02:49:01.069Z">2026-05-04T02:49:01.069Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>/Users/<user>/projects/wiki-q-and-a/src/wiki_qa/agent.py:3:Reads model id from `WIKI_QA_AGENT_MODEL` (default `claude-opus-4-7`), system
+/Users/<user>/projects/wiki-q-and-a/src/wiki_qa/agent.py:73:    model = os.environ.get(&quot;WIKI_QA_AGENT_MODEL&quot;, _DEFAULT_MODEL)
+/Users/<user>/projects/wiki-q-and-a/src/wiki_qa/eval/judge.py:27:imports the Anthropic SDK and respects `WIKI_QA_JUDGE_MODEL`. No real
+/Users/<user>/projects/wiki-q-and-a/src/wiki_qa/eval/judge.py:54:JUDGE_MODEL_ENV_VAR = &quot;WIKI_QA_JUDGE_MODEL&quot;
+/Users/<user>/projects/wiki-q-and-a/tests/unit/test_agent.py:313:        monkeypatch.setenv(&quot;WIKI_QA_AGENT_MODEL&quot;, &quot;claude-test-model&quot;)
+/Users/<user>/projects/wiki-q-and-a/tests/unit/test_agent.py:325:        monkeypatch.delenv(&quot;WIKI_QA_AGENT_MODEL&quot;, raising=False)
+/Users/<user>/projects/wiki-q-and-a/.env.example:8:# WIKI_QA_AGENT_MODEL=claude-opus-4-7
+/Users/<user>/projects/wiki-q-and-a/.env.example:9:# WIKI_QA_JUDGE_MODEL=claude-opus-4-7</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T02-49-03-978Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T02-49-03-978Z" class="timestamp-link"><time datetime="2026-05-04T02:49:03.978Z" data-timestamp="2026-05-04T02:49:03.978Z">2026-05-04T02:49:03.978Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_015ntJgwcZkLXFmkv1TNz25h"><div class="tool-header"><span class="tool-icon">⚙</span> Read</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;file_path&#34;: &#34;/Users/<user>/projects/wiki-q-and-a/src/wiki_qa/agent.py&#34;,
+  &#34;offset&#34;: 68,
+  &#34;limit&#34;: 8
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-05-04T02-49-04-007Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-05-04T02-49-04-007Z" class="timestamp-link"><time datetime="2026-05-04T02:49:04.007Z" data-timestamp="2026-05-04T02:49:04.007Z">2026-05-04T02:49:04.007Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>68	    if client is None:
+69	        client = anthropic.Anthropic()
+70	    if system_prompt is None:
+71	        system_prompt = _load_system_prompt()
+72	
+73	    model = os.environ.get(&quot;WIKI_QA_AGENT_MODEL&quot;, _DEFAULT_MODEL)
+74	
+75	    messages: list[dict[str, Any]] = [{&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: question}]</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T02-49-07-084Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T02-49-07-084Z" class="timestamp-link"><time datetime="2026-05-04T02:49:07.084Z" data-timestamp="2026-05-04T02:49:07.084Z">2026-05-04T02:49:07.084Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01RSHwAieghDxhSyWtVUxq44"><div class="tool-header"><span class="tool-icon">⚙</span> Read</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;file_path&#34;: &#34;/Users/<user>/projects/wiki-q-and-a/src/wiki_qa/eval/judge.py&#34;,
+  &#34;offset&#34;: 350,
+  &#34;limit&#34;: 15
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-05-04T02-49-07-092Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-05-04T02-49-07-092Z" class="timestamp-link"><time datetime="2026-05-04T02:49:07.092Z" data-timestamp="2026-05-04T02:49:07.092Z">2026-05-04T02:49:07.092Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>350	    import anthropic
+351	
+352	    client = anthropic.Anthropic()
+353	    model = os.environ.get(JUDGE_MODEL_ENV_VAR, DEFAULT_JUDGE_MODEL)
+354	    response = client.messages.create(
+355	        model=model,
+356	        max_tokens=4000,
+357	        messages=[{&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: prompt}],
+358	    )
+359	    parts = []
+360	    for block in response.content:
+361	        if hasattr(block, &quot;text&quot;):
+362	            parts.append(block.text)
+363	    return &quot;&quot;.join(parts)
+364	</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T02-49-15-972Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T02-49-15-972Z" class="timestamp-link"><time datetime="2026-05-04T02:49:15.972Z" data-timestamp="2026-05-04T02:49:15.972Z">2026-05-04T02:49:15.972Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Both are wired correctly. Verified:</p>
+<table>
+<thead>
+<tr>
+<th>Env var</th>
+<th>Read in</th>
+<th>Default</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>WIKI_QA_AGENT_MODEL</code></td>
+<td><code>src/wiki_qa/agent.py:73</code></td>
+<td><code>_DEFAULT_MODEL</code> (<code>claude-opus-4-7</code>)</td>
+<td>✅</td>
+</tr>
+<tr>
+<td><code>WIKI_QA_JUDGE_MODEL</code></td>
+<td><code>src/wiki_qa/eval/judge.py:353</code> (via <code>JUDGE_MODEL_ENV_VAR</code> constant)</td>
+<td><code>DEFAULT_JUDGE_MODEL</code> (<code>claude-opus-4-7</code>)</td>
+<td>✅</td>
+</tr>
+</tbody>
+</table>
+<p>Both env vars are documented in <code>.env.example</code> (lines 8–9). The agent side has a unit test (<code>tests/unit/test_agent.py:313</code> uses <code>monkeypatch.setenv("WIKI_QA_AGENT_MODEL", "claude-test-model")</code> to verify the override is honored). The judge side has a defensive test in <code>test_judge.py</code> that patches <code>llm_fn</code> so the env var path isn't exercised, but the code path is straightforward — same pattern, same <code>os.environ.get</code> call.</p>
+<p>The writeup claim is accurate.</p>
+<p>One minor inconsistency worth flagging: the agent reads via a string literal (<code>os.environ.get("WIKI_QA_AGENT_MODEL", ...)</code>) while the judge uses a module-level constant (<code>JUDGE_MODEL_ENV_VAR = "WIKI_QA_JUDGE_MODEL"</code>). Both work; the judge's approach is slightly more refactor-safe. Not worth changing now, but if a style pass touches <code>agent.py</code> later you might want to lift the env var name to a constant for symmetry.</p></div></div></div>
+        
+
+<div class="pagination">
+<a href="index.html" class="index-link">Index</a>
+<a href="page-005.html">&larr; Prev</a>
+<a href="page-001.html">1</a>
+<a href="page-002.html">2</a>
+<a href="page-003.html">3</a>
+<a href="page-004.html">4</a>
+<a href="page-005.html">5</a>
+<span class="current">6</span>
+<a href="page-007.html">7</a>
+<a href="page-008.html">8</a>
+<a href="page-009.html">9</a>
+<a href="page-010.html">10</a>
+<a href="page-011.html">11</a>
+<a href="page-012.html">12</a>
+<a href="page-013.html">13</a>
+<a href="page-014.html">14</a>
+<a href="page-015.html">15</a>
+<a href="page-016.html">16</a>
+<a href="page-017.html">17</a>
+<a href="page-018.html">18</a>
+<a href="page-019.html">19</a>
+<a href="page-020.html">20</a>
+<a href="page-021.html">21</a>
+<a href="page-007.html">Next &rarr;</a>
+</div>
+
+    </div>
+    <script>
+document.querySelectorAll('time[data-timestamp]').forEach(function(el) {
+    const timestamp = el.getAttribute('data-timestamp');
+    const date = new Date(timestamp);
+    const now = new Date();
+    const isToday = date.toDateString() === now.toDateString();
+    const timeStr = date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+    if (isToday) { el.textContent = timeStr; }
+    else { el.textContent = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) + ' ' + timeStr; }
+});
+document.querySelectorAll('pre.json').forEach(function(el) {
+    let text = el.textContent;
+    text = text.replace(/"([^"]+)":/g, '<span style="color: #ce93d8">"$1"</span>:');
+    text = text.replace(/: "([^"]*)"/g, ': <span style="color: #81d4fa">"$1"</span>');
+    text = text.replace(/: (\d+)/g, ': <span style="color: #ffcc80">$1</span>');
+    text = text.replace(/: (true|false|null)/g, ': <span style="color: #f48fb1">$1</span>');
+    el.innerHTML = text;
+});
+document.querySelectorAll('.truncatable').forEach(function(wrapper) {
+    const content = wrapper.querySelector('.truncatable-content');
+    const btn = wrapper.querySelector('.expand-btn');
+    if (content.scrollHeight > 250) {
+        wrapper.classList.add('truncated');
+        btn.addEventListener('click', function() {
+            if (wrapper.classList.contains('truncated')) { wrapper.classList.remove('truncated'); wrapper.classList.add('expanded'); btn.textContent = 'Show less'; }
+            else { wrapper.classList.remove('expanded'); wrapper.classList.add('truncated'); btn.textContent = 'Show more'; }
+        });
+    }
+});
+</script>
+</body>
+</html>

@@ -1,12 +1,8 @@
 # wiki-q-and-a
 
-Take-home assignment: a Claude + Wikipedia question-answering system, plus an
-eval harness that measures how well it works.
-
-The brief is to design a system prompt and a `search_wikipedia(query: str)`
-tool, wire up Wikipedia retrieval end-to-end, and build an eval suite. This
-repo is the runnable prototype, the harness, and the design log all in one
-place.
+A Wikipedia-grounded QA system built on Claude, with an eval harness measuring
+5 rubric dimensions and 11 deterministic behavior checks. Submitted as an
+Anthropic take-home; see `WRITEUP.md` for the design rationale.
 
 ## What's here
 

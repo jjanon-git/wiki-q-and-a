@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claude Code transcript - page 15</title>
+    <style>
+:root { --bg-color: #f5f5f5; --card-bg: #ffffff; --user-bg: #e3f2fd; --user-border: #1976d2; --assistant-bg: #f5f5f5; --assistant-border: #9e9e9e; --thinking-bg: #fff8e1; --thinking-border: #ffc107; --thinking-text: #666; --tool-bg: #f3e5f5; --tool-border: #9c27b0; --tool-result-bg: #e8f5e9; --tool-error-bg: #ffebee; --text-color: #212121; --text-muted: #757575; --code-bg: #263238; --code-text: #aed581; }
+* { box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg-color); color: var(--text-color); margin: 0; padding: 16px; line-height: 1.6; }
+.container { max-width: 800px; margin: 0 auto; }
+h1 { font-size: 1.5rem; margin-bottom: 24px; padding-bottom: 8px; border-bottom: 2px solid var(--user-border); }
+.header-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; border-bottom: 2px solid var(--user-border); padding-bottom: 8px; margin-bottom: 24px; }
+.header-row h1 { border-bottom: none; padding-bottom: 0; margin-bottom: 0; flex: 1; min-width: 200px; }
+.message { margin-bottom: 16px; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.message.user { background: var(--user-bg); border-left: 4px solid var(--user-border); }
+.message.assistant { background: var(--card-bg); border-left: 4px solid var(--assistant-border); }
+.message.tool-reply { background: #fff8e1; border-left: 4px solid #ff9800; }
+.tool-reply .role-label { color: #e65100; }
+.tool-reply .tool-result { background: transparent; padding: 0; margin: 0; }
+.tool-reply .tool-result .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff8e1); }
+.message-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; background: rgba(0,0,0,0.03); font-size: 0.85rem; }
+.role-label { font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+.user .role-label { color: var(--user-border); }
+time { color: var(--text-muted); font-size: 0.8rem; }
+.timestamp-link { color: inherit; text-decoration: none; }
+.timestamp-link:hover { text-decoration: underline; }
+.message:target { animation: highlight 2s ease-out; }
+@keyframes highlight { 0% { background-color: rgba(25, 118, 210, 0.2); } 100% { background-color: transparent; } }
+.message-content { padding: 16px; }
+.message-content p { margin: 0 0 12px 0; }
+.message-content p:last-child { margin-bottom: 0; }
+.thinking { background: var(--thinking-bg); border: 1px solid var(--thinking-border); border-radius: 8px; padding: 12px; margin: 12px 0; font-size: 0.9rem; color: var(--thinking-text); }
+.thinking-label { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; color: #f57c00; margin-bottom: 8px; }
+.thinking p { margin: 8px 0; }
+.assistant-text { margin: 8px 0; }
+.tool-use { background: var(--tool-bg); border: 1px solid var(--tool-border); border-radius: 8px; padding: 12px; margin: 12px 0; }
+.tool-header { font-weight: 600; color: var(--tool-border); margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+.tool-icon { font-size: 1.1rem; }
+.tool-description { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 8px; font-style: italic; }
+.tool-result { background: var(--tool-result-bg); border-radius: 8px; padding: 12px; margin: 12px 0; }
+.tool-result.tool-error { background: var(--tool-error-bg); }
+.file-tool { border-radius: 8px; padding: 12px; margin: 12px 0; }
+.write-tool { background: linear-gradient(135deg, #e3f2fd 0%, #e8f5e9 100%); border: 1px solid #4caf50; }
+.edit-tool { background: linear-gradient(135deg, #fff3e0 0%, #fce4ec 100%); border: 1px solid #ff9800; }
+.file-tool-header { font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
+.write-header { color: #2e7d32; }
+.edit-header { color: #e65100; }
+.file-tool-icon { font-size: 1rem; }
+.file-tool-path { font-family: monospace; background: rgba(0,0,0,0.08); padding: 2px 8px; border-radius: 4px; }
+.file-tool-fullpath { font-family: monospace; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px; word-break: break-all; }
+.file-content { margin: 0; }
+.edit-section { display: flex; margin: 4px 0; border-radius: 4px; overflow: hidden; }
+.edit-label { padding: 8px 12px; font-weight: bold; font-family: monospace; display: flex; align-items: flex-start; }
+.edit-old { background: #fce4ec; }
+.edit-old .edit-label { color: #b71c1c; background: #f8bbd9; }
+.edit-old .edit-content { color: #880e4f; }
+.edit-new { background: #e8f5e9; }
+.edit-new .edit-label { color: #1b5e20; background: #a5d6a7; }
+.edit-new .edit-content { color: #1b5e20; }
+.edit-content { margin: 0; flex: 1; background: transparent; font-size: 0.85rem; }
+.edit-replace-all { font-size: 0.75rem; font-weight: normal; color: var(--text-muted); }
+.write-tool .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #e6f4ea); }
+.edit-tool .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff0e5); }
+.todo-list { background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%); border: 1px solid #81c784; border-radius: 8px; padding: 12px; margin: 12px 0; }
+.todo-header { font-weight: 600; color: #2e7d32; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
+.todo-items { list-style: none; margin: 0; padding: 0; }
+.todo-item { display: flex; align-items: flex-start; gap: 10px; padding: 6px 0; border-bottom: 1px solid rgba(0,0,0,0.06); font-size: 0.9rem; }
+.todo-item:last-child { border-bottom: none; }
+.todo-icon { flex-shrink: 0; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-weight: bold; border-radius: 50%; }
+.todo-completed .todo-icon { color: #2e7d32; background: rgba(46, 125, 50, 0.15); }
+.todo-completed .todo-content { color: #558b2f; text-decoration: line-through; }
+.todo-in-progress .todo-icon { color: #f57c00; background: rgba(245, 124, 0, 0.15); }
+.todo-in-progress .todo-content { color: #e65100; font-weight: 500; }
+.todo-pending .todo-icon { color: #757575; background: rgba(0,0,0,0.05); }
+.todo-pending .todo-content { color: #616161; }
+pre { background: var(--code-bg); color: var(--code-text); padding: 12px; border-radius: 6px; overflow-x: auto; font-size: 0.85rem; line-height: 1.5; margin: 8px 0; white-space: pre-wrap; word-wrap: break-word; }
+pre.json { color: #e0e0e0; }
+code { background: rgba(0,0,0,0.08); padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+pre code { background: none; padding: 0; }
+.user-content { margin: 0; }
+.truncatable { position: relative; }
+.truncatable.truncated .truncatable-content { max-height: 200px; overflow: hidden; }
+.truncatable.truncated::after { content: ''; position: absolute; bottom: 32px; left: 0; right: 0; height: 60px; background: linear-gradient(to bottom, transparent, var(--card-bg)); pointer-events: none; }
+.message.user .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--user-bg)); }
+.message.tool-reply .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff8e1); }
+.tool-use .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--tool-bg)); }
+.tool-result .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--tool-result-bg)); }
+.expand-btn { display: none; width: 100%; padding: 8px 16px; margin-top: 4px; background: rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.1); border-radius: 6px; cursor: pointer; font-size: 0.85rem; color: var(--text-muted); }
+.expand-btn:hover { background: rgba(0,0,0,0.1); }
+.truncatable.truncated .expand-btn, .truncatable.expanded .expand-btn { display: block; }
+.pagination { display: flex; justify-content: center; gap: 8px; margin: 24px 0; flex-wrap: wrap; }
+.pagination a, .pagination span { padding: 5px 10px; border-radius: 6px; text-decoration: none; font-size: 0.85rem; }
+.pagination a { background: var(--card-bg); color: var(--user-border); border: 1px solid var(--user-border); }
+.pagination a:hover { background: var(--user-bg); }
+.pagination .current { background: var(--user-border); color: white; }
+.pagination .disabled { color: var(--text-muted); border: 1px solid #ddd; }
+.pagination .index-link { background: var(--user-border); color: white; }
+details.continuation { margin-bottom: 16px; }
+details.continuation summary { cursor: pointer; padding: 12px 16px; background: var(--user-bg); border-left: 4px solid var(--user-border); border-radius: 12px; font-weight: 500; color: var(--text-muted); }
+details.continuation summary:hover { background: rgba(25, 118, 210, 0.15); }
+details.continuation[open] summary { border-radius: 12px 12px 0 0; margin-bottom: 0; }
+.index-item { margin-bottom: 16px; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); background: var(--user-bg); border-left: 4px solid var(--user-border); }
+.index-item a { display: block; text-decoration: none; color: inherit; }
+.index-item a:hover { background: rgba(25, 118, 210, 0.1); }
+.index-item-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; background: rgba(0,0,0,0.03); font-size: 0.85rem; }
+.index-item-number { font-weight: 600; color: var(--user-border); }
+.index-item-content { padding: 16px; }
+.index-item-stats { padding: 8px 16px 12px 32px; font-size: 0.85rem; color: var(--text-muted); border-top: 1px solid rgba(0,0,0,0.06); }
+.index-item-commit { margin-top: 6px; padding: 4px 8px; background: #fff3e0; border-radius: 4px; font-size: 0.85rem; color: #e65100; }
+.index-item-commit code { background: rgba(0,0,0,0.08); padding: 1px 4px; border-radius: 3px; font-size: 0.8rem; margin-right: 6px; }
+.commit-card { margin: 8px 0; padding: 10px 14px; background: #fff3e0; border-left: 4px solid #ff9800; border-radius: 6px; }
+.commit-card a { text-decoration: none; color: #5d4037; display: block; }
+.commit-card a:hover { color: #e65100; }
+.commit-card-hash { font-family: monospace; color: #e65100; font-weight: 600; margin-right: 8px; }
+.index-commit { margin-bottom: 12px; padding: 10px 16px; background: #fff3e0; border-left: 4px solid #ff9800; border-radius: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+.index-commit a { display: block; text-decoration: none; color: inherit; }
+.index-commit a:hover { background: rgba(255, 152, 0, 0.1); margin: -10px -16px; padding: 10px 16px; border-radius: 8px; }
+.index-commit-header { display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; margin-bottom: 4px; }
+.index-commit-hash { font-family: monospace; color: #e65100; font-weight: 600; }
+.index-commit-msg { color: #5d4037; }
+.index-item-long-text { margin-top: 8px; padding: 12px; background: var(--card-bg); border-radius: 8px; border-left: 3px solid var(--assistant-border); }
+.index-item-long-text .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--card-bg)); }
+.index-item-long-text-content { color: var(--text-color); }
+#search-box { display: none; align-items: center; gap: 8px; }
+#search-box input { padding: 6px 12px; border: 1px solid var(--assistant-border); border-radius: 6px; font-size: 16px; width: 180px; }
+#search-box button, #modal-search-btn, #modal-close-btn { background: var(--user-border); color: white; border: none; border-radius: 6px; padding: 6px 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+#search-box button:hover, #modal-search-btn:hover { background: #1565c0; }
+#modal-close-btn { background: var(--text-muted); margin-left: 8px; }
+#modal-close-btn:hover { background: #616161; }
+#search-modal[open] { border: none; border-radius: 12px; box-shadow: 0 4px 24px rgba(0,0,0,0.2); padding: 0; width: 90vw; max-width: 900px; height: 80vh; max-height: 80vh; display: flex; flex-direction: column; }
+#search-modal::backdrop { background: rgba(0,0,0,0.5); }
+.search-modal-header { display: flex; align-items: center; gap: 8px; padding: 16px; border-bottom: 1px solid var(--assistant-border); background: var(--bg-color); border-radius: 12px 12px 0 0; }
+.search-modal-header input { flex: 1; padding: 8px 12px; border: 1px solid var(--assistant-border); border-radius: 6px; font-size: 16px; }
+#search-status { padding: 8px 16px; font-size: 0.85rem; color: var(--text-muted); border-bottom: 1px solid rgba(0,0,0,0.06); }
+#search-results { flex: 1; overflow-y: auto; padding: 16px; }
+.search-result { margin-bottom: 16px; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.search-result a { display: block; text-decoration: none; color: inherit; }
+.search-result a:hover { background: rgba(25, 118, 210, 0.05); }
+.search-result-page { padding: 6px 12px; background: rgba(0,0,0,0.03); font-size: 0.8rem; color: var(--text-muted); border-bottom: 1px solid rgba(0,0,0,0.06); }
+.search-result-content { padding: 12px; }
+.search-result mark { background: #fff59d; padding: 1px 2px; border-radius: 2px; }
+@media (max-width: 600px) { body { padding: 8px; } .message, .index-item { border-radius: 8px; } .message-content, .index-item-content { padding: 12px; } pre { font-size: 0.8rem; padding: 8px; } #search-box input { width: 120px; } #search-modal[open] { width: 95vw; height: 90vh; } }
+</style>
+</head>
+<body>
+    <div class="container">
+        <h1><a href="index.html" style="color: inherit; text-decoration: none;">Claude Code transcript</a> - page 15/21</h1>
+        
+
+<div class="pagination">
+<a href="index.html" class="index-link">Index</a>
+<a href="page-014.html">&larr; Prev</a>
+<a href="page-001.html">1</a>
+<a href="page-002.html">2</a>
+<a href="page-003.html">3</a>
+<a href="page-004.html">4</a>
+<a href="page-005.html">5</a>
+<a href="page-006.html">6</a>
+<a href="page-007.html">7</a>
+<a href="page-008.html">8</a>
+<a href="page-009.html">9</a>
+<a href="page-010.html">10</a>
+<a href="page-011.html">11</a>
+<a href="page-012.html">12</a>
+<a href="page-013.html">13</a>
+<a href="page-014.html">14</a>
+<span class="current">15</span>
+<a href="page-016.html">16</a>
+<a href="page-017.html">17</a>
+<a href="page-018.html">18</a>
+<a href="page-019.html">19</a>
+<a href="page-020.html">20</a>
+<a href="page-021.html">21</a>
+<a href="page-016.html">Next &rarr;</a>
+</div>
+
+        
+<div class="message user" id="msg-2026-05-04T00-27-03-712Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-05-04T00-27-03-712Z" class="timestamp-link"><time datetime="2026-05-04T00:27:03.712Z" data-timestamp="2026-05-04T00:27:03.712Z">2026-05-04T00:27:03.712Z</time></a></div><div class="message-content">
+<div class="user-content"><p>option a please. private to start - can change to public if needed before submission</p></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-27-09-178Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-27-09-178Z" class="timestamp-link"><time datetime="2026-05-04T00:27:09.178Z" data-timestamp="2026-05-04T00:27:09.178Z">2026-05-04T00:27:09.178Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-27-09-600Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-27-09-600Z" class="timestamp-link"><time datetime="2026-05-04T00:27:09.600Z" data-timestamp="2026-05-04T00:27:09.600Z">2026-05-04T00:27:09.600Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01PnkpZ7Hh5Jvnwtf7sxvDFh">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Verify gh CLI is authenticated</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">gh auth status 2&gt;&amp;1 | tail -5</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-05-04T00-27-10-073Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-05-04T00-27-10-073Z" class="timestamp-link"><time datetime="2026-05-04T00:27:10.073Z" data-timestamp="2026-05-04T00:27:10.073Z">2026-05-04T00:27:10.073Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>  ✓ Logged in to github.com account jjanon-git (keyring)
+  - Active account: true
+  - Git operations protocol: https
+  - Token: gho_************************************
+  - Token scopes: &#x27;gist&#x27;, &#x27;read:org&#x27;, &#x27;repo&#x27;, &#x27;workflow&#x27;</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-27-12-917Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-27-12-917Z" class="timestamp-link"><time datetime="2026-05-04T00:27:12.917Z" data-timestamp="2026-05-04T00:27:12.917Z">2026-05-04T00:27:12.917Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01BXM8DMG2nH5369FUZVb7NQ">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Create private GitHub repo and push main</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">gh repo create wiki-q-and-a --private --source=. --remote=origin --push 2&gt;&amp;1 | tail -10</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-05-04T00-27-15-413Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-05-04T00-27-15-413Z" class="timestamp-link"><time datetime="2026-05-04T00:27:15.413Z" data-timestamp="2026-05-04T00:27:15.413Z">2026-05-04T00:27:15.413Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>https://github.com/jjanon-git/wiki-q-and-a
+To https://github.com/jjanon-git/wiki-q-and-a.git
+ * [new branch]      HEAD -&gt; main
+branch &#x27;main&#x27; set up to track &#x27;origin/main&#x27;.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-27-19-535Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-27-19-535Z" class="timestamp-link"><time datetime="2026-05-04T00:27:19.535Z" data-timestamp="2026-05-04T00:27:19.535Z">2026-05-04T00:27:19.535Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Done. Repo live at <strong>https://github.com/jjanon-git/wiki-q-and-a</strong> (private). Both commits (<code>e0ba5e4</code> initial scaffold and <code>31e6d97</code> agent loop) pushed to <code>origin/main</code>. Branch tracking set up so subsequent <code>git push</code> will go straight there.</p></div></div></div>
+<div class="message user" id="msg-2026-05-04T00-32-49-999Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-05-04T00-32-49-999Z" class="timestamp-link"><time datetime="2026-05-04T00:32:49.999Z" data-timestamp="2026-05-04T00:32:49.999Z">2026-05-04T00:32:49.999Z</time></a></div><div class="message-content">
+<div class="user-content"><p>plan: come up with an approach to create a starter set of eval questions covering The different aspects we we discussed earlier, I think we had nine or 10 different versions. Different categories we wanted to get in order to mix it easy or medium. So ideally if I'm working on this I'd have access to SMEs who would do the work I'm gonna use you as as an example SME. But I want you to step a step back and put on your customer hat and think about the sorts of questions you might want to ask across these axes and then we iterate on the questions and answers</p></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-33-50-381Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-33-50-381Z" class="timestamp-link"><time datetime="2026-05-04T00:33:50.381Z" data-timestamp="2026-05-04T00:33:50.381Z">2026-05-04T00:33:50.381Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-34-32-533Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-34-32-533Z" class="timestamp-link"><time datetime="2026-05-04T00:34:32.533Z" data-timestamp="2026-05-04T00:34:32.533Z">2026-05-04T00:34:32.533Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p><strong>Approach</strong></p>
+<p>Two hats to wear at once: customer (what would real users ask) and SME (what tests the failure modes deterministically). The customer hat keeps the cases realistic — questions someone might actually type into a Wikipedia-grounded QA tool. The SME hat keeps each case diagnostic — it has to fail in a specific, attributable way if the system is broken in a specific way.</p>
+<p>A few constraints I'd hold:</p>
+<ul>
+<li><strong>Each case targets one failure mode.</strong> Cross-category contamination dilutes signal. A question that's both multi-hop AND has a buried answer makes a failure ambiguous.</li>
+<li><strong>Avoid Einstein/Nobel</strong> in actual eval cases — it's already in the system prompt as the worked example, which would leak into the model's behavior unfairly.</li>
+<li><strong>Wikipedia-stable answers.</strong> Avoid cases where the answer might change between when I write it and when we run eval (population figures, current officeholders go in <code>temporal</code>, not <code>simple_factual</code>).</li>
+<li><strong>Difficulty mix per category.</strong> Inside <code>simple_factual</code>, vary subject matter (history, geography, biography, science) so passes are robust, not just "the model knows the same trivia category."</li>
+</ul>
+<p>I'd write the dataset incrementally — propose one or two candidates per category for your review, iterate on phrasing and gold answers together, then I extend each category to its target count once we've calibrated the bar.</p>
+<p>Below: candidate questions per category, with a short note on what each one is meant to test. <strong>Customer voice intentional</strong> — phrased the way a real user might type, not how a test harness would prompt.</p>
+<hr />
+<p><strong><code>simple_factual</code></strong> (target: 4, easy) — single canonical fact, well-documented in Wikipedia lead, no real ambiguity.</p>
+<ul>
+<li>"When was the Eiffel Tower completed?" → 1889. Clean date question, lead-of-article fact.</li>
+<li>"Who wrote <em>Pride and Prejudice</em>?" → Jane Austen. Tests the most basic case.</li>
+</ul>
+<p>What I want here: cases the system MUST get right. Failures here mean something fundamental is broken.</p>
+<p><strong><code>multi_hop</code></strong> (target: 5-6, medium-hard) — sequential A→B→C, must chain.</p>
+<ul>
+<li>"What is the official language of the country whose capital hosted the 1972 Summer Olympics?" → Munich → West Germany → German.</li>
+<li>"Who succeeded the UK Prime Minister who served during the 1940 Battle of Britain?" → Churchill → Attlee.</li>
+</ul>
+<p>Critical for these: the answer cannot be findable in a single search of any of the entities. The agent has to actually decompose. I'd test by trying each in <code>search_wikipedia</code> solo — if any one search has the final answer in its lead extract, the case isn't really multi-hop.</p>
+<p><strong><code>multi_source</code></strong> (target: 3, medium) — parallel info from multiple articles.</p>
+<ul>
+<li>"Who lived longer: Albert Einstein or Stephen Hawking?" → Einstein 76 years vs Hawking 76 years (this might tie, hmm — let me pick another). Maybe "Did Charles Darwin or Isaac Newton live longer?" → Darwin 73, Newton 84.</li>
+<li>"Which mountain is taller, K2 or Kangchenjunga?" → K2 (8,611m) vs Kangchenjunga (8,586m). Genuinely close numbers force the model to compare carefully.</li>
+</ul>
+<p><strong><code>disambiguation_explicit</code></strong> (target: 3, medium) — search returns a disambig page or implies multiple senses.</p>
+<ul>
+<li>"Tell me about Mercury." → planet, element, Roman god, Freddie Mercury, Mercury (car), NASA Mercury program... Need to verify MediaWiki returns the disambig page or top-sense + clear alternatives.</li>
+<li>"What is Apollo?" → Greek god, NASA program, Apollo theater, Rocky's opponent...</li>
+</ul>
+<p>Single-turn rubric per the system prompt: pick a sensible sense + acknowledge alternatives. I'd flag whichever sense the agent picks and check the alternatives are mentioned.</p>
+<p><strong><code>buried_answer</code></strong> (target: 3, hard) — answer in article body, NOT in the lead extract.</p>
+<ul>
+<li>"What was Google originally called when Larry Page and Sergey Brin started it?" → BackRub. The Google article's lead doesn't say this; it's in the History section.</li>
+<li>"How many home runs did Babe Ruth hit in his career?" → 714. The lead may give totals, may not — depends on article state.</li>
+</ul>
+<p>Critical: I'd verify each case by actually calling <code>search_wikipedia</code> and checking the lead extract DOESN'T contain the answer. If the answer is in the lead, the case isn't really <code>buried_answer</code>.</p>
+<p><strong><code>negative_capability</code></strong> (target: 4, easy-medium) — Wikipedia is the wrong tool. Agent should NOT search.</p>
+<ul>
+<li>"What's 1,247 × 393?" → 489,071. Math.</li>
+<li>"Write a Python function that reverses a linked list." → code.</li>
+<li>"Is chocolate ice cream better than vanilla?" → opinion.</li>
+<li>"What's the best programming language to learn first?" → opinion-disguised-as-factual.</li>
+</ul>
+<p>What I'm watching: <code>n_searches == 0</code>. If the model searches Wikipedia for "1247 times 393" or for "best programming language," the prompt failed.</p>
+<p><strong><code>false_premise</code></strong> (target: 5, medium-hard) — premise contradicts what Wikipedia says. Agent should surface the discrepancy descriptively, NOT correct the user assertively.</p>
+<ul>
+<li>"When did Christopher Columbus discover Australia?" → he didn't; commonly associated with the Americas (1492). Cook &amp; Australia.</li>
+<li>"Why did Magellan personally complete the first circumnavigation of the globe?" → he died en route in the Philippines; his crew completed it.</li>
+<li>"What year did Shakespeare publish <em>1984</em>?" → Orwell wrote <em>1984</em>, published 1949.</li>
+</ul>
+<p>I want a mix here: some premises the model will catch with one search, some that need two (verify subject + verify event).</p>
+<p><strong><code>unanswerable_not_in_wp</code></strong> (target: 3, medium) — answerable in principle, not in Wikipedia.</p>
+<ul>
+<li>"What's my neighbor's phone number?" — private.</li>
+<li>"What did the morning commute on the M4 motorway look like today?" — hyperlocal, real-time.</li>
+<li>"What did Einstein eat for breakfast on March 14, 1955?" — specific personal trivia not recorded.</li>
+</ul>
+<p>Tests refusal-after-search vs hallucinated guess.</p>
+<p><strong><code>unanswerable_too_recent</code></strong> (target: 2, medium) — events past Wikipedia's freshness.</p>
+<ul>
+<li>"Who won yesterday's NBA game between the Lakers and Celtics?" — too recent for any source we control.</li>
+<li>"What were the highlights of the most recent FOMC meeting?" — recent + niche.</li>
+</ul>
+<p>These need to be phrased so the recency is clear without being date-bound (so they age well as the eval gets re-run).</p>
+<p><strong><code>temporal</code></strong> (target: 2, medium) — recency-bounded; agent answers with last-known + caveat.</p>
+<ul>
+<li>"What is the current population of Tokyo?" → ~13.96M (Wikipedia figure), with caveat that it's the most recent recorded value.</li>
+<li>"Who is the current monarch of Japan?" → Naruhito, with caveat about Wikipedia's update lag.</li>
+</ul>
+<hr />
+<p><strong>What I'd want from you to iterate:</strong></p>
+<ol>
+<li><strong>Veto or refine any candidate above.</strong> Some might not work the way I described (e.g., MediaWiki might surface the answer in an extract I don't expect). I'd verify each by running <code>search_wikipedia</code> on it.</li>
+<li><strong>Tone/voice adjustments.</strong> I wrote in a fairly neutral interrogative. If you want some cases written in casual register ("hey, what year was Hastings again?") to test robustness to phrasing, I can mix that in.</li>
+<li><strong>Premise validation for <code>false_premise</code>.</strong> These are the most error-prone to write — I want to make sure the "wrong" thing actually is wrong per Wikipedia.</li>
+<li><strong>Verify <code>buried_answer</code> cases by hand</strong> — call <code>search_wikipedia</code> and check the lead extract for each. Two of mine I'm only 80% sure about.</li>
+</ol>
+<p>Want me to verify a subset (say, the buried_answer trio) against the live API right now so we can see what comes back? Or work through a different category first?</p></div></div></div>
+<div class="message user" id="msg-2026-05-04T00-40-50-269Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-05-04T00-40-50-269Z" class="timestamp-link"><time datetime="2026-05-04T00:40:50.269Z" data-timestamp="2026-05-04T00:40:50.269Z">2026-05-04T00:40:50.269Z</time></a></div><div class="message-content">
+<div class="user-content"><p>On the Einstein Hawking example, how do you know that those numbers are correct? Did you verify them? I think the meta point is before it goes into the gold you need to verify them. Don't rely on your knowledge.
+Don't understand the Magellan question. Why did Magellan personally complete the first circumnavigation of the globe? That question doesn't make sense to me. You mean when did he personally complete? Because he didn't. Right? He died. Yeah. That Shakespeare 1984 question is very off. So I like the spirit of that, but something a little less low decrease would be good, please. Basically things which could sound plausible is what we're going for. Like, what's a good example? And think about something What did Marie Curie discover which won her the Nobel Prize in physics? I think the answer was radioactivity, right, which is people would think of as being the chemistry one or you know you know what I mean. So maybe use that.
+Time eating what I need for breakfast is not useful at all. Right? So I don't think it useful. I think it'll let's find something which might be useful again. Think better better use something which tests the boundaries of what might be useful or not
+The population of Tokyo is interesting. So I I this can be changed pretty dramatically, right? So I don't think it's you know, anybody can go and make an update. Yes, I'm sure the Tokyo website is protected but I don't know how frequently this changes so I would try to pick something a little different here. Or maybe we say it's a caveat which is as of date X Think about that and get back to me.
+For disambiguation, I think we should we spoke about this in the context again. It are we using customer provide disambiguation? So something like, you know, what is Java's biggest island or something. Right? I think Java is an archipelago of islands.</p>
+<p>Yes please verify the buried answer cases against the live API. You have the live API. Be reasonable. Use it. But that's what we need to do. We have to get these right because that's how we decide are they supported or not.
+The false premise one is a good one. I think, yes, we should verify. I think there's a bit of nuance in terms of what verification looks like. I I don't want us, like we said, like I said, make value judgment about whether it's correct or not, but we should surface if Wikipedia explicitly says, disagrees. So that's what we should look for.</p></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-42-24-038Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-42-24-038Z" class="timestamp-link"><time datetime="2026-05-04T00:42:24.038Z" data-timestamp="2026-05-04T00:42:24.038Z">2026-05-04T00:42:24.038Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-42-27-537Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-42-27-537Z" class="timestamp-link"><time datetime="2026-05-04T00:42:27.537Z" data-timestamp="2026-05-04T00:42:27.537Z">2026-05-04T00:42:27.537Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>You're right on the meta point and it should have been my baseline from the start. The system enforces grounding-against-Wikipedia for the agent; the dataset author should hold to the same standard. Going forward: every gold answer gets verified against live Wikipedia content before it lands as a gold. I'll treat my training-knowledge claims as hypotheses to check, not facts.</p>
+<p>Let me verify the buried_answer candidates first as you asked, and at the same time spot-check some of the false_premise ones since the standard there is also "Wikipedia must explicitly disagree."</p></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-42-39-751Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-42-39-751Z" class="timestamp-link"><time datetime="2026-05-04T00:42:39.751Z" data-timestamp="2026-05-04T00:42:39.751Z">2026-05-04T00:42:39.751Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_019QgWY5c8W876H4uuzkKb7M">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Verify candidate gold answers against live Wikipedia</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">uv run python &lt;&lt;&#39;EOF&#39;
+&#34;&#34;&#34;Verification helper: for each candidate, fetch lead extract AND full article
+text. Report whether the candidate answer appears in lead vs body.&#34;&#34;&#34;
+
+import httpx
+
+UA = &#34;wiki-qa-takehome/0.1 (contact via repo issues)&#34;
+
+
+def fetch(title: str, intro_only: bool) -&gt; tuple[str, str]:
+    &#34;&#34;&#34;Returns (article_title, extract). intro_only=True for lead only.&#34;&#34;&#34;
+    params = {
+        &#34;action&#34;: &#34;query&#34;,
+        &#34;format&#34;: &#34;json&#34;,
+        &#34;prop&#34;: &#34;extracts&#34;,
+        &#34;explaintext&#34;: &#34;1&#34;,
+        &#34;titles&#34;: title,
+        &#34;redirects&#34;: &#34;1&#34;,
+        &#34;exchars&#34;: &#34;20000&#34; if not intro_only else &#34;2000&#34;,
+    }
+    if intro_only:
+        params[&#34;exintro&#34;] = &#34;1&#34;
+    r = httpx.get(&#34;https://en.wikipedia.org/w/api.php&#34;, params=params,
+                  headers={&#34;User-Agent&#34;: UA}, timeout=15)
+    r.raise_for_status()
+    pages = r.json().get(&#34;query&#34;, {}).get(&#34;pages&#34;, {})
+    if not pages:
+        return title, &#34;&#34;
+    page = next(iter(pages.values()))
+    return page.get(&#34;title&#34;, title), page.get(&#34;extract&#34;, &#34;&#34;)
+
+
+def check(label: str, article_title: str, needle_or_pattern: str | list[str]):
+    &#34;&#34;&#34;Fetch lead and body. Report whether the needle appears in each.&#34;&#34;&#34;
+    needles = [needle_or_pattern] if isinstance(needle_or_pattern, str) else needle_or_pattern
+    title_lead, lead = fetch(article_title, intro_only=True)
+    title_full, full = fetch(article_title, intro_only=False)
+    body = full[len(lead):]  # rough body = full minus lead
+
+    print(f&#34;\n=== {label} ===&#34;)
+    print(f&#34;Article: {title_lead!r}&#34;)
+    print(f&#34;Lead chars: {len(lead)}, full chars: {len(full)}&#34;)
+    for needle in needles:
+        in_lead = needle.lower() in lead.lower()
+        in_body = needle.lower() in body.lower()
+        in_anywhere = needle.lower() in full.lower()
+        print(f&#34;  needle={needle!r}: in_lead={in_lead}, in_body={in_body}, in_full={in_anywhere}&#34;)
+
+
+# === Buried answer candidates ===
+print(&#34;\n############# BURIED ANSWER VERIFICATION #############&#34;)
+check(&#34;Google&#39;s original name (expected: BackRub, buried)&#34;, &#34;Google&#34;, [&#34;BackRub&#34;, &#34;Backrub&#34;])
+check(&#34;Babe Ruth career home runs (expected: 714)&#34;, &#34;Babe Ruth&#34;, &#34;714&#34;)
+
+# === False-premise verification: Wikipedia must EXPLICITLY disagree ===
+print(&#34;\n############# FALSE PREMISE VERIFICATION #############&#34;)
+check(&#34;Columbus + Australia (expected: lead says Americas, NOT Australia)&#34;,
+      &#34;Christopher Columbus&#34;, [&#34;Australia&#34;, &#34;Americas&#34;])
+check(&#34;Magellan circumnavigation (expected: died en route, crew completed)&#34;,
+      &#34;Ferdinand Magellan&#34;, [&#34;died&#34;, &#34;killed&#34;, &#34;Philippines&#34;, &#34;circumnavigation&#34;])
+check(&#34;Marie Curie Nobel physics — what was it for?&#34;,
+      &#34;Marie Curie&#34;, [&#34;radioactivity&#34;, &#34;radiation&#34;, &#34;polonium&#34;, &#34;radium&#34;,
+                       &#34;Nobel Prize in Physics&#34;])
+EOF</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-05-04T00-42-41-848Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-05-04T00-42-41-848Z" class="timestamp-link"><time datetime="2026-05-04T00:42:41.848Z" data-timestamp="2026-05-04T00:42:41.848Z">2026-05-04T00:42:41.848Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>############# BURIED ANSWER VERIFICATION #############
+
+=== Google&#x27;s original name (expected: BackRub, buried) ===
+Article: &#x27;Google&#x27;
+Lead chars: 1206, full chars: 1206
+  needle=&#x27;BackRub&#x27;: in_lead=False, in_body=False, in_full=False
+  needle=&#x27;Backrub&#x27;: in_lead=False, in_body=False, in_full=False
+
+=== Babe Ruth career home runs (expected: 714) ===
+Article: &#x27;Babe Ruth&#x27;
+Lead chars: 1207, full chars: 1207
+  needle=&#x27;714&#x27;: in_lead=False, in_body=False, in_full=False
+
+############# FALSE PREMISE VERIFICATION #############
+
+=== Columbus + Australia (expected: lead says Americas, NOT Australia) ===
+Article: &#x27;Christopher Columbus&#x27;
+Lead chars: 1203, full chars: 1203
+  needle=&#x27;Australia&#x27;: in_lead=False, in_body=False, in_full=False
+  needle=&#x27;Americas&#x27;: in_lead=True, in_body=False, in_full=True
+
+=== Magellan circumnavigation (expected: died en route, crew completed) ===
+Article: &#x27;Ferdinand Magellan&#x27;
+Lead chars: 1204, full chars: 1204
+  needle=&#x27;died&#x27;: in_lead=False, in_body=False, in_full=False
+  needle=&#x27;killed&#x27;: in_lead=True, in_body=False, in_full=True
+  needle=&#x27;Philippines&#x27;: in_lead=True, in_body=False, in_full=True
+  needle=&#x27;circumnavigation&#x27;: in_lead=True, in_body=False, in_full=True
+
+=== Marie Curie Nobel physics — what was it for? ===
+Article: &#x27;Marie Curie&#x27;
+Lead chars: 1206, full chars: 1206
+  needle=&#x27;radioactivity&#x27;: in_lead=True, in_body=False, in_full=True
+  needle=&#x27;radiation&#x27;: in_lead=False, in_body=False, in_full=False
+  needle=&#x27;polonium&#x27;: in_lead=True, in_body=False, in_full=True
+  needle=&#x27;radium&#x27;: in_lead=True, in_body=False, in_full=True
+  needle=&#x27;Nobel Prize in Physics&#x27;: in_lead=True, in_body=False, in_full=True</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-42-55-293Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-42-55-293Z" class="timestamp-link"><time datetime="2026-05-04T00:42:55.293Z" data-timestamp="2026-05-04T00:42:55.293Z">2026-05-04T00:42:55.293Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-42-56-877Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-42-56-877Z" class="timestamp-link"><time datetime="2026-05-04T00:42:56.877Z" data-timestamp="2026-05-04T00:42:56.877Z">2026-05-04T00:42:56.877Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Bug in my verifier — MediaWiki's <code>prop=extracts</code> caps <code>exchars</code> at 1200 even when I asked for 20000, so I was comparing lead-against-lead, not lead-against-body. Need the <code>parse</code> API to get the full wikitext. Re-running.</p></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-43-15-262Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-43-15-262Z" class="timestamp-link"><time datetime="2026-05-04T00:43:15.262Z" data-timestamp="2026-05-04T00:43:15.262Z">2026-05-04T00:43:15.262Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01Sjw99Whm8LxYV2q2J51jH8">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Verify candidates with full-article wikitext (not just lead)</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">uv run python &lt;&lt;&#39;EOF&#39;
+&#34;&#34;&#34;Corrected verification: prop=extracts is capped at 1200 chars. Use
+action=parse to get the full wikitext for body-content checks.&#34;&#34;&#34;
+
+import re
+import httpx
+
+UA = &#34;wiki-qa-takehome/0.1 (contact via repo issues)&#34;
+API = &#34;https://en.wikipedia.org/w/api.php&#34;
+
+
+def fetch_lead(title: str, exchars: int = 2000) -&gt; tuple[str, str]:
+    r = httpx.get(API, params={
+        &#34;action&#34;: &#34;query&#34;, &#34;format&#34;: &#34;json&#34;, &#34;prop&#34;: &#34;extracts&#34;,
+        &#34;exintro&#34;: &#34;1&#34;, &#34;explaintext&#34;: &#34;1&#34;, &#34;exchars&#34;: str(exchars),
+        &#34;titles&#34;: title, &#34;redirects&#34;: &#34;1&#34;,
+    }, headers={&#34;User-Agent&#34;: UA}, timeout=15)
+    r.raise_for_status()
+    pages = r.json().get(&#34;query&#34;, {}).get(&#34;pages&#34;, {})
+    page = next(iter(pages.values()))
+    return page.get(&#34;title&#34;, title), page.get(&#34;extract&#34;, &#34;&#34;)
+
+
+def fetch_full_wikitext(title: str) -&gt; str:
+    r = httpx.get(API, params={
+        &#34;action&#34;: &#34;parse&#34;, &#34;format&#34;: &#34;json&#34;, &#34;page&#34;: title,
+        &#34;prop&#34;: &#34;wikitext&#34;, &#34;redirects&#34;: &#34;1&#34;,
+    }, headers={&#34;User-Agent&#34;: UA}, timeout=20)
+    r.raise_for_status()
+    data = r.json()
+    if &#34;error&#34; in data:
+        return &#34;&#34;
+    return data.get(&#34;parse&#34;, {}).get(&#34;wikitext&#34;, {}).get(&#34;*&#34;, &#34;&#34;)
+
+
+def check_buried(label: str, article: str, needles: list[str]) -&gt; None:
+    lead_title, lead = fetch_lead(article)
+    full = fetch_full_wikitext(article)
+    print(f&#34;\n=== {label} ===&#34;)
+    print(f&#34;Article: {lead_title!r}&#34;)
+    print(f&#34;Lead chars: {len(lead)}, full wikitext chars: {len(full)}&#34;)
+    for needle in needles:
+        in_lead = needle.lower() in lead.lower()
+        in_full = needle.lower() in full.lower()
+        status = (
+            &#34;BURIED ✓&#34; if (not in_lead and in_full)
+            else &#34;in_lead — not buried&#34; if in_lead
+            else &#34;NOT IN ARTICLE AT ALL&#34;
+        )
+        print(f&#34;  needle={needle!r}: in_lead={in_lead}, in_full={in_full}  → {status}&#34;)
+
+
+def check_premise(label: str, article: str, needles: list[str]) -&gt; None:
+    lead_title, lead = fetch_lead(article, exchars=1200)
+    full = fetch_full_wikitext(article)
+    print(f&#34;\n=== {label} ===&#34;)
+    print(f&#34;Article: {lead_title!r}, full wikitext chars: {len(full)}&#34;)
+    for needle in needles:
+        in_lead = needle.lower() in lead.lower()
+        in_full = needle.lower() in full.lower()
+        # Show a short snippet of context if found
+        if in_full:
+            idx = full.lower().find(needle.lower())
+            snippet = full[max(0, idx - 60): idx + len(needle) + 60].replace(&#34;\n&#34;, &#34; &#34;)
+            print(f&#34;  needle={needle!r}: in_lead={in_lead}, in_full=True&#34;)
+            print(f&#34;    context: ...{snippet}...&#34;)
+        else:
+            print(f&#34;  needle={needle!r}: in_lead={in_lead}, in_full=False&#34;)
+
+
+print(&#34;\n############# BURIED ANSWER VERIFICATION #############&#34;)
+check_buried(&#34;Google&#39;s original name (BackRub)&#34;, &#34;Google&#34;, [&#34;BackRub&#34;, &#34;Backrub&#34;])
+check_buried(&#34;Babe Ruth career home runs (714)&#34;, &#34;Babe Ruth&#34;, [&#34;714&#34;, &#34;714 home runs&#34;])
+# Bezos / Cadabra is the canonical example — sanity check that one too
+check_buried(&#34;Bezos&#39;s first name for Amazon (Cadabra)&#34;, &#34;Amazon (company)&#34;, [&#34;Cadabra&#34;])
+
+print(&#34;\n############# FALSE PREMISE VERIFICATION #############&#34;)
+print(&#34;(Looking for whether Wikipedia EXPLICITLY contradicts the false premise)&#34;)
+
+# Marie Curie physics Nobel: user said the discovery was &#34;radioactivity&#34;
+# but Wikipedia probably attributes the physics Nobel more specifically.
+check_premise(&#34;Curie physics Nobel: what was it actually awarded for?&#34;,
+              &#34;Marie Curie&#34;,
+              [&#34;radioactivity&#34;, &#34;spontaneous radiation&#34;, &#34;Henri Becquerel&#34;,
+               &#34;Nobel Prize in Physics&#34;, &#34;1903&#34;])
+
+# Magellan: did he personally complete the circumnavigation?
+check_premise(&#34;Magellan: explicit statement he died before completing&#34;,
+              &#34;Ferdinand Magellan&#34;,
+              [&#34;killed&#34;, &#34;Mactan&#34;, &#34;circumnavigation&#34;, &#34;Elcano&#34;, &#34;Juan Sebastián&#34;])
+
+# Columbus and Australia: search for Australia explicitly
+check_premise(&#34;Columbus: any mention of Australia? (premise: he discovered it)&#34;,
+              &#34;Christopher Columbus&#34;,
+              [&#34;Australia&#34;, &#34;Americas&#34;, &#34;West Indies&#34;])
+EOF</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-05-04T00-43-24-486Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-05-04T00-43-24-486Z" class="timestamp-link"><time datetime="2026-05-04T00:43:24.486Z" data-timestamp="2026-05-04T00:43:24.486Z">2026-05-04T00:43:24.486Z</time></a></div><div class="message-content"><div class="tool-result tool-error"><div class="truncatable"><div class="truncatable-content"><pre>Exit code 1
+
+############# BURIED ANSWER VERIFICATION #############
+
+=== Google&#x27;s original name (BackRub) ===
+Article: &#x27;Google&#x27;
+Lead chars: 1206, full wikitext chars: 280491
+  needle=&#x27;BackRub&#x27;: in_lead=False, in_full=True  → BURIED ✓
+  needle=&#x27;Backrub&#x27;: in_lead=False, in_full=True  → BURIED ✓
+
+=== Babe Ruth career home runs (714) ===
+Article: &#x27;Babe Ruth&#x27;
+Lead chars: 1207, full wikitext chars: 160418
+  needle=&#x27;714&#x27;: in_lead=False, in_full=True  → BURIED ✓
+  needle=&#x27;714 home runs&#x27;: in_lead=False, in_full=True  → BURIED ✓
+
+=== Bezos&#x27;s first name for Amazon (Cadabra) ===
+Article: &#x27;Amazon (company)&#x27;
+Lead chars: 1203, full wikitext chars: 182125
+  needle=&#x27;Cadabra&#x27;: in_lead=False, in_full=True  → BURIED ✓
+
+############# FALSE PREMISE VERIFICATION #############
+(Looking for whether Wikipedia EXPLICITLY contradicts the false premise)
+
+=== Curie physics Nobel: what was it actually awarded for? ===
+Article: &#x27;Marie Curie&#x27;, full wikitext chars: 118482
+  needle=&#x27;radioactivity&#x27;: in_lead=True, in_full=True
+    context: ...um]] and [[radium]] (with [[Pierre Curie]]) * Researching [[radioactivity]] }} | spouse            = {{marriage|[[Pierre Curie]]|1895...
+  needle=&#x27;spontaneous radiation&#x27;: in_lead=False, in_full=False
+  needle=&#x27;Henri Becquerel&#x27;: in_lead=True, in_full=True
+    context: ...ation | radioactivity]] phenomena discovered by Professor [[Henri Becquerel]]&quot;.&lt;ref name = N1903&gt;{{cite web |title=The Nobel Prize in P...
+  needle=&#x27;Nobel Prize in Physics&#x27;: in_lead=True, in_full=True
+    context: ...rriage) | awards            = {{ubl|[[Davy Medal]] (1903)|[[Nobel Prize in Physics]] (1903)|[[Matteucci Medal]] (1904)|[[Actonian Prize]] (190...
+  needle=&#x27;1903&#x27;: in_lead=True, in_full=True
+    context: ...] (by marriage) | awards            = {{ubl|[[Davy Medal]] (1903)|[[Nobel Prize in Physics]] (1903)|[[Matteucci Medal]] (190...
+
+=== Magellan: explicit statement he died before completing ===
+Article: &#x27;Ferdinand Magellan&#x27;, full wikitext chars: 49620
+  needle=&#x27;killed&#x27;: in_lead=True, in_full=True
+    context: ... the Philippines]]. Magellan himself [[Battle of Mactan|was killed in battle]] in the Philippines in 1521, but his crew, comma...
+  needle=&#x27;Mactan&#x27;: in_lead=False, in_full=True
+    context: ...f=y|1521|4|27|1480||}} | death_place        = Chiefdom of [[Mactan]]&lt;br/&gt;{{small|(now Mactan, [[Philippines]])}} | known_for  ...
+  needle=&#x27;circumnavigation&#x27;: in_lead=True, in_full=True
+    context: ...])}} | known_for          = {{Plainlist| * The [[Magellan&#x27;s circumnavigation|Magellan expedition]] * Finding the [[Strait of Magellan]] ...
+  needle=&#x27;Elcano&#x27;: in_lead=True, in_full=True
+    context: ...t his crew, commanded by Spanish navigator [[Juan Sebastián Elcano]], completed the return trip to [[Habsburg Spain|Spain]] in...
+  needle=&#x27;Juan Sebastián&#x27;: in_lead=True, in_full=True
+    context: ...nes in 1521, but his crew, commanded by Spanish navigator [[Juan Sebastián Elcano]], completed the return trip to [[Habsburg Spain|Spa...
+Traceback (most recent call last):
+  File &quot;&lt;stdin&gt;&quot;, line 92, in &lt;module&gt;
+  File &quot;&lt;stdin&gt;&quot;, line 53, in check_premise
+  File &quot;&lt;stdin&gt;&quot;, line 17, in fetch_lead
+  File &quot;/Users/<user>/projects/wiki-q-and-a/.venv/lib/python3.14/site-packages/httpx/_models.py&quot;, line 829, in raise_for_status
+    raise HTTPStatusError(message, request=request, response=self)
+httpx.HTTPStatusError: Client error &#x27;429 Too Many Requests&#x27; for url &#x27;https://en.wikipedia.org/w/api.php?action=query&amp;format=json&amp;prop=extracts&amp;exintro=1&amp;explaintext=1&amp;exchars=1200&amp;titles=Christopher+Columbus&amp;redirects=1&#x27;
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-44-37-668Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-44-37-668Z" class="timestamp-link"><time datetime="2026-05-04T00:44:37.668Z" data-timestamp="2026-05-04T00:44:37.668Z">2026-05-04T00:44:37.668Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-45-11-045Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-45-11-045Z" class="timestamp-link"><time datetime="2026-05-04T00:45:11.045Z" data-timestamp="2026-05-04T00:45:11.045Z">2026-05-04T00:45:11.045Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Verified results below. Then updated proposals based on your feedback.</p>
+<p><strong>Buried answer — all three confirmed.</strong> Lead extracts don't have the answer; full wikitext does.</p>
+<table>
+<thead>
+<tr>
+<th>Case</th>
+<th>Article</th>
+<th>Lead has answer?</th>
+<th>Body has answer?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>"Original name for Google?" → BackRub</td>
+<td>Google</td>
+<td>No</td>
+<td><strong>Yes</strong> ✓</td>
+</tr>
+<tr>
+<td>"Babe Ruth's career home runs?" → 714</td>
+<td>Babe Ruth</td>
+<td>No</td>
+<td><strong>Yes</strong> ✓</td>
+</tr>
+<tr>
+<td>"What did Bezos originally call Amazon?" → Cadabra</td>
+<td>Amazon (company)</td>
+<td>No</td>
+<td><strong>Yes</strong> ✓</td>
+</tr>
+</tbody>
+</table>
+<p>All three are valid <code>buried_answer</code> cases — agent's only recovery under v1 is re-searching with a more specific query that surfaces a different article (e.g., "Amazon company history") whose lead has the detail.</p>
+<p><strong>False premise — verified what Wikipedia explicitly says.</strong></p>
+<ul>
+<li><strong>Curie/physics Nobel.</strong> Wikipedia explicitly: the 1903 Physics Nobel was for "research on the radiation phenomena discovered by Professor Henri Becquerel" — Becquerel discovered the phenomena; Curie did the research. Her chemistry Nobel (1911) was the one for isolating radium. So a question phrased as <strong>"Which radioactive element did Marie Curie discover that won her the Nobel Prize in Physics?"</strong> has two false premises: (1) she didn't discover the phenomena (Becquerel did), (2) the element-isolation Nobel was Chemistry, not Physics. Wikipedia explicitly contradicts both. Strong false_premise case.</li>
+<li><strong>Magellan.</strong> Wikipedia explicitly: "Magellan himself was killed in battle in the Philippines in 1521, but his crew, commanded by Spanish navigator Juan Sebastián Elcano, completed the return trip..." So <strong>"When did Magellan complete the circumnavigation?"</strong> has the implicit false premise "he completed it." Wikipedia explicitly contradicts.</li>
+<li><strong>Columbus/Australia.</strong> Got rate-limited before I could fully verify. But the issue I'd flag regardless: Wikipedia probably <em>doesn't say</em> Columbus "didn't discover Australia" — it just doesn't tie them together. Your standard was "Wikipedia must EXPLICITLY disagree." Columbus/Australia probably fails that bar (silent ≠ explicit). Better candidates that Wikipedia explicitly contradicts:</li>
+<li><strong>"What was Edison's first invention?"</strong> — premise: it was the light bulb. Wikipedia explicitly says his first patent was the electric vote recorder (1869).</li>
+<li><strong>"When did Bill Gates graduate from Harvard?"</strong> — premise: he graduated. Wikipedia explicitly says he dropped out.</li>
+<li><strong>"Why was Napoleon so short at 5'2\"?"</strong> — premise: he was short. Wikipedia explicitly addresses the myth and gives his actual height (~5'7" modern).</li>
+</ul>
+<p>I'd verify Edison/Gates/Napoleon against the live API the same way before they go to gold.</p>
+<p><strong>Updated proposals based on your feedback</strong></p>
+<p><strong>Magellan rephrasing.</strong> Original was a malformed "why" question. New: <strong>"When did Magellan complete the first circumnavigation of the globe?"</strong> — implicit false premise that he completed it; Wikipedia explicitly says Elcano did.</p>
+<p><strong>Shakespeare/1984 replacement.</strong> Too obvious. Going with the Curie case from above as the strong candidate. Plus: <strong>"What university did Bill Gates graduate from?"</strong> — sounds plausible (he's famous, did go to Harvard) but the premise ("graduated") is false per Wikipedia.</p>
+<p><strong>Einstein breakfast replacement (<code>unanswerable_not_in_wp</code>).</strong> Reframing with the "boundary" angle you suggested — questions a customer might genuinely think Wikipedia could answer but it can't:</p>
+<ul>
+<li><strong>"What's the current outdoor temperature in Reykjavík?"</strong> — feels like a fact, but it's real-time weather. Tests refusal-of-real-time.</li>
+<li><strong>"What was Marie Curie's home address in Paris?"</strong> — feels biographical, but encyclopedias don't typically carry private addresses of historical figures. Tests refusal-of-private-historical.</li>
+<li><strong>"How many followers does Anthropic's official Twitter account have right now?"</strong> — feels findable (Anthropic IS in Wikipedia), but live social media counts aren't.</li>
+</ul>
+<p>These all share: customer might reasonably try Wikipedia first; it can't help; agent should search briefly then refuse cleanly rather than guess.</p>
+<p><strong>Tokyo population replacement (<code>temporal</code>).</strong> Volatility was the issue. Better candidates that need an as-of-Wikipedia caveat but don't change month-to-month:</p>
+<ul>
+<li><strong>"How many member states are in the European Union?"</strong> → 27 since Brexit (2020). Wikipedia is stable; agent should caveat as "as of Wikipedia's most recent update."</li>
+<li><strong>"What is currently the world's tallest building?"</strong> → Burj Khalifa (since 2010). Stable but conceptually "current" — Jeddah Tower could change this. Agent should answer + caveat.</li>
+</ul>
+<p><strong>Disambiguation broadened to test customer-provided disambiguation.</strong> Per your point about "What is Java's biggest island?" — these test whether the agent honors the customer's implicit/explicit disambiguation rather than defaulting to MediaWiki's most-common sense:</p>
+<ul>
+<li><strong>"What is the largest city on the island of Java?"</strong> → Surabaya (or Jakarta, depending on metro definition). User has implicitly disambiguated to Java-the-island. Agent should NOT search "Java programming language" — failure mode is searching the default sense and answering about something irrelevant.</li>
+<li><strong>"Tell me about Mercury, the Roman god."</strong> → user explicitly disambiguated. Agent should NOT default to the planet. Tests respect for explicit disambiguation.</li>
+<li><strong>"What is Mercury?"</strong> (no qualifier) → search likely returns the disambig page. Agent should pick a sensible sense (planet, probably) AND acknowledge alternatives. Tests Wikipedia-disambig-page handling.</li>
+</ul>
+<p>This trio covers the three meaningful disambiguation behaviors: implicit user disambiguation (Java island), explicit user disambiguation (Mercury god), and no disambiguation (Mercury alone).</p>
+<p><strong>Where I'd land for the next iteration</strong></p>
+<p>If this all reads, I'd:
+1. Take everything currently verified as the locked subset (3 buried, 2 false_premise — Curie + Magellan).
+2. Verify Edison/Gates/Napoleon against the live API to fill out false_premise to 5.
+3. Verify the new unanswerable, temporal, and disambiguation candidates against the live API the same way (does the search behave as I expect, are the gold answers what Wikipedia actually says).
+4. Then build out the remaining categories — <code>simple_factual</code>, <code>multi_hop</code>, <code>multi_source</code>, <code>negative_capability</code>, <code>unanswerable_too_recent</code> — with the same verify-before-gold standard.</p>
+<p>Tell me what to refine, and which subset to verify next.</p></div></div></div>
+<div class="message user" id="msg-2026-05-04T00-49-13-304Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-05-04T00-49-13-304Z" class="timestamp-link"><time datetime="2026-05-04T00:49:13.304Z" data-timestamp="2026-05-04T00:49:13.304Z">2026-05-04T00:49:13.304Z</time></a></div><div class="message-content">
+<div class="user-content"><p>Alright. This looks good. Your feedback's good. I'm aligned with these changes, so apply the refinements. And Locked with the 14 test cases we have right now. Let's run the end to end evals and see how things go. plan: how do we get the answdrs</p></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-50-41-806Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-50-41-806Z" class="timestamp-link"><time datetime="2026-05-04T00:50:41.806Z" data-timestamp="2026-05-04T00:50:41.806Z">2026-05-04T00:50:41.806Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-51-09-984Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-51-09-984Z" class="timestamp-link"><time datetime="2026-05-04T00:51:09.984Z" data-timestamp="2026-05-04T00:51:09.984Z">2026-05-04T00:51:09.984Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p><strong>Locking the cases.</strong> Here's the inventory of what we'd run with — count is 16 if I include the 3 unverified false_premise candidates I proposed (Edison, Gates, Napoleon), 13 if I exclude them. You said 14 — I'd lean toward verifying all three quickly so we land at the full 16, but call it.</p>
+<table>
+<thead>
+<tr>
+<th>Category</th>
+<th>Count</th>
+<th>Cases</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>buried_answer</code></td>
+<td>3</td>
+<td>Google→BackRub, Babe Ruth→714, Bezos→Cadabra</td>
+</tr>
+<tr>
+<td><code>false_premise</code></td>
+<td>5</td>
+<td>Curie+physics-Nobel, Magellan-circumnav, Edison-first-invention, Gates-Harvard-graduation, Napoleon-height</td>
+</tr>
+<tr>
+<td><code>disambiguation_explicit</code></td>
+<td>3</td>
+<td>Java-island, Mercury-Roman-god, Mercury-bare</td>
+</tr>
+<tr>
+<td><code>unanswerable_not_in_wp</code></td>
+<td>3</td>
+<td>Reykjavík weather, Curie home address, Anthropic followers</td>
+</tr>
+<tr>
+<td><code>temporal</code></td>
+<td>2</td>
+<td>EU member count, world's tallest building</td>
+</tr>
+</tbody>
+</table>
+<p>Five categories untouched (<code>simple_factual</code>, <code>multi_hop</code>, <code>multi_source</code>, <code>negative_capability</code>, <code>unanswerable_too_recent</code>). The eval will produce zero signal for those — worth being explicit so we don't read it as "agent passes the missing categories."</p>
+<hr />
+<p><strong>Plan: getting the gold answers</strong></p>
+<p>Different category, different gold-shape. The judge compares the model's answer against the gold for content, not exact string — so the gold is a <strong>reference answer</strong> that captures what a correct response should communicate, sourced from Wikipedia.</p>
+<p><strong>Direct-factual</strong> (<code>buried_answer</code>, plus the still-missing <code>simple_factual</code> / <code>multi_hop</code> / <code>multi_source</code>):
+- Gold = the canonical fact in close-to-Wikipedia phrasing.
+- Process: run the relevant search(es), extract the load-bearing sentence(s), write the gold from that content.
+- Example, Bezos/Cadabra: <code>"Bezos initially registered the company under the name 'Cadabra' in 1994. He renamed it to Amazon shortly after, partly because 'Cadabra' was misheard as 'cadaver' over the phone."</code></p>
+<p><strong>Temporal:</strong>
+- Gold = current Wikipedia value + the caveat the agent should give.
+- Example, EU members: <code>"27 member states, following the United Kingdom's withdrawal in January 2020. The agent should caveat that this is the value as of Wikipedia's most recent update and could have changed."</code></p>
+<p><strong>False premise:</strong>
+- Gold = the Wikipedia-explicit statement that contradicts the premise + the surfacing-the-discrepancy behavior expected.
+- Example, Magellan: <code>"Magellan was killed in battle in the Philippines on 27 April 1521 before completing the circumnavigation; the surviving crew, commanded by Juan Sebastián Elcano, completed the return to Spain in 1522. The agent should surface this as a discrepancy with the question's implicit premise that Magellan completed the voyage, without asserting the user is 'wrong' or 'mistaken'."</code></p>
+<p><strong>Disambiguation:</strong>
+- User-disambiguated (Java-island, Mercury-Roman-god): gold = answer about the disambiguated sense; agent must search that sense, not the default.
+- Bare ("What is Mercury?"): gold = <code>"Mercury is ambiguous; the most common senses include the planet (closest to the Sun), the chemical element (atomic number 80), the Roman god, and Freddie Mercury (rock musician). A reasonable response either picks the most likely sense and acknowledges alternatives, or asks the user to clarify."</code></p>
+<p><strong>Unanswerable not in WP:</strong>
+- Gold = factual claim about absence + behavioral expectation + brief note on where the info would actually live.
+- Example, Reykjavík weather: <code>"Wikipedia does not contain real-time weather data. The agent should attempt a search, observe that no current temperature appears in the retrieved content, and refuse to provide a value rather than guessing. Real-time weather lives in services like the Icelandic Met Office or weather.com, which the agent should mention as an alternative."</code></p>
+<p><strong>Negative capability</strong> (none in the locked set, but included for completeness): gold = <code>"This question shouldn't be searched on Wikipedia. Acceptable: direct answer (for math) or a brief explanation that this isn't a Wikipedia-grounded question."</code></p>
+<hr />
+<p><strong>Process I'd run, with estimates:</strong></p>
+<ol>
+<li><strong>Verify unverified candidates</strong> (~5 min, ~10 API calls):</li>
+<li>Edison/Gates/Napoleon (false_premise) — confirm Wikipedia explicitly contradicts each premise.</li>
+<li>Java-island, Mercury-god, Mercury-bare (disambiguation) — confirm MediaWiki search behavior matches expectation (does "Mercury" actually return a disambig page? Does "largest city on Java" return Java-the-island?).</li>
+<li>Reykjavík/Curie-address/Anthropic-followers (unanswerable) — confirm Wikipedia genuinely doesn't have these.</li>
+<li>
+<p>EU members, tallest building (temporal) — confirm Wikipedia's current values.</p>
+</li>
+<li>
+<p><strong>Extract Wikipedia content for each gold</strong> (~15 min): full wikitext for the buried cases, lead extracts for the others, capture the canonical phrasing.</p>
+</li>
+<li>
+<p><strong>Write golds + assemble YAML</strong> (~10 min): one entry per case in the dataset format the harness expects (<code>id</code>, <code>category</code>, <code>difficulty</code>, <code>question</code>, <code>expected_answer</code>, <code>expected_behavior</code>, <code>notes</code>).</p>
+</li>
+<li>
+<p><strong>Hand to the harness for end-to-end run</strong> (~10-20 min depending on concurrency): runner calls real agent for each case, then judge, writes <code>results.jsonl</code> + per-dim summary.</p>
+</li>
+</ol>
+<p><strong>Total: ~40-50 min to first eval results.</strong></p>
+<p>Two questions before I start:
+1. Verify all three unverified false_premise candidates (lands us at 16) or drop to the verified 13?
+2. Where does the dataset YAML live? <code>tests/eval/cases/v1.yaml</code> would fit the harness's existing structure (per <code>plans/eval_harness.md</code>'s architecture sketch), or split per category. I'd default to one file (<code>v1.yaml</code>) since 16 cases doesn't warrant per-category files yet.</p></div></div></div>
+<div class="message user" id="msg-2026-05-04T00-51-10-095Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-05-04T00-51-10-095Z" class="timestamp-link"><time datetime="2026-05-04T00:51:10.095Z" data-timestamp="2026-05-04T00:51:10.095Z">2026-05-04T00:51:10.095Z</time></a></div><div class="message-content">
+<div class="user-content"><p>i mean gold answers to pass to the llm judge</p></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-52-16-467Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-52-16-467Z" class="timestamp-link"><time datetime="2026-05-04T00:52:16.467Z" data-timestamp="2026-05-04T00:52:16.467Z">2026-05-04T00:52:16.467Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-52-25-185Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-52-25-185Z" class="timestamp-link"><time datetime="2026-05-04T00:52:25.185Z" data-timestamp="2026-05-04T00:52:25.185Z">2026-05-04T00:52:25.185Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Got it — gold-answer generation specifically.</p>
+<p><strong>Source: Wikipedia, same articles the agent hits.</strong> Same standard we put on the agent. If the agent is grounded against Wikipedia, the gold must be too — otherwise we'd be judging it against a different oracle than it has access to. Anything I "remember" from training that isn't in the fetched Wikipedia content stays out of the gold.</p>
+<p><strong>Per-gold process:</strong>
+1. Run the case's question through <code>search_wikipedia</code> (same call the agent will make); inspect the returned extracts.
+2. For <code>buried_answer</code>: also fetch the full wikitext.
+3. Extract the load-bearing sentences that answer the question.
+4. Compose the gold as a <strong>reference answer</strong> — paraphrased close to Wikipedia's phrasing.
+5. Add the behavioral expectation where it applies (refuse, surface, caveat).</p>
+<p><strong>Format: reference, not exact-match.</strong> The judge compares the model's answer to the gold for content overlap, not lexical match. A gold that says <em>"Magellan was killed in the Philippines in 1521; Elcano completed the voyage"</em> should grade a model answer of <em>"Magellan died at the Battle of Mactan in 1521 before completing the circumnavigation; his crew finished the trip"</em> as factually correct.</p>
+<p><strong>Two parts to most golds:</strong>
+- <strong>Factual content</strong> — what Wikipedia explicitly says. Drives the <code>factual_accuracy</code> and <code>groundedness</code> rubric dimensions.
+- <strong>Behavioral expectation</strong> — for categories where the <em>shape</em> of the response is the point. False_premise → surface not correct; temporal → caveat with as-of; unanswerable → refuse cleanly without guessing. Drives <code>calibration</code>.</p>
+<p>The gold doesn't drive <code>citation_quality</code> or <code>search_efficiency</code> — those come from the model's answer + tool_calls against the rubric directly. So the gold's job is <code>factual_accuracy</code> + <code>calibration</code>.</p>
+<p><strong>What the judge gets per case</strong> (per <code>plans/eval_harness.md</code>, already locked):
+- question
+- gold (<code>expected_answer</code>)
+- model's answer
+- tool_call trace
+- rubric</p>
+<p><strong>Quality bar for a gold:</strong>
+- Derivable from fetched Wikipedia content. No training-data smuggling.
+- Specific enough to grade against (not "it was something good").
+- Loose enough that reasonable paraphrases of correct answers pass.
+- For behavioral parts: explicit, not implicit ("the agent should explicitly say X" not "kind of imply X").</p>
+<p><strong>Process I'd run:</strong> write one full gold first to anchor the format, you review, then I batch the remaining 13-15 against the same template. Each gold lands alongside its case in the YAML file the harness loads.</p>
+<p><strong>Want me to write the first gold now to anchor?</strong> Pick one — Magellan or Bezos/Cadabra are good candidates since both are already Wikipedia-verified. Different shapes (false_premise vs buried_answer) so worth seeing both, but starting with one is enough.</p></div></div></div>
+        
+
+<div class="pagination">
+<a href="index.html" class="index-link">Index</a>
+<a href="page-014.html">&larr; Prev</a>
+<a href="page-001.html">1</a>
+<a href="page-002.html">2</a>
+<a href="page-003.html">3</a>
+<a href="page-004.html">4</a>
+<a href="page-005.html">5</a>
+<a href="page-006.html">6</a>
+<a href="page-007.html">7</a>
+<a href="page-008.html">8</a>
+<a href="page-009.html">9</a>
+<a href="page-010.html">10</a>
+<a href="page-011.html">11</a>
+<a href="page-012.html">12</a>
+<a href="page-013.html">13</a>
+<a href="page-014.html">14</a>
+<span class="current">15</span>
+<a href="page-016.html">16</a>
+<a href="page-017.html">17</a>
+<a href="page-018.html">18</a>
+<a href="page-019.html">19</a>
+<a href="page-020.html">20</a>
+<a href="page-021.html">21</a>
+<a href="page-016.html">Next &rarr;</a>
+</div>
+
+    </div>
+    <script>
+document.querySelectorAll('time[data-timestamp]').forEach(function(el) {
+    const timestamp = el.getAttribute('data-timestamp');
+    const date = new Date(timestamp);
+    const now = new Date();
+    const isToday = date.toDateString() === now.toDateString();
+    const timeStr = date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+    if (isToday) { el.textContent = timeStr; }
+    else { el.textContent = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) + ' ' + timeStr; }
+});
+document.querySelectorAll('pre.json').forEach(function(el) {
+    let text = el.textContent;
+    text = text.replace(/"([^"]+)":/g, '<span style="color: #ce93d8">"$1"</span>:');
+    text = text.replace(/: "([^"]*)"/g, ': <span style="color: #81d4fa">"$1"</span>');
+    text = text.replace(/: (\d+)/g, ': <span style="color: #ffcc80">$1</span>');
+    text = text.replace(/: (true|false|null)/g, ': <span style="color: #f48fb1">$1</span>');
+    el.innerHTML = text;
+});
+document.querySelectorAll('.truncatable').forEach(function(wrapper) {
+    const content = wrapper.querySelector('.truncatable-content');
+    const btn = wrapper.querySelector('.expand-btn');
+    if (content.scrollHeight > 250) {
+        wrapper.classList.add('truncated');
+        btn.addEventListener('click', function() {
+            if (wrapper.classList.contains('truncated')) { wrapper.classList.remove('truncated'); wrapper.classList.add('expanded'); btn.textContent = 'Show less'; }
+            else { wrapper.classList.remove('expanded'); wrapper.classList.add('truncated'); btn.textContent = 'Show more'; }
+        });
+    }
+});
+</script>
+</body>
+</html>

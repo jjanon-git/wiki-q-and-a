@@ -1,0 +1,1766 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claude Code transcript - page 13</title>
+    <style>
+:root { --bg-color: #f5f5f5; --card-bg: #ffffff; --user-bg: #e3f2fd; --user-border: #1976d2; --assistant-bg: #f5f5f5; --assistant-border: #9e9e9e; --thinking-bg: #fff8e1; --thinking-border: #ffc107; --thinking-text: #666; --tool-bg: #f3e5f5; --tool-border: #9c27b0; --tool-result-bg: #e8f5e9; --tool-error-bg: #ffebee; --text-color: #212121; --text-muted: #757575; --code-bg: #263238; --code-text: #aed581; }
+* { box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg-color); color: var(--text-color); margin: 0; padding: 16px; line-height: 1.6; }
+.container { max-width: 800px; margin: 0 auto; }
+h1 { font-size: 1.5rem; margin-bottom: 24px; padding-bottom: 8px; border-bottom: 2px solid var(--user-border); }
+.header-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; border-bottom: 2px solid var(--user-border); padding-bottom: 8px; margin-bottom: 24px; }
+.header-row h1 { border-bottom: none; padding-bottom: 0; margin-bottom: 0; flex: 1; min-width: 200px; }
+.message { margin-bottom: 16px; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.message.user { background: var(--user-bg); border-left: 4px solid var(--user-border); }
+.message.assistant { background: var(--card-bg); border-left: 4px solid var(--assistant-border); }
+.message.tool-reply { background: #fff8e1; border-left: 4px solid #ff9800; }
+.tool-reply .role-label { color: #e65100; }
+.tool-reply .tool-result { background: transparent; padding: 0; margin: 0; }
+.tool-reply .tool-result .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff8e1); }
+.message-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; background: rgba(0,0,0,0.03); font-size: 0.85rem; }
+.role-label { font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+.user .role-label { color: var(--user-border); }
+time { color: var(--text-muted); font-size: 0.8rem; }
+.timestamp-link { color: inherit; text-decoration: none; }
+.timestamp-link:hover { text-decoration: underline; }
+.message:target { animation: highlight 2s ease-out; }
+@keyframes highlight { 0% { background-color: rgba(25, 118, 210, 0.2); } 100% { background-color: transparent; } }
+.message-content { padding: 16px; }
+.message-content p { margin: 0 0 12px 0; }
+.message-content p:last-child { margin-bottom: 0; }
+.thinking { background: var(--thinking-bg); border: 1px solid var(--thinking-border); border-radius: 8px; padding: 12px; margin: 12px 0; font-size: 0.9rem; color: var(--thinking-text); }
+.thinking-label { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; color: #f57c00; margin-bottom: 8px; }
+.thinking p { margin: 8px 0; }
+.assistant-text { margin: 8px 0; }
+.tool-use { background: var(--tool-bg); border: 1px solid var(--tool-border); border-radius: 8px; padding: 12px; margin: 12px 0; }
+.tool-header { font-weight: 600; color: var(--tool-border); margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+.tool-icon { font-size: 1.1rem; }
+.tool-description { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 8px; font-style: italic; }
+.tool-result { background: var(--tool-result-bg); border-radius: 8px; padding: 12px; margin: 12px 0; }
+.tool-result.tool-error { background: var(--tool-error-bg); }
+.file-tool { border-radius: 8px; padding: 12px; margin: 12px 0; }
+.write-tool { background: linear-gradient(135deg, #e3f2fd 0%, #e8f5e9 100%); border: 1px solid #4caf50; }
+.edit-tool { background: linear-gradient(135deg, #fff3e0 0%, #fce4ec 100%); border: 1px solid #ff9800; }
+.file-tool-header { font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
+.write-header { color: #2e7d32; }
+.edit-header { color: #e65100; }
+.file-tool-icon { font-size: 1rem; }
+.file-tool-path { font-family: monospace; background: rgba(0,0,0,0.08); padding: 2px 8px; border-radius: 4px; }
+.file-tool-fullpath { font-family: monospace; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px; word-break: break-all; }
+.file-content { margin: 0; }
+.edit-section { display: flex; margin: 4px 0; border-radius: 4px; overflow: hidden; }
+.edit-label { padding: 8px 12px; font-weight: bold; font-family: monospace; display: flex; align-items: flex-start; }
+.edit-old { background: #fce4ec; }
+.edit-old .edit-label { color: #b71c1c; background: #f8bbd9; }
+.edit-old .edit-content { color: #880e4f; }
+.edit-new { background: #e8f5e9; }
+.edit-new .edit-label { color: #1b5e20; background: #a5d6a7; }
+.edit-new .edit-content { color: #1b5e20; }
+.edit-content { margin: 0; flex: 1; background: transparent; font-size: 0.85rem; }
+.edit-replace-all { font-size: 0.75rem; font-weight: normal; color: var(--text-muted); }
+.write-tool .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #e6f4ea); }
+.edit-tool .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff0e5); }
+.todo-list { background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%); border: 1px solid #81c784; border-radius: 8px; padding: 12px; margin: 12px 0; }
+.todo-header { font-weight: 600; color: #2e7d32; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
+.todo-items { list-style: none; margin: 0; padding: 0; }
+.todo-item { display: flex; align-items: flex-start; gap: 10px; padding: 6px 0; border-bottom: 1px solid rgba(0,0,0,0.06); font-size: 0.9rem; }
+.todo-item:last-child { border-bottom: none; }
+.todo-icon { flex-shrink: 0; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-weight: bold; border-radius: 50%; }
+.todo-completed .todo-icon { color: #2e7d32; background: rgba(46, 125, 50, 0.15); }
+.todo-completed .todo-content { color: #558b2f; text-decoration: line-through; }
+.todo-in-progress .todo-icon { color: #f57c00; background: rgba(245, 124, 0, 0.15); }
+.todo-in-progress .todo-content { color: #e65100; font-weight: 500; }
+.todo-pending .todo-icon { color: #757575; background: rgba(0,0,0,0.05); }
+.todo-pending .todo-content { color: #616161; }
+pre { background: var(--code-bg); color: var(--code-text); padding: 12px; border-radius: 6px; overflow-x: auto; font-size: 0.85rem; line-height: 1.5; margin: 8px 0; white-space: pre-wrap; word-wrap: break-word; }
+pre.json { color: #e0e0e0; }
+code { background: rgba(0,0,0,0.08); padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+pre code { background: none; padding: 0; }
+.user-content { margin: 0; }
+.truncatable { position: relative; }
+.truncatable.truncated .truncatable-content { max-height: 200px; overflow: hidden; }
+.truncatable.truncated::after { content: ''; position: absolute; bottom: 32px; left: 0; right: 0; height: 60px; background: linear-gradient(to bottom, transparent, var(--card-bg)); pointer-events: none; }
+.message.user .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--user-bg)); }
+.message.tool-reply .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff8e1); }
+.tool-use .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--tool-bg)); }
+.tool-result .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--tool-result-bg)); }
+.expand-btn { display: none; width: 100%; padding: 8px 16px; margin-top: 4px; background: rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.1); border-radius: 6px; cursor: pointer; font-size: 0.85rem; color: var(--text-muted); }
+.expand-btn:hover { background: rgba(0,0,0,0.1); }
+.truncatable.truncated .expand-btn, .truncatable.expanded .expand-btn { display: block; }
+.pagination { display: flex; justify-content: center; gap: 8px; margin: 24px 0; flex-wrap: wrap; }
+.pagination a, .pagination span { padding: 5px 10px; border-radius: 6px; text-decoration: none; font-size: 0.85rem; }
+.pagination a { background: var(--card-bg); color: var(--user-border); border: 1px solid var(--user-border); }
+.pagination a:hover { background: var(--user-bg); }
+.pagination .current { background: var(--user-border); color: white; }
+.pagination .disabled { color: var(--text-muted); border: 1px solid #ddd; }
+.pagination .index-link { background: var(--user-border); color: white; }
+details.continuation { margin-bottom: 16px; }
+details.continuation summary { cursor: pointer; padding: 12px 16px; background: var(--user-bg); border-left: 4px solid var(--user-border); border-radius: 12px; font-weight: 500; color: var(--text-muted); }
+details.continuation summary:hover { background: rgba(25, 118, 210, 0.15); }
+details.continuation[open] summary { border-radius: 12px 12px 0 0; margin-bottom: 0; }
+.index-item { margin-bottom: 16px; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); background: var(--user-bg); border-left: 4px solid var(--user-border); }
+.index-item a { display: block; text-decoration: none; color: inherit; }
+.index-item a:hover { background: rgba(25, 118, 210, 0.1); }
+.index-item-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; background: rgba(0,0,0,0.03); font-size: 0.85rem; }
+.index-item-number { font-weight: 600; color: var(--user-border); }
+.index-item-content { padding: 16px; }
+.index-item-stats { padding: 8px 16px 12px 32px; font-size: 0.85rem; color: var(--text-muted); border-top: 1px solid rgba(0,0,0,0.06); }
+.index-item-commit { margin-top: 6px; padding: 4px 8px; background: #fff3e0; border-radius: 4px; font-size: 0.85rem; color: #e65100; }
+.index-item-commit code { background: rgba(0,0,0,0.08); padding: 1px 4px; border-radius: 3px; font-size: 0.8rem; margin-right: 6px; }
+.commit-card { margin: 8px 0; padding: 10px 14px; background: #fff3e0; border-left: 4px solid #ff9800; border-radius: 6px; }
+.commit-card a { text-decoration: none; color: #5d4037; display: block; }
+.commit-card a:hover { color: #e65100; }
+.commit-card-hash { font-family: monospace; color: #e65100; font-weight: 600; margin-right: 8px; }
+.index-commit { margin-bottom: 12px; padding: 10px 16px; background: #fff3e0; border-left: 4px solid #ff9800; border-radius: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+.index-commit a { display: block; text-decoration: none; color: inherit; }
+.index-commit a:hover { background: rgba(255, 152, 0, 0.1); margin: -10px -16px; padding: 10px 16px; border-radius: 8px; }
+.index-commit-header { display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; margin-bottom: 4px; }
+.index-commit-hash { font-family: monospace; color: #e65100; font-weight: 600; }
+.index-commit-msg { color: #5d4037; }
+.index-item-long-text { margin-top: 8px; padding: 12px; background: var(--card-bg); border-radius: 8px; border-left: 3px solid var(--assistant-border); }
+.index-item-long-text .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--card-bg)); }
+.index-item-long-text-content { color: var(--text-color); }
+#search-box { display: none; align-items: center; gap: 8px; }
+#search-box input { padding: 6px 12px; border: 1px solid var(--assistant-border); border-radius: 6px; font-size: 16px; width: 180px; }
+#search-box button, #modal-search-btn, #modal-close-btn { background: var(--user-border); color: white; border: none; border-radius: 6px; padding: 6px 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+#search-box button:hover, #modal-search-btn:hover { background: #1565c0; }
+#modal-close-btn { background: var(--text-muted); margin-left: 8px; }
+#modal-close-btn:hover { background: #616161; }
+#search-modal[open] { border: none; border-radius: 12px; box-shadow: 0 4px 24px rgba(0,0,0,0.2); padding: 0; width: 90vw; max-width: 900px; height: 80vh; max-height: 80vh; display: flex; flex-direction: column; }
+#search-modal::backdrop { background: rgba(0,0,0,0.5); }
+.search-modal-header { display: flex; align-items: center; gap: 8px; padding: 16px; border-bottom: 1px solid var(--assistant-border); background: var(--bg-color); border-radius: 12px 12px 0 0; }
+.search-modal-header input { flex: 1; padding: 8px 12px; border: 1px solid var(--assistant-border); border-radius: 6px; font-size: 16px; }
+#search-status { padding: 8px 16px; font-size: 0.85rem; color: var(--text-muted); border-bottom: 1px solid rgba(0,0,0,0.06); }
+#search-results { flex: 1; overflow-y: auto; padding: 16px; }
+.search-result { margin-bottom: 16px; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.search-result a { display: block; text-decoration: none; color: inherit; }
+.search-result a:hover { background: rgba(25, 118, 210, 0.05); }
+.search-result-page { padding: 6px 12px; background: rgba(0,0,0,0.03); font-size: 0.8rem; color: var(--text-muted); border-bottom: 1px solid rgba(0,0,0,0.06); }
+.search-result-content { padding: 12px; }
+.search-result mark { background: #fff59d; padding: 1px 2px; border-radius: 2px; }
+@media (max-width: 600px) { body { padding: 8px; } .message, .index-item { border-radius: 8px; } .message-content, .index-item-content { padding: 12px; } pre { font-size: 0.8rem; padding: 8px; } #search-box input { width: 120px; } #search-modal[open] { width: 95vw; height: 90vh; } }
+</style>
+</head>
+<body>
+    <div class="container">
+        <h1><a href="index.html" style="color: inherit; text-decoration: none;">Claude Code transcript</a> - page 13/21</h1>
+        
+
+<div class="pagination">
+<a href="index.html" class="index-link">Index</a>
+<a href="page-012.html">&larr; Prev</a>
+<a href="page-001.html">1</a>
+<a href="page-002.html">2</a>
+<a href="page-003.html">3</a>
+<a href="page-004.html">4</a>
+<a href="page-005.html">5</a>
+<a href="page-006.html">6</a>
+<a href="page-007.html">7</a>
+<a href="page-008.html">8</a>
+<a href="page-009.html">9</a>
+<a href="page-010.html">10</a>
+<a href="page-011.html">11</a>
+<a href="page-012.html">12</a>
+<span class="current">13</span>
+<a href="page-014.html">14</a>
+<a href="page-015.html">15</a>
+<a href="page-016.html">16</a>
+<a href="page-017.html">17</a>
+<a href="page-018.html">18</a>
+<a href="page-019.html">19</a>
+<a href="page-020.html">20</a>
+<a href="page-021.html">21</a>
+<a href="page-014.html">Next &rarr;</a>
+</div>
+
+        
+<div class="message user" id="msg-2026-05-03T23-56-32-971Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-05-03T23-56-32-971Z" class="timestamp-link"><time datetime="2026-05-03T23:56:32.971Z" data-timestamp="2026-05-03T23:56:32.971Z">2026-05-03T23:56:32.971Z</time></a></div><div class="message-content">
+<div class="user-content"><p>On the first match wins, that's reasonable, but I want you to capture that. Right? So if you detect multiple blocks you log that in some way or you expose that to say that you know, we have multiple evidence blocks or something. So we need to differentiate between that and make sure that explicit decision which is reasonable is captured.
+Why on the reversed order block, why would we okay with that? Why would that happen and how do we how can we trust what happens if that's happening? The system prompt is basically saying draft the evidence then compose the answer, How can we trust something which came the other way? Just expect that, you know, our eval should catch this. Right? We should be enforcing the order we're expecting. More generally, think, like, what is that phrase you had here? Be strict here. Help me understand that. I don't I don't agree with that decision making in this place. It seems like strict the reason we picked this is because of the documentation which said this is what you should be doing. So I would say if it doesn't do this, that's more of a failure than we just accept what happens. Tell me what you think.</p></div></div></div>
+<div class="message assistant" id="msg-2026-05-03T23-57-46-207Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-03T23-57-46-207Z" class="timestamp-link"><time datetime="2026-05-03T23:57:46.207Z" data-timestamp="2026-05-03T23:57:46.207Z">2026-05-03T23:57:46.207Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-05-03T23-57-53-898Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-03T23-57-53-898Z" class="timestamp-link"><time datetime="2026-05-03T23:57:53.898Z" data-timestamp="2026-05-03T23:57:53.898Z">2026-05-03T23:57:53.898Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>You're right on (2). I was wrong to frame it as "tolerant beats strict here" — that's the right call for <em>content</em> (unescaped <code>&lt;</code> <code>&gt;</code> <code>&amp;</code> in extracts shouldn't break parsing), but it's the wrong call for <em>order</em>. The order is part of the prompt contract: "draft evidence, then compose answer." If the model emits answer-first, that suggests it wrote the conclusion first and back-filled evidence to match — post-hoc rationalization rather than grounding. Tolerating it masks the actual failure mode we care about.</p>
+<p>Two different decisions conflated into one rule. Untangling:</p>
+<p><strong>Multiplicity (your point 1):</strong> first-wins is reasonable, but the multiplicity must be captured. Adding <code>parse_warnings: list[str]</code> to the local <code>ParsedOutput</code> and emitting via <code>logging.warning()</code> so warnings show up in agent logs without changing the frozen <code>AgentResult</code> contract.</p>
+<p><strong>Reversed order (your point 2):</strong> strict. If <code>&lt;answer&gt;</code> appears before <code>&lt;evidence&gt;</code> in raw output, parsing returns <code>evidence=""</code>, <code>answer=""</code>, with a warning. The model's text remains in <code>raw_output</code>. The eval and judge see broken structure (empty fields) and grade accordingly — calibration and groundedness will both surface the failure. We do not silently extract.</p>
+<p>One trade-off worth flagging: I'm logging warnings, not lifting them to the contract. The eval can re-derive multiplicity by counting <code>&lt;evidence&gt;</code> substrings in <code>raw_output</code> if it needs programmatic access. If that turns out to be inconvenient, we add <code>parse_warnings</code> to <code>AgentResult</code> later — that's one more field on a contract we already changed, low friction.</p>
+<p>Updating tests and impl now.</p></div></div></div>
+<div class="message assistant" id="msg-2026-05-03T23-58-02-701Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-03T23-58-02-701Z" class="timestamp-link"><time datetime="2026-05-03T23:58:02.701Z" data-timestamp="2026-05-03T23:58:02.701Z">2026-05-03T23:58:02.701Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_01HGcfSraDgLKx8rrUeThphd">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">test_parser.py</span></div>
+<div class="file-tool-fullpath">/Users/<user>/projects/wiki-q-and-a/tests/unit/test_parser.py</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">    def test_block_order_reversed_still_parses(self) -&gt; None:
+        # Unusual but tolerable: model puts answer before evidence
+        text = &#34;&lt;answer&gt;answer first&lt;/answer&gt;\n&lt;evidence&gt;then evidence&lt;/evidence&gt;&#34;
+        result = parse_evidence_and_answer(text)
+        assert result.evidence == &#34;then evidence&#34;
+        assert result.answer == &#34;answer first&#34;
+
+    def test_repeated_evidence_blocks_takes_first(self) -&gt; None:
+        # If model emits two evidence blocks (shouldn&#39;t, but might), take the first
+        text = (
+            &#34;&lt;evidence&gt;first evidence&lt;/evidence&gt;\n&#34;
+            &#34;&lt;answer&gt;middle&lt;/answer&gt;\n&#34;
+            &#34;&lt;evidence&gt;second evidence&lt;/evidence&gt;&#34;
+        )
+        result = parse_evidence_and_answer(text)
+        assert result.evidence == &#34;first evidence&#34;</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">    def test_block_order_reversed_treated_as_malformed(self) -&gt; None:
+        # Reversed order suggests post-hoc rationalization (model wrote conclusion
+        # first, back-filled evidence). Violates the system prompt&#39;s &#34;draft evidence
+        # then compose answer&#34; instruction. Both fields empty; warning surfaces it.
+        text = &#34;&lt;answer&gt;answer first&lt;/answer&gt;\n&lt;evidence&gt;then evidence&lt;/evidence&gt;&#34;
+        result = parse_evidence_and_answer(text)
+        assert result.evidence == &#34;&#34;
+        assert result.answer == &#34;&#34;
+        assert result.raw_output == text
+        assert any(&#34;reversed order&#34; in w.lower() for w in result.parse_warnings)
+
+    def test_repeated_evidence_blocks_takes_first_with_warning(self) -&gt; None:
+        # If model emits two evidence blocks (shouldn&#39;t, but might), take the first
+        # and surface the multiplicity as a warning so it&#39;s not silently dropped.
+        text = (
+            &#34;&lt;evidence&gt;first evidence&lt;/evidence&gt;\n&#34;
+            &#34;&lt;answer&gt;middle&lt;/answer&gt;\n&#34;
+            &#34;&lt;evidence&gt;second evidence&lt;/evidence&gt;&#34;
+        )
+        result = parse_evidence_and_answer(text)
+        assert result.evidence == &#34;first evidence&#34;
+        assert any(&#34;multiple &lt;evidence&gt;&#34; in w for w in result.parse_warnings)
+
+    def test_repeated_answer_blocks_takes_first_with_warning(self) -&gt; None:
+        text = (
+            &#34;&lt;evidence&gt;e&lt;/evidence&gt;\n&#34;
+            &#34;&lt;answer&gt;first answer&lt;/answer&gt;\n&#34;
+            &#34;&lt;answer&gt;second answer&lt;/answer&gt;&#34;
+        )
+        result = parse_evidence_and_answer(text)
+        assert result.answer == &#34;first answer&#34;
+        assert any(&#34;multiple &lt;answer&gt;&#34; in w for w in result.parse_warnings)
+
+    def test_clean_parse_has_no_warnings(self) -&gt; None:
+        text = &#34;&lt;evidence&gt;e&lt;/evidence&gt;&lt;answer&gt;a&lt;/answer&gt;&#34;
+        result = parse_evidence_and_answer(text)
+        assert result.parse_warnings == []</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-05-03T23-58-02-795Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-05-03T23-58-02-795Z" class="timestamp-link"><time datetime="2026-05-03T23:58:02.795Z" data-timestamp="2026-05-03T23:58:02.795Z">2026-05-03T23:58:02.795Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file /Users/<user>/projects/wiki-q-and-a/tests/unit/test_parser.py has been updated successfully.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-05-03T23-58-06-829Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-03T23-58-06-829Z" class="timestamp-link"><time datetime="2026-05-03T23:58:06.829Z" data-timestamp="2026-05-03T23:58:06.829Z">2026-05-03T23:58:06.829Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_019EDg16k2h4Lp1QMwvnVQSZ">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Run parser tests — expect new ones to fail</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">uv run pytest tests/unit/test_parser.py 2&gt;&amp;1 | tail -10</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-05-03T23-58-07-287Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-05-03T23-58-07-287Z" class="timestamp-link"><time datetime="2026-05-03T23:58:07.287Z" data-timestamp="2026-05-03T23:58:07.287Z">2026-05-03T23:58:07.287Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>               ^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: &#x27;ParsedOutput&#x27; object has no attribute &#x27;parse_warnings&#x27;
+
+tests/unit/test_parser.py:179: AttributeError
+=========================== short test summary info ============================
+FAILED tests/unit/test_parser.py::TestMalformedInput::test_block_order_reversed_treated_as_malformed
+FAILED tests/unit/test_parser.py::TestMalformedInput::test_repeated_evidence_blocks_takes_first_with_warning
+FAILED tests/unit/test_parser.py::TestMalformedInput::test_repeated_answer_blocks_takes_first_with_warning
+FAILED tests/unit/test_parser.py::TestMalformedInput::test_clean_parse_has_no_warnings
+========================= 4 failed, 16 passed in 0.04s =========================</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-05-03T23-58-12-001Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-03T23-58-12-001Z" class="timestamp-link"><time datetime="2026-05-03T23:58:12.001Z" data-timestamp="2026-05-03T23:58:12.001Z">2026-05-03T23:58:12.001Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Red as expected. Implementing.</p></div></div></div>
+<div class="message tool-reply" id="msg-2026-05-03T23-58-29-227Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-05-03T23-58-29-227Z" class="timestamp-link"><time datetime="2026-05-03T23:58:29.227Z" data-timestamp="2026-05-03T23:58:29.227Z">2026-05-03T23:58:29.227Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file /Users/<user>/projects/wiki-q-and-a/src/wiki_qa/parser.py has been updated successfully.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-05-03T23-58-29-220Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-03T23-58-29-220Z" class="timestamp-link"><time datetime="2026-05-03T23:58:29.220Z" data-timestamp="2026-05-03T23:58:29.220Z">2026-05-03T23:58:29.220Z</time></a></div><div class="message-content"><div class="file-tool write-tool" data-tool-id="toolu_012z3PYQSDnQHpdpVTpxMNT5">
+<div class="file-tool-header write-header"><span class="file-tool-icon">📝</span> Write <span class="file-tool-path">parser.py</span></div>
+<div class="file-tool-fullpath">/Users/<user>/projects/wiki-q-and-a/src/wiki_qa/parser.py</div>
+<div class="truncatable"><div class="truncatable-content"><pre class="file-content">&#34;&#34;&#34;Parse the agent&#39;s final assistant text into evidence/answer/raw_output.
+
+The system prompt instructs the model to emit:
+    &lt;evidence&gt;...&lt;/evidence&gt;
+    &lt;answer&gt;...&lt;/answer&gt;
+
+Two distinct decisions about strictness — they pull in opposite directions
+and need to be untangled:
+
+  - **Tolerant on content**: extracts contain unescaped angle brackets in
+    quotes, math, and code. Substring/regex extraction (not `xml.etree`) so
+    those don&#39;t break parsing.
+
+  - **Strict on order**: the prompt requires evidence first, then answer.
+    Reversed order suggests the model wrote its conclusion first and
+    back-filled evidence to match (post-hoc rationalization rather than
+    grounding). We refuse to extract under reversed order and flag it as a
+    parse warning — the eval should see this as a model failure, not as a
+    successful answer with a quirk.
+
+  - **Strict on multiplicity**: first-block-wins for repeated `&lt;evidence&gt;`
+    or `&lt;answer&gt;` blocks, but the multiplicity is logged as a parse warning
+    so it isn&#39;t silently dropped.
+
+The function never raises. Malformed input produces empty fields with
+warnings; `raw_output` always carries the full input.
+&#34;&#34;&#34;
+
+from __future__ import annotations
+
+import re
+from dataclasses import dataclass, field
+
+_EVIDENCE_RE = re.compile(r&#34;&lt;evidence&gt;(.*?)&lt;/evidence&gt;&#34;, re.DOTALL)
+_ANSWER_RE = re.compile(r&#34;&lt;answer&gt;(.*?)&lt;/answer&gt;&#34;, re.DOTALL)
+
+
+@dataclass(frozen=True)
+class ParsedOutput:
+    &#34;&#34;&#34;Result of parsing a model output. Local helper, not the agent contract.
+
+    `parse_warnings` carries non-fatal anomalies the agent should log
+    (multiple blocks of the same type, etc.) and that the eval can use as
+    additional behavior signal if it cares to inspect.
+    &#34;&#34;&#34;
+
+    evidence: str
+    answer: str
+    raw_output: str
+    parse_warnings: list[str] = field(default_factory=list)
+
+
+def parse_evidence_and_answer(text: str) -&gt; ParsedOutput:
+    &#34;&#34;&#34;Extract &lt;evidence&gt; and &lt;answer&gt; block contents from model text.
+
+    First-block-wins for repeated tags, with a warning. Reversed order
+    (`&lt;answer&gt;` before `&lt;evidence&gt;`) is treated as malformed: both fields
+    return empty with a warning. `raw_output` is always the input verbatim.
+    &#34;&#34;&#34;
+    warnings: list[str] = []
+
+    evidence_matches = list(_EVIDENCE_RE.finditer(text))
+    answer_matches = list(_ANSWER_RE.finditer(text))
+
+    if len(evidence_matches) &gt; 1:
+        warnings.append(
+            f&#34;multiple &lt;evidence&gt; blocks emitted ({len(evidence_matches)}); using first&#34;
+        )
+    if len(answer_matches) &gt; 1:
+        warnings.append(
+            f&#34;multiple &lt;answer&gt; blocks emitted ({len(answer_matches)}); using first&#34;
+        )
+
+    evidence_match = evidence_matches[0] if evidence_matches else None
+    answer_match = answer_matches[0] if answer_matches else None
+
+    # Strict order: evidence must precede answer per the system prompt contract.
+    # Reversed order suggests post-hoc rationalization — refuse to extract.
+    if (
+        evidence_match is not None
+        and answer_match is not None
+        and evidence_match.start() &gt; answer_match.start()
+    ):
+        warnings.append(
+            &#34;blocks emitted in reversed order: &lt;answer&gt; before &lt;evidence&gt;; &#34;
+            &#34;violates system prompt requirement to draft evidence first. &#34;
+            &#34;Treating as malformed.&#34;
+        )
+        return ParsedOutput(evidence=&#34;&#34;, answer=&#34;&#34;, raw_output=text, parse_warnings=warnings)
+
+    evidence = evidence_match.group(1).strip() if evidence_match else &#34;&#34;
+    answer = answer_match.group(1).strip() if answer_match else &#34;&#34;
+
+    return ParsedOutput(
+        evidence=evidence,
+        answer=answer,
+        raw_output=text,
+        parse_warnings=warnings,
+    )
+</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message assistant" id="msg-2026-05-03T23-58-32-331Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-03T23-58-32-331Z" class="timestamp-link"><time datetime="2026-05-03T23:58:32.331Z" data-timestamp="2026-05-03T23:58:32.331Z">2026-05-03T23:58:32.331Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01EcPYa6p6EWDCJqF4QBLxPx">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Run parser tests after revisions</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">uv run pytest tests/unit/test_parser.py 2&gt;&amp;1 | tail -8</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-05-03T23-58-32-695Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-05-03T23-58-32-695Z" class="timestamp-link"><time datetime="2026-05-03T23:58:32.695Z" data-timestamp="2026-05-03T23:58:32.695Z">2026-05-03T23:58:32.695Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>rootdir: /Users/<user>/projects/wiki-q-and-a
+configfile: pyproject.toml
+plugins: cov-7.1.0, respx-0.23.1, anyio-4.13.0
+collected 20 items
+
+tests/unit/test_parser.py ....................                           [100%]
+
+============================== 20 passed in 0.01s ==============================</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-05-03T23-58-35-807Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-03T23-58-35-807Z" class="timestamp-link"><time datetime="2026-05-03T23:58:35.807Z" data-timestamp="2026-05-03T23:58:35.807Z">2026-05-03T23:58:35.807Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>20/20 parser tests green. Quick quality gates, then DECISIONS entry.</p></div></div></div>
+<div class="message assistant" id="msg-2026-05-03T23-58-37-025Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-03T23-58-37-025Z" class="timestamp-link"><time datetime="2026-05-03T23:58:37.025Z" data-timestamp="2026-05-03T23:58:37.025Z">2026-05-03T23:58:37.025Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01UDC8ELDmdn5kJQHX6JxcnV">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Quality gates on parser changes</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">uv run ruff format src/wiki_qa/parser.py tests/unit/test_parser.py &amp;&amp; uv run ruff check src/wiki_qa/parser.py tests/unit/test_parser.py &amp;&amp; uv run mypy src/wiki_qa/parser.py tests/unit/test_parser.py 2&gt;&amp;1 | tail -5</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-05-03T23-58-37-222Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-05-03T23-58-37-222Z" class="timestamp-link"><time datetime="2026-05-03T23:58:37.222Z" data-timestamp="2026-05-03T23:58:37.222Z">2026-05-03T23:58:37.222Z</time></a></div><div class="message-content"><div class="tool-result tool-error"><div class="truncatable"><div class="truncatable-content"><pre>Exit code 1
+2 files reformatted
+E501 Line too long (107 &gt; 100)
+  --&gt; tests/unit/test_parser.py:36:101
+   |
+35 |     def test_strips_surrounding_whitespace_in_blocks(self) -&gt; None:
+36 |         text = &quot;&lt;evidence&gt;\n   evidence content   \n&lt;/evidence&gt;\n&lt;answer&gt;\n   answer content   \n&lt;/answer&gt;&quot;
+   |                                                                                                     ^^^^^^^
+37 |         result = parse_evidence_and_answer(text)
+38 |         assert result.evidence == &quot;evidence content&quot;
+   |
+
+Found 1 error.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-05-03T23-58-41-845Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-03T23-58-41-845Z" class="timestamp-link"><time datetime="2026-05-03T23:58:41.845Z" data-timestamp="2026-05-03T23:58:41.845Z">2026-05-03T23:58:41.845Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_01KH53144XhGqGRpPPWK996A">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">test_parser.py</span></div>
+<div class="file-tool-fullpath">/Users/<user>/projects/wiki-q-and-a/tests/unit/test_parser.py</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">        text = &#34;&lt;evidence&gt;\n   evidence content   \n&lt;/evidence&gt;\n&lt;answer&gt;\n   answer content   \n&lt;/answer&gt;&#34;</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">        text = (
+            &#34;&lt;evidence&gt;\n   evidence content   \n&lt;/evidence&gt;\n&#34;
+            &#34;&lt;answer&gt;\n   answer content   \n&lt;/answer&gt;&#34;
+        )</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-05-03T23-58-41-882Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-05-03T23-58-41-882Z" class="timestamp-link"><time datetime="2026-05-03T23:58:41.882Z" data-timestamp="2026-05-03T23:58:41.882Z">2026-05-03T23:58:41.882Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file /Users/<user>/projects/wiki-q-and-a/tests/unit/test_parser.py has been updated successfully.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-05-03T23-58-45-095Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-03T23-58-45-095Z" class="timestamp-link"><time datetime="2026-05-03T23:58:45.095Z" data-timestamp="2026-05-03T23:58:45.095Z">2026-05-03T23:58:45.095Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_014S1s9PRNnZrGsrVpss4U1v">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Final quality gate check</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">uv run ruff check src/wiki_qa/parser.py tests/unit/test_parser.py &amp;&amp; uv run mypy src/wiki_qa/parser.py tests/unit/test_parser.py &amp;&amp; uv run pytest tests/unit/test_parser.py 2&gt;&amp;1 | tail -5</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-05-03T23-58-45-640Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-05-03T23-58-45-640Z" class="timestamp-link"><time datetime="2026-05-03T23:58:45.640Z" data-timestamp="2026-05-03T23:58:45.640Z">2026-05-03T23:58:45.640Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>All checks passed!
+pyproject.toml: note: unused section(s): module = [&#x27;respx&#x27;]
+Success: no issues found in 2 source files
+collected 20 items
+
+tests/unit/test_parser.py ....................                           [100%]
+
+============================== 20 passed in 0.02s ==============================</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-05-03T23-58-48-733Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-03T23-58-48-733Z" class="timestamp-link"><time datetime="2026-05-03T23:58:48.733Z" data-timestamp="2026-05-03T23:58:48.733Z">2026-05-03T23:58:48.733Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>All gates green. DECISIONS entry now to capture the strict-vs-tolerant disambiguation.</p></div></div></div>
+<div class="message assistant" id="msg-2026-05-03T23-58-49-094Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-03T23-58-49-094Z" class="timestamp-link"><time datetime="2026-05-03T23:58:49.094Z" data-timestamp="2026-05-03T23:58:49.094Z">2026-05-03T23:58:49.094Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01TQKYhgVchhdm6gTb2GDWqs">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Get current timestamp</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">date &#34;+%Y-%m-%d %H:%M&#34;</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-05-03T23-58-49-127Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-05-03T23-58-49-127Z" class="timestamp-link"><time datetime="2026-05-03T23:58:49.127Z" data-timestamp="2026-05-03T23:58:49.127Z">2026-05-03T23:58:49.127Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>2026-05-03 16:58</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-05-03T23-59-08-150Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-03T23-59-08-150Z" class="timestamp-link"><time datetime="2026-05-03T23:59:08.150Z" data-timestamp="2026-05-03T23:59:08.150Z">2026-05-03T23:59:08.150Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01W1BNKrF6rmjtw19pRKLiL4">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Append DECISIONS entry on parser strictness</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">cat &gt;&gt; /Users/<user>/projects/wiki-q-and-a/DECISIONS.md &lt;&lt;&#39;EOF&#39;
+
+## 2026-05-03 16:58 — Parser strictness: strict on order and multiplicity, tolerant only on content
+
+User pushback on initial parser design. I had framed parsing decisions as &#34;tolerant beats strict&#34; globally — accepting reversed `&lt;answer&gt;` then `&lt;evidence&gt;` order and silently taking first-of-multiple blocks. That was wrong: order is part of the system prompt contract, and silent first-wins drops information the eval needs.
+
+Untangled into two distinct decisions:
+
+**Tolerant on content (kept).** Extracts will routinely contain unescaped `&lt;` `&gt;` `&amp;` (math, code, pasted-back tool result fragments). Substring/regex extraction not `xml.etree`. This is the right call — strict XML parsing would fail on legitimate model output and obscure real answers behind a parsing error.
+
+**Strict on order (reversed earlier &#34;tolerant&#34; framing).** The system prompt requires `&lt;evidence&gt;` then `&lt;answer&gt;`. The order isn&#39;t decorative — emitting answer-first suggests the model wrote its conclusion first and back-filled evidence to match (post-hoc rationalization, not grounding). Tolerating this would mask exactly the failure mode the evidence-block-as-authoritative pattern is meant to catch. Parser now refuses to extract on reversed order: `evidence=&#34;&#34;`, `answer=&#34;&#34;`, parse warning explains why. `raw_output` preserves the model&#39;s text. Eval and judge see structurally broken output and grade calibration/groundedness accordingly.
+
+**Strict on multiplicity (logged, not silently dropped).** First-block-wins is reasonable when the model accidentally emits two of the same block type (intent likely in the first), but the multiplicity has to surface. Parser appends a warning like &#34;multiple `&lt;evidence&gt;` blocks emitted (2); using first&#34; so the failure is observable. Eval can re-derive the count from `raw_output` if it wants programmatic access.
+
+**Implementation surface**: added `parse_warnings: list[str]` to the local `ParsedOutput` dataclass (not the frozen `AgentResult` contract). Agent will log warnings via `logging.warning()`. If eval later needs programmatic access to warnings, lift to the contract — single field add, low coordination cost. v1 keeps the contract narrow.
+
+The disambiguation that matters: tolerance is for *content* (data we receive); strictness is for *structure* (commitments the model made to follow). Conflating them was the original error.
+EOF
+echo &#34;Done.&#34;</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-05-03T23-59-08-245Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-05-03T23-59-08-245Z" class="timestamp-link"><time datetime="2026-05-03T23:59:08.245Z" data-timestamp="2026-05-03T23:59:08.245Z">2026-05-03T23:59:08.245Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Done.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-05-03T23-59-17-038Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-03T23-59-17-038Z" class="timestamp-link"><time datetime="2026-05-03T23:59:17.038Z" data-timestamp="2026-05-03T23:59:17.038Z">2026-05-03T23:59:17.038Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Parser revised, captured, and green. Summary of the change:</p>
+<ul>
+<li><strong>Reversed order</strong> (<code>&lt;answer&gt;</code> before <code>&lt;evidence&gt;</code>) → <code>evidence=""</code>, <code>answer=""</code>, warning. The model failed to follow structure; we don't extract.</li>
+<li><strong>Multiple blocks of the same type</strong> → first wins, warning emitted. Not silently dropped.</li>
+<li><strong>Clean parse</strong> → empty <code>parse_warnings</code> list.</li>
+<li><strong>Content tolerance unchanged</strong> (unescaped <code>&lt;</code>, <code>&gt;</code>, <code>&amp;</code> in extracts still parse correctly).</li>
+</ul>
+<p>20/20 parser tests green. Lint, types, and tests all clean.</p>
+<p>The principle I should have led with last round: <strong>tolerance is for content (data we receive); strictness is for structure (commitments the model made to follow)</strong>. Conflating them was the original error. Captured in DECISIONS so I don't conflate them again on the agent loop.</p>
+<p>Continuing with agent-loop tests next — that's the larger surface (mocked Anthropic SDK responses for tool-use turns, text-only turns, multi-search loops, budget hits, search-error feedback, token usage tracking). Want me to keep going, or any pause needed first?</p></div></div></div>
+<div class="message user" id="msg-2026-05-04T00-02-29-234Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-05-04T00-02-29-234Z" class="timestamp-link"><time datetime="2026-05-04T00:02:29.234Z" data-timestamp="2026-05-04T00:02:29.234Z">2026-05-04T00:02:29.234Z</time></a></div><div class="message-content">
+<div class="user-content"><p>I like that principle you extracted, tolerances for content, strictness is for structure. That's a nice way of putting it, and it makes sense.
+Parse warnings is new. Can you confirm that it is in the pedantic data model? If so, we need to make sure we update it if it's not a backwards compatible change. Need to let the other two the other agent know as well Need more information on structure there. I feel like I I don't understand what's in there. Where can I look at the structure of this thing? Stair has been replaced by pars warnings. Thought we had something like parse status before. Answer these questions. Show me a link to the code so I can look it up as well.</p></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-02-44-335Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-02-44-335Z" class="timestamp-link"><time datetime="2026-05-04T00:02:44.335Z" data-timestamp="2026-05-04T00:02:44.335Z">2026-05-04T00:02:44.335Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-02-53-130Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-02-53-130Z" class="timestamp-link"><time datetime="2026-05-04T00:02:53.130Z" data-timestamp="2026-05-04T00:02:53.130Z">2026-05-04T00:02:53.130Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Direct answers:</p>
+<p><strong>1. Is <code>parse_warnings</code> in the Pydantic model?</strong> No. Deliberately kept off the <code>AgentResult</code> contract. It lives on a local helper dataclass <code>ParsedOutput</code> inside <code>src/wiki_qa/parser.py:38-49</code>. The agent loop will call <code>parse_evidence_and_answer()</code>, get a <code>ParsedOutput</code>, then construct an <code>AgentResult</code> from its <code>evidence</code> / <code>answer</code> / <code>raw_output</code> fields and log the warnings via <code>logging.warning()</code> instead of passing them through.</p>
+<p><strong>2. Backward-compat / coord with the other agent.</strong> Not needed for this change — the contract is unchanged. The other agent is unaffected.</p>
+<p><strong>3. Where to look at structure.</strong> Two files:
+- <strong>Pydantic contract</strong> (the frozen, cross-workstream schema): <code>src/wiki_qa/agent_contract.py:24-48</code> — three models (<code>ToolCall</code>, <code>TokenUsage</code>, <code>AgentResult</code>), all <code>frozen=True, extra="forbid"</code>.
+- <strong>Local parser helper</strong> (agent-internal, not seen by eval): <code>src/wiki_qa/parser.py:38-49</code> — <code>ParsedOutput</code> with <code>evidence</code>, <code>answer</code>, <code>raw_output</code>, <code>parse_warnings</code>.</p>
+<p><strong>4. "Parse status before" — we didn't have one.</strong> No prior <code>parse_status</code> field has existed at any point. <code>parse_warnings</code> is brand-new in this round, only on the local <code>ParsedOutput</code> helper. Nothing was renamed or replaced.</p>
+<p><strong>5. The reasoning for keeping it off the contract</strong> (since it's the design call worth knowing about): adding fields to the cross-workstream contract has friction — the other agent's stub fixtures and behavior_checks would all need updating. Logging covers human inspection. If eval later wants programmatic access (e.g., a deterministic check that fails when warnings are non-empty), it's one field add and a coordination ping. Captured in DECISIONS at <code>2026-05-03 16:58</code>.</p>
+<p>Quick view of both:</p></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-02-54-781Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-02-54-781Z" class="timestamp-link"><time datetime="2026-05-04T00:02:54.781Z" data-timestamp="2026-05-04T00:02:54.781Z">2026-05-04T00:02:54.781Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01EMHeu8Q9kocq6E9YqhATL3">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Print contract + local parser dataclass for inspection</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">echo &#34;=== src/wiki_qa/agent_contract.py ===&#34; &amp;&amp; sed -n &#39;20,49p&#39; /Users/<user>/projects/wiki-q-and-a/src/wiki_qa/agent_contract.py &amp;&amp; echo &#34;&#34; &amp;&amp; echo &#34;=== src/wiki_qa/parser.py (lines 38-49) ===&#34; &amp;&amp; sed -n &#39;38,49p&#39; /Users/<user>/projects/wiki-q-and-a/src/wiki_qa/parser.py</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-05-04T00-02-54-877Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-05-04T00-02-54-877Z" class="timestamp-link"><time datetime="2026-05-04T00:02:54.877Z" data-timestamp="2026-05-04T00:02:54.877Z">2026-05-04T00:02:54.877Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>=== src/wiki_qa/agent_contract.py ===
+class _Frozen(BaseModel):
+    model_config = ConfigDict(frozen=True, extra=&quot;forbid&quot;)
+
+
+class ToolCall(_Frozen):
+    name: str
+    query: str
+    raw_result_str: str
+    latency_ms: int
+
+
+class TokenUsage(_Frozen):
+    input_tokens: int
+    output_tokens: int
+    cache_read_tokens: int
+    cache_creation_tokens: int
+
+
+class AgentResult(_Frozen):
+    question: str
+    evidence: str
+    answer: str
+    raw_output: str
+    tool_calls: list[ToolCall]
+    n_searches: int
+    queries: list[str]
+    stop_reason: str
+    usage: TokenUsage
+    raw_messages: list[dict[str, Any]]
+
+=== src/wiki_qa/parser.py (lines 38-49) ===
+@dataclass(frozen=True)
+class ParsedOutput:
+    &quot;&quot;&quot;Result of parsing a model output. Local helper, not the agent contract.
+
+    `parse_warnings` carries non-fatal anomalies the agent should log
+    (multiple blocks of the same type, etc.) and that the eval can use as
+    additional behavior signal if it cares to inspect.
+    &quot;&quot;&quot;
+
+    evidence: str
+    answer: str
+    raw_output: str</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-03-00-861Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-03-00-861Z" class="timestamp-link"><time datetime="2026-05-04T00:03:00.861Z" data-timestamp="2026-05-04T00:03:00.861Z">2026-05-04T00:03:00.861Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-03-01-642Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-03-01-642Z" class="timestamp-link"><time datetime="2026-05-04T00:03:01.642Z" data-timestamp="2026-05-04T00:03:01.642Z">2026-05-04T00:03:01.642Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>The <code>parse_warnings</code> field on <code>ParsedOutput</code> got cut off by my line range — extending:</p></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-03-02-131Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-03-02-131Z" class="timestamp-link"><time datetime="2026-05-04T00:03:02.131Z" data-timestamp="2026-05-04T00:03:02.131Z">2026-05-04T00:03:02.131Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01DmEovFYANdQncw3y8SBhSS">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Show the full ParsedOutput dataclass</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">sed -n &#39;37,52p&#39; /Users/<user>/projects/wiki-q-and-a/src/wiki_qa/parser.py</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-05-04T00-03-02-179Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-05-04T00-03-02-179Z" class="timestamp-link"><time datetime="2026-05-04T00:03:02.179Z" data-timestamp="2026-05-04T00:03:02.179Z">2026-05-04T00:03:02.179Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>@dataclass(frozen=True)
+class ParsedOutput:
+    &quot;&quot;&quot;Result of parsing a model output. Local helper, not the agent contract.
+
+    `parse_warnings` carries non-fatal anomalies the agent should log
+    (multiple blocks of the same type, etc.) and that the eval can use as
+    additional behavior signal if it cares to inspect.
+    &quot;&quot;&quot;
+
+    evidence: str
+    answer: str
+    raw_output: str
+    parse_warnings: list[str] = field(default_factory=list)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-03-06-158Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-03-06-158Z" class="timestamp-link"><time datetime="2026-05-04T00:03:06.158Z" data-timestamp="2026-05-04T00:03:06.158Z">2026-05-04T00:03:06.158Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Net summary in one sentence: <code>parse_warnings</code> exists only on <code>src/wiki_qa/parser.py:50</code> (a local agent-internal helper); the cross-workstream <code>AgentResult</code> contract at <code>src/wiki_qa/agent_contract.py:38-48</code> is unchanged, so the harness agent has nothing to update.</p></div></div></div>
+<div class="message user" id="msg-2026-05-04T00-04-59-421Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-05-04T00-04-59-421Z" class="timestamp-link"><time datetime="2026-05-04T00:04:59.421Z" data-timestamp="2026-05-04T00:04:59.421Z">2026-05-04T00:04:59.421Z</time></a></div><div class="message-content">
+<div class="user-content"><p>So that doesn't make sense to me. It needs to be it's something going back and forth across agents. It needs to be included in the model. I don't want you to have to work around that. Right? The eval needs programmatic access. This doesn't make sense to me. Yeah? So help me understand. I don't think this makes sense at all. You need to help me understand why. If not, we need to go and make the data model changes. I'm happy to have the other worker pick it up as well. Doing it now is the right thing to do.</p>
+<p>Once you've done making the change let me know and I will let the other agent know so they can pick it up and make the change. We also we actually capture a decision about keeping it off the contract and decisions on MD. I disagree with that, so we need to reverse that decision. Right? And it doesn't make sense to do this.</p></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-05-33-436Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-05-33-436Z" class="timestamp-link"><time datetime="2026-05-04T00:05:33.436Z" data-timestamp="2026-05-04T00:05:33.436Z">2026-05-04T00:05:33.436Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-05-36-480Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-05-36-480Z" class="timestamp-link"><time datetime="2026-05-04T00:05:36.480Z" data-timestamp="2026-05-04T00:05:36.480Z">2026-05-04T00:05:36.480Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>You're right. I optimized for "don't churn the contract" as if it were the goal itself, instead of letting the data flow shape the contract. <code>parse_warnings</code> is exactly the kind of signal that crosses the agent/eval boundary — structural correctness is part of how the model behaved, the eval needs to grade on it, and "scrape the logs" is a worse interface than a typed field. The argument I made doesn't hold up.</p>
+<p>Reversing. Adding <code>parse_warnings: list[str]</code> to <code>AgentResult</code> with <code>Field(default_factory=list)</code> so the other agent's existing stub fixtures don't break (they'll just get <code>[]</code> until they decide to populate it).</p></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-05-36-619Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-05-36-619Z" class="timestamp-link"><time datetime="2026-05-04T00:05:36.619Z" data-timestamp="2026-05-04T00:05:36.619Z">2026-05-04T00:05:36.619Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01S3eu6XKMuxNdNLWfXis753"><div class="tool-header"><span class="tool-icon">⚙</span> Read</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;file_path&#34;: &#34;/Users/<user>/projects/wiki-q-and-a/src/wiki_qa/agent_contract.py&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-05-04T00-05-36-636Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-05-04T00-05-36-636Z" class="timestamp-link"><time datetime="2026-05-04T00:05:36.636Z" data-timestamp="2026-05-04T00:05:36.636Z">2026-05-04T00:05:36.636Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>1	&quot;&quot;&quot;Frozen agent contract — shared library types.
+2	
+3	Imported by both the agent (`agent_stub.py` during dev, `agent.py` from
+4	workstream A in production) and the eval harness. Do not change shape in
+5	v1 — the harness, the stub, and the real agent all code against this.
+6	
+7	Pydantic over `@dataclass(frozen=True)` so we get:
+8	- validation at construction (rejects type mismatches, missing fields)
+9	- `model_dump_json()` / `model_validate_json()` for `results.jsonl` round-trip
+10	- schema introspection for cross-workstream coordination
+11	&quot;&quot;&quot;
+12	
+13	from __future__ import annotations
+14	
+15	from typing import Any
+16	
+17	from pydantic import BaseModel, ConfigDict
+18	
+19	
+20	class _Frozen(BaseModel):
+21	    model_config = ConfigDict(frozen=True, extra=&quot;forbid&quot;)
+22	
+23	
+24	class ToolCall(_Frozen):
+25	    name: str
+26	    query: str
+27	    raw_result_str: str
+28	    latency_ms: int
+29	
+30	
+31	class TokenUsage(_Frozen):
+32	    input_tokens: int
+33	    output_tokens: int
+34	    cache_read_tokens: int
+35	    cache_creation_tokens: int
+36	
+37	
+38	class AgentResult(_Frozen):
+39	    question: str
+40	    evidence: str
+41	    answer: str
+42	    raw_output: str
+43	    tool_calls: list[ToolCall]
+44	    n_searches: int
+45	    queries: list[str]
+46	    stop_reason: str
+47	    usage: TokenUsage
+48	    raw_messages: list[dict[str, Any]]
+49	</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-05-48-379Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-05-48-379Z" class="timestamp-link"><time datetime="2026-05-04T00:05:48.379Z" data-timestamp="2026-05-04T00:05:48.379Z">2026-05-04T00:05:48.379Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_0196FLwNrvjFwPhqUwrAqquL">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">agent_contract.py</span></div>
+<div class="file-tool-fullpath">/Users/<user>/projects/wiki-q-and-a/src/wiki_qa/agent_contract.py</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">from __future__ import annotations
+
+from typing import Any
+
+from pydantic import BaseModel, ConfigDict
+
+
+class _Frozen(BaseModel):
+    model_config = ConfigDict(frozen=True, extra=&#34;forbid&#34;)
+
+
+class ToolCall(_Frozen):
+    name: str
+    query: str
+    raw_result_str: str
+    latency_ms: int
+
+
+class TokenUsage(_Frozen):
+    input_tokens: int
+    output_tokens: int
+    cache_read_tokens: int
+    cache_creation_tokens: int
+
+
+class AgentResult(_Frozen):
+    question: str
+    evidence: str
+    answer: str
+    raw_output: str
+    tool_calls: list[ToolCall]
+    n_searches: int
+    queries: list[str]
+    stop_reason: str
+    usage: TokenUsage
+    raw_messages: list[dict[str, Any]]</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">from __future__ import annotations
+
+from typing import Any
+
+from pydantic import BaseModel, ConfigDict, Field
+
+
+class _Frozen(BaseModel):
+    model_config = ConfigDict(frozen=True, extra=&#34;forbid&#34;)
+
+
+class ToolCall(_Frozen):
+    name: str
+    query: str
+    raw_result_str: str
+    latency_ms: int
+
+
+class TokenUsage(_Frozen):
+    input_tokens: int
+    output_tokens: int
+    cache_read_tokens: int
+    cache_creation_tokens: int
+
+
+class AgentResult(_Frozen):
+    question: str
+    evidence: str
+    answer: str
+    raw_output: str
+    tool_calls: list[ToolCall]
+    n_searches: int
+    queries: list[str]
+    stop_reason: str
+    usage: TokenUsage
+    raw_messages: list[dict[str, Any]]
+    # Non-fatal anomalies surfaced by the response parser (e.g. &#34;multiple
+    # &lt;evidence&gt; blocks emitted; using first&#34;, &#34;blocks emitted in reversed
+    # order&#34;). Empty when the model&#39;s output parsed cleanly. The eval uses
+    # this as a deterministic signal of structural failure independent of the
+    # judge&#39;s rubric scoring. Defaulted to [] so existing constructors don&#39;t
+    # break; populate from `ParsedOutput.parse_warnings` when known.
+    parse_warnings: list[str] = Field(default_factory=list)</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-05-04T00-05-48-440Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-05-04T00-05-48-440Z" class="timestamp-link"><time datetime="2026-05-04T00:05:48.440Z" data-timestamp="2026-05-04T00:05:48.440Z">2026-05-04T00:05:48.440Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file /Users/<user>/projects/wiki-q-and-a/src/wiki_qa/agent_contract.py has been updated successfully.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-05-51-873Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-05-51-873Z" class="timestamp-link"><time datetime="2026-05-04T00:05:51.873Z" data-timestamp="2026-05-04T00:05:51.873Z">2026-05-04T00:05:51.873Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_013KM9b9J8LEBYu4dLKq5tTx">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Lint+type the contract change</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">uv run mypy src/wiki_qa/agent_contract.py &amp;&amp; uv run ruff check src/wiki_qa/agent_contract.py 2&gt;&amp;1 | tail -5</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-05-04T00-05-52-181Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-05-04T00-05-52-181Z" class="timestamp-link"><time datetime="2026-05-04T00:05:52.181Z" data-timestamp="2026-05-04T00:05:52.181Z">2026-05-04T00:05:52.181Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>pyproject.toml: note: unused section(s): module = [&#x27;respx&#x27;]
+Success: no issues found in 1 source file
+All checks passed!</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-05-55-058Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-05-55-058Z" class="timestamp-link"><time datetime="2026-05-04T00:05:55.058Z" data-timestamp="2026-05-04T00:05:55.058Z">2026-05-04T00:05:55.058Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Smoke-testing the new field via a quick construction check.</p></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-05-59-383Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-05-59-383Z" class="timestamp-link"><time datetime="2026-05-04T00:05:59.383Z" data-timestamp="2026-05-04T00:05:59.383Z">2026-05-04T00:05:59.383Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_016pLvLo6cP4AwETh4pM3uqw">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Smoke-test parse_warnings field on AgentResult</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">uv run python -c &#34;
+from wiki_qa.agent_contract import AgentResult, TokenUsage
+
+# Construction without parse_warnings — should default to []
+r = AgentResult(
+    question=&#39;q&#39;,
+    evidence=&#39;e&#39;,
+    answer=&#39;a&#39;,
+    raw_output=&#39;r&#39;,
+    tool_calls=[],
+    n_searches=0,
+    queries=[],
+    stop_reason=&#39;end_turn&#39;,
+    usage=TokenUsage(input_tokens=1, output_tokens=1, cache_read_tokens=0, cache_creation_tokens=0),
+    raw_messages=[],
+)
+assert r.parse_warnings == []
+print(&#39;default works:&#39;, r.parse_warnings)
+
+# Construction with parse_warnings
+r2 = AgentResult(
+    question=&#39;q&#39;, evidence=&#39;&#39;, answer=&#39;&#39;, raw_output=&#39;garbage&#39;,
+    tool_calls=[], n_searches=0, queries=[],
+    stop_reason=&#39;end_turn&#39;,
+    usage=TokenUsage(input_tokens=1, output_tokens=1, cache_read_tokens=0, cache_creation_tokens=0),
+    raw_messages=[],
+    parse_warnings=[&#39;multiple &lt;evidence&gt; blocks emitted (2); using first&#39;],
+)
+print(&#39;explicit works:&#39;, r2.parse_warnings)
+
+# JSON round-trip preserves it
+j = r2.model_dump_json()
+r3 = AgentResult.model_validate_json(j)
+assert r3.parse_warnings == r2.parse_warnings
+print(&#39;json round-trip works&#39;)
+&#34;</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-05-04T00-05-59-564Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-05-04T00-05-59-564Z" class="timestamp-link"><time datetime="2026-05-04T00:05:59.564Z" data-timestamp="2026-05-04T00:05:59.564Z">2026-05-04T00:05:59.564Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>default works: []
+explicit works: [&#x27;multiple &lt;evidence&gt; blocks emitted (2); using first&#x27;]
+json round-trip works</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-06-02-765Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-06-02-765Z" class="timestamp-link"><time datetime="2026-05-04T00:06:02.765Z" data-timestamp="2026-05-04T00:06:02.765Z">2026-05-04T00:06:02.765Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Field works: default-empty for old constructors, explicitly settable for new code, JSON round-trips through <code>results.jsonl</code>. DECISIONS supersession entry now.</p></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-06-03-232Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-06-03-232Z" class="timestamp-link"><time datetime="2026-05-04T00:06:03.232Z" data-timestamp="2026-05-04T00:06:03.232Z">2026-05-04T00:06:03.232Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_017yTxoiRFoZKL9nVHKw22G3">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Get current timestamp</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">date &#34;+%Y-%m-%d %H:%M&#34;</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-05-04T00-06-03-276Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-05-04T00-06-03-276Z" class="timestamp-link"><time datetime="2026-05-04T00:06:03.276Z" data-timestamp="2026-05-04T00:06:03.276Z">2026-05-04T00:06:03.276Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>2026-05-03 17:06</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-06-19-904Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-06-19-904Z" class="timestamp-link"><time datetime="2026-05-04T00:06:19.904Z" data-timestamp="2026-05-04T00:06:19.904Z">2026-05-04T00:06:19.904Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01YYuShb4S8VaannYGx29FKk">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Append supersession entry</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">cat &gt;&gt; /Users/<user>/projects/wiki-q-and-a/DECISIONS.md &lt;&lt;&#39;EOF&#39;
+
+## 2026-05-03 17:06 — `parse_warnings` lifted onto `AgentResult` (supersedes 16:58 &#34;kept off contract&#34; call)
+
+Reversed. The 16:58 entry argued for keeping `parse_warnings` on a local `ParsedOutput` helper and surfacing it only via `logging.warning()`. User pushed back and was right.
+
+Why my original reasoning didn&#39;t hold:
+- &#34;Logging covers it&#34; — log scraping is a worse interface than a typed field for cross-run comparison and programmatic inspection.
+- &#34;Lift later if needed&#34; — the eval needs structural-failure signal *now* to grade calibration and to expose deterministic checks like &#34;no parse warnings emitted.&#34; Deferring the contract change pushes complexity onto the eval and introduces a divergent code path (logs in dev, fields in prod).
+- &#34;Low contract churn&#34; — I was optimizing against contract change as a goal, instead of letting the data flow shape the contract. `parse_warnings` is genuinely cross-cutting (agent produces, eval consumes), so it belongs in the contract.
+
+**Change applied** in `src/wiki_qa/agent_contract.py`:
+```python
+parse_warnings: list[str] = Field(default_factory=list)
+```
+
+Default-empty so existing constructors (the harness agent&#39;s stub fixtures, etc.) don&#39;t break — they&#39;ll silently get `[]` until they decide to populate from `ParsedOutput.parse_warnings`. JSON round-trip via `model_dump_json()` / `model_validate_json()` preserves the field; `results.jsonl` carries it through.
+
+**Coordination heads-up to workstream B**: contract added one field, default `[]`. Stub fixtures don&#39;t need updates to compile but should populate when they&#39;re testing structural failure modes. Worth adding a `parse_warnings_empty` deterministic check to behavior_checks.
+
+**Meta-lesson, captured for myself**: when a piece of data crosses a workstream boundary, it belongs in the shared contract, not in workstream-private state with cross-cutting side channels. &#34;Optimize for contract stability&#34; is not a real goal; &#34;optimize for honest data flow&#34; is.
+EOF
+echo &#34;Done.&#34;</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-05-04T00-06-19-980Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-05-04T00-06-19-980Z" class="timestamp-link"><time datetime="2026-05-04T00:06:19.980Z" data-timestamp="2026-05-04T00:06:19.980Z">2026-05-04T00:06:19.980Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Done.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-06-27-390Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-06-27-390Z" class="timestamp-link"><time datetime="2026-05-04T00:06:27.390Z" data-timestamp="2026-05-04T00:06:27.390Z">2026-05-04T00:06:27.390Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Done. Summary for the heads-up to workstream B:</p>
+<p><strong>Contract change:</strong> <code>src/wiki_qa/agent_contract.py:48</code> — added <code>parse_warnings: list[str] = Field(default_factory=list)</code> to <code>AgentResult</code>.</p>
+<p><strong>Backward compatibility:</strong> default is <code>[]</code>, so any code constructing <code>AgentResult</code> without this field still works — no breakage. Their stub fixtures will compile unchanged.</p>
+<p><strong>What workstream B should do at their convenience:</strong>
+1. Populate <code>parse_warnings</code> in stub fixtures when testing structural-failure modes (so the deterministic check has something to grade against).
+2. Add a <code>parse_warnings_empty</code> deterministic check to <code>behavior_checks</code> — fails when <code>len(result.parse_warnings) &gt; 0</code>. This is now the programmatic surface for "did the model emit malformed structure."
+3. Optionally: pass <code>parse_warnings</code> into the judge prompt as additional context — gives the judge another signal for calibration scoring.</p>
+<p><strong>Verified:</strong> mypy clean, ruff clean, JSON round-trip works. Ready for them to pick up. Let me know once they've been pinged and I'll continue with the agent loop tests.</p></div></div></div>
+<div class="message user" id="msg-2026-05-04T00-06-46-178Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-05-04T00-06-46-178Z" class="timestamp-link"><time datetime="2026-05-04T00:06:46.178Z" data-timestamp="2026-05-04T00:06:46.178Z">2026-05-04T00:06:46.178Z</time></a></div><div class="message-content">
+<div class="user-content"><p>For a second. I don't think list string is the right choice. Right? It's just, I mean you're trying to get away from this by parsing it and creating some data. So you need a list of of different types of things, which is like, you know, which of the failure modes were surfaced in the parse right? Shouldn't you use the literal enum you have right now?</p></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-07-19-869Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-07-19-869Z" class="timestamp-link"><time datetime="2026-05-04T00:07:19.869Z" data-timestamp="2026-05-04T00:07:19.869Z">2026-05-04T00:07:19.869Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-07-27-844Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-07-27-844Z" class="timestamp-link"><time datetime="2026-05-04T00:07:27.844Z" data-timestamp="2026-05-04T00:07:27.844Z">2026-05-04T00:07:27.844Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Right. Categorical signals as <code>list[str]</code> is the same anti-pattern that pushed us to Pydantic — downstream code substring-matches on display text instead of branching on a known value. You're right to call it.</p>
+<p>Quick note: I don't actually have an enum defined yet — you may be misremembering, or thinking of the three failure modes the parser detects. Defining one now.</p>
+<p><strong>Design: <code>StrEnum</code> for the codes.</strong> Three branches today:</p>
+<pre><code class="language-python">class ParseWarning(StrEnum):
+    REVERSED_ORDER = &quot;reversed_order&quot;
+    MULTIPLE_EVIDENCE_BLOCKS = &quot;multiple_evidence_blocks&quot;
+    MULTIPLE_ANSWER_BLOCKS = &quot;multiple_answer_blocks&quot;
+</code></pre>
+<p><code>StrEnum</code> (Python 3.11+; we're on 3.12) round-trips through JSON as plain strings, so <code>results.jsonl</code> and Pydantic serialization are unchanged from your view. The eval checks become <code>ParseWarning.REVERSED_ORDER in result.parse_warnings</code> — typed, autocompleted, refactor-safe.</p>
+<p><strong>One trade-off worth flagging.</strong> The previous strings carried detail like <code>"multiple &lt;evidence&gt; blocks emitted (3); using first"</code> — the <code>(3)</code> was extra. With pure codes, that count is dropped. If eval ever cares about how many blocks, it can count <code>&lt;evidence&gt;</code> substrings in <code>raw_output</code>. I think this is fine — code is the categorical signal, count is the diagnostic, and <code>raw_output</code> is the diagnostic surface. If you want both preserved, alternative is <code>list[ParseWarning]</code> where <code>ParseWarning</code> is a small Pydantic model <code>{code: ParseWarningCode, detail: str}</code>. More structure, more code. Going with the simpler <code>StrEnum</code> unless you push back.</p>
+<p>Updating now.</p></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-07-33-610Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-07-33-610Z" class="timestamp-link"><time datetime="2026-05-04T00:07:33.610Z" data-timestamp="2026-05-04T00:07:33.610Z">2026-05-04T00:07:33.610Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_01CvJxMqnY53g8jkafW1rgis">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">agent_contract.py</span></div>
+<div class="file-tool-fullpath">/Users/<user>/projects/wiki-q-and-a/src/wiki_qa/agent_contract.py</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">from __future__ import annotations
+
+from typing import Any
+
+from pydantic import BaseModel, ConfigDict, Field</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">from __future__ import annotations
+
+from enum import StrEnum
+from typing import Any
+
+from pydantic import BaseModel, ConfigDict, Field
+
+
+class ParseWarning(StrEnum):
+    &#34;&#34;&#34;Categorical signals from the response parser.
+
+    Emitted when the model&#39;s output deviates from the expected structure.
+    Used by the eval as a deterministic correctness signal independent of
+    the judge&#39;s rubric scoring. Round-trips through JSON as plain strings
+    (StrEnum behavior).
+    &#34;&#34;&#34;
+
+    REVERSED_ORDER = &#34;reversed_order&#34;
+    &#34;&#34;&#34;`&lt;answer&gt;` block appeared before `&lt;evidence&gt;` block. Suggests post-hoc
+    rationalization rather than evidence-first reasoning. Parser refuses to
+    extract under this condition.&#34;&#34;&#34;
+
+    MULTIPLE_EVIDENCE_BLOCKS = &#34;multiple_evidence_blocks&#34;
+    &#34;&#34;&#34;Model emitted more than one `&lt;evidence&gt;` block. Parser took the first.
+    Count is recoverable from `raw_output`.&#34;&#34;&#34;
+
+    MULTIPLE_ANSWER_BLOCKS = &#34;multiple_answer_blocks&#34;
+    &#34;&#34;&#34;Model emitted more than one `&lt;answer&gt;` block. Parser took the first.
+    Count is recoverable from `raw_output`.&#34;&#34;&#34;</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-05-04T00-07-33-666Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-05-04T00-07-33-666Z" class="timestamp-link"><time datetime="2026-05-04T00:07:33.666Z" data-timestamp="2026-05-04T00:07:33.666Z">2026-05-04T00:07:33.666Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file /Users/<user>/projects/wiki-q-and-a/src/wiki_qa/agent_contract.py has been updated successfully.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-07-41-214Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-07-41-214Z" class="timestamp-link"><time datetime="2026-05-04T00:07:41.214Z" data-timestamp="2026-05-04T00:07:41.214Z">2026-05-04T00:07:41.214Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_01FVonvCLMkqhnsxtShqeTvq">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">agent_contract.py</span></div>
+<div class="file-tool-fullpath">/Users/<user>/projects/wiki-q-and-a/src/wiki_qa/agent_contract.py</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">    # Non-fatal anomalies surfaced by the response parser (e.g. &#34;multiple
+    # &lt;evidence&gt; blocks emitted; using first&#34;, &#34;blocks emitted in reversed
+    # order&#34;). Empty when the model&#39;s output parsed cleanly. The eval uses
+    # this as a deterministic signal of structural failure independent of the
+    # judge&#39;s rubric scoring. Defaulted to [] so existing constructors don&#39;t
+    # break; populate from `ParsedOutput.parse_warnings` when known.
+    parse_warnings: list[str] = Field(default_factory=list)</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">    # Categorical signals surfaced by the response parser when the model&#39;s
+    # output deviates from expected structure. Empty when output parsed
+    # cleanly. Eval uses this as a deterministic structural-failure signal
+    # independent of judge rubric scoring. Defaulted to [] so existing
+    # constructors don&#39;t break; populate from `ParsedOutput.parse_warnings`.
+    parse_warnings: list[ParseWarning] = Field(default_factory=list)</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-05-04T00-07-41-243Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-05-04T00-07-41-243Z" class="timestamp-link"><time datetime="2026-05-04T00:07:41.243Z" data-timestamp="2026-05-04T00:07:41.243Z">2026-05-04T00:07:41.243Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file /Users/<user>/projects/wiki-q-and-a/src/wiki_qa/agent_contract.py has been updated successfully.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-08-00-600Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-08-00-600Z" class="timestamp-link"><time datetime="2026-05-04T00:08:00.600Z" data-timestamp="2026-05-04T00:08:00.600Z">2026-05-04T00:08:00.600Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_01Ks7RrFU1gUJG7MLvakmtuK">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">parser.py</span></div>
+<div class="file-tool-fullpath">/Users/<user>/projects/wiki-q-and-a/src/wiki_qa/parser.py</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">from __future__ import annotations
+
+import re
+from dataclasses import dataclass, field
+
+_EVIDENCE_RE = re.compile(r&#34;&lt;evidence&gt;(.*?)&lt;/evidence&gt;&#34;, re.DOTALL)
+_ANSWER_RE = re.compile(r&#34;&lt;answer&gt;(.*?)&lt;/answer&gt;&#34;, re.DOTALL)
+
+
+@dataclass(frozen=True)
+class ParsedOutput:
+    &#34;&#34;&#34;Result of parsing a model output. Local helper, not the agent contract.
+
+    `parse_warnings` carries non-fatal anomalies the agent should log
+    (multiple blocks of the same type, etc.) and that the eval can use as
+    additional behavior signal if it cares to inspect.
+    &#34;&#34;&#34;
+
+    evidence: str
+    answer: str
+    raw_output: str
+    parse_warnings: list[str] = field(default_factory=list)
+
+
+def parse_evidence_and_answer(text: str) -&gt; ParsedOutput:
+    &#34;&#34;&#34;Extract &lt;evidence&gt; and &lt;answer&gt; block contents from model text.
+
+    First-block-wins for repeated tags, with a warning. Reversed order
+    (`&lt;answer&gt;` before `&lt;evidence&gt;`) is treated as malformed: both fields
+    return empty with a warning. `raw_output` is always the input verbatim.
+    &#34;&#34;&#34;
+    warnings: list[str] = []
+
+    evidence_matches = list(_EVIDENCE_RE.finditer(text))
+    answer_matches = list(_ANSWER_RE.finditer(text))
+
+    if len(evidence_matches) &gt; 1:
+        warnings.append(
+            f&#34;multiple &lt;evidence&gt; blocks emitted ({len(evidence_matches)}); using first&#34;
+        )
+    if len(answer_matches) &gt; 1:
+        warnings.append(f&#34;multiple &lt;answer&gt; blocks emitted ({len(answer_matches)}); using first&#34;)
+
+    evidence_match = evidence_matches[0] if evidence_matches else None
+    answer_match = answer_matches[0] if answer_matches else None
+
+    # Strict order: evidence must precede answer per the system prompt contract.
+    # Reversed order suggests post-hoc rationalization — refuse to extract.
+    if (
+        evidence_match is not None
+        and answer_match is not None
+        and evidence_match.start() &gt; answer_match.start()
+    ):
+        warnings.append(
+            &#34;blocks emitted in reversed order: &lt;answer&gt; before &lt;evidence&gt;; &#34;
+            &#34;violates system prompt requirement to draft evidence first. &#34;
+            &#34;Treating as malformed.&#34;
+        )
+        return ParsedOutput(evidence=&#34;&#34;, answer=&#34;&#34;, raw_output=text, parse_warnings=warnings)
+
+    evidence = evidence_match.group(1).strip() if evidence_match else &#34;&#34;
+    answer = answer_match.group(1).strip() if answer_match else &#34;&#34;
+
+    return ParsedOutput(
+        evidence=evidence,
+        answer=answer,
+        raw_output=text,
+        parse_warnings=warnings,
+    )</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">from __future__ import annotations
+
+import re
+from dataclasses import dataclass, field
+
+from wiki_qa.agent_contract import ParseWarning
+
+_EVIDENCE_RE = re.compile(r&#34;&lt;evidence&gt;(.*?)&lt;/evidence&gt;&#34;, re.DOTALL)
+_ANSWER_RE = re.compile(r&#34;&lt;answer&gt;(.*?)&lt;/answer&gt;&#34;, re.DOTALL)
+
+
+@dataclass(frozen=True)
+class ParsedOutput:
+    &#34;&#34;&#34;Result of parsing a model output. Local helper, not the agent contract.
+
+    `parse_warnings` carries categorical signals about structural anomalies
+    in the model&#39;s output. Same enum used on `AgentResult.parse_warnings`,
+    so the agent loop can pass them straight through.
+    &#34;&#34;&#34;
+
+    evidence: str
+    answer: str
+    raw_output: str
+    parse_warnings: list[ParseWarning] = field(default_factory=list)
+
+
+def parse_evidence_and_answer(text: str) -&gt; ParsedOutput:
+    &#34;&#34;&#34;Extract &lt;evidence&gt; and &lt;answer&gt; block contents from model text.
+
+    First-block-wins for repeated tags, with a warning. Reversed order
+    (`&lt;answer&gt;` before `&lt;evidence&gt;`) is treated as malformed: both fields
+    return empty with a warning. `raw_output` is always the input verbatim.
+    &#34;&#34;&#34;
+    warnings: list[ParseWarning] = []
+
+    evidence_matches = list(_EVIDENCE_RE.finditer(text))
+    answer_matches = list(_ANSWER_RE.finditer(text))
+
+    if len(evidence_matches) &gt; 1:
+        warnings.append(ParseWarning.MULTIPLE_EVIDENCE_BLOCKS)
+    if len(answer_matches) &gt; 1:
+        warnings.append(ParseWarning.MULTIPLE_ANSWER_BLOCKS)
+
+    evidence_match = evidence_matches[0] if evidence_matches else None
+    answer_match = answer_matches[0] if answer_matches else None
+
+    # Strict order: evidence must precede answer per the system prompt contract.
+    # Reversed order suggests post-hoc rationalization — refuse to extract.
+    if (
+        evidence_match is not None
+        and answer_match is not None
+        and evidence_match.start() &gt; answer_match.start()
+    ):
+        warnings.append(ParseWarning.REVERSED_ORDER)
+        return ParsedOutput(evidence=&#34;&#34;, answer=&#34;&#34;, raw_output=text, parse_warnings=warnings)
+
+    evidence = evidence_match.group(1).strip() if evidence_match else &#34;&#34;
+    answer = answer_match.group(1).strip() if answer_match else &#34;&#34;
+
+    return ParsedOutput(
+        evidence=evidence,
+        answer=answer,
+        raw_output=text,
+        parse_warnings=warnings,
+    )</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-05-04T00-08-00-680Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-05-04T00-08-00-680Z" class="timestamp-link"><time datetime="2026-05-04T00:08:00.680Z" data-timestamp="2026-05-04T00:08:00.680Z">2026-05-04T00:08:00.680Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file /Users/<user>/projects/wiki-q-and-a/src/wiki_qa/parser.py has been updated successfully.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-08-04-039Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-08-04-039Z" class="timestamp-link"><time datetime="2026-05-04T00:08:04.039Z" data-timestamp="2026-05-04T00:08:04.039Z">2026-05-04T00:08:04.039Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Now updating tests to assert on enum values, not substrings.</p></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-08-05-223Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-08-05-223Z" class="timestamp-link"><time datetime="2026-05-04T00:08:05.223Z" data-timestamp="2026-05-04T00:08:05.223Z">2026-05-04T00:08:05.223Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_01CFEPLqxhKJ3Rhypu8iuAWS">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">test_parser.py</span></div>
+<div class="file-tool-fullpath">/Users/<user>/projects/wiki-q-and-a/tests/unit/test_parser.py</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">from __future__ import annotations
+
+from wiki_qa.parser import parse_evidence_and_answer</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">from __future__ import annotations
+
+from wiki_qa.agent_contract import ParseWarning
+from wiki_qa.parser import parse_evidence_and_answer</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-05-04T00-08-05-287Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-05-04T00-08-05-287Z" class="timestamp-link"><time datetime="2026-05-04T00:08:05.287Z" data-timestamp="2026-05-04T00:08:05.287Z">2026-05-04T00:08:05.287Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file /Users/<user>/projects/wiki-q-and-a/tests/unit/test_parser.py has been updated successfully.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-08-19-432Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-08-19-432Z" class="timestamp-link"><time datetime="2026-05-04T00:08:19.432Z" data-timestamp="2026-05-04T00:08:19.432Z">2026-05-04T00:08:19.432Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_01So1TJr6CBhbLS3yTbbegCc">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">test_parser.py</span></div>
+<div class="file-tool-fullpath">/Users/<user>/projects/wiki-q-and-a/tests/unit/test_parser.py</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">    def test_block_order_reversed_treated_as_malformed(self) -&gt; None:
+        # Reversed order suggests post-hoc rationalization (model wrote conclusion
+        # first, back-filled evidence). Violates the system prompt&#39;s &#34;draft evidence
+        # then compose answer&#34; instruction. Both fields empty; warning surfaces it.
+        text = &#34;&lt;answer&gt;answer first&lt;/answer&gt;\n&lt;evidence&gt;then evidence&lt;/evidence&gt;&#34;
+        result = parse_evidence_and_answer(text)
+        assert result.evidence == &#34;&#34;
+        assert result.answer == &#34;&#34;
+        assert result.raw_output == text
+        assert any(&#34;reversed order&#34; in w.lower() for w in result.parse_warnings)
+
+    def test_repeated_evidence_blocks_takes_first_with_warning(self) -&gt; None:
+        # If model emits two evidence blocks (shouldn&#39;t, but might), take the first
+        # and surface the multiplicity as a warning so it&#39;s not silently dropped.
+        text = (
+            &#34;&lt;evidence&gt;first evidence&lt;/evidence&gt;\n&#34;
+            &#34;&lt;answer&gt;middle&lt;/answer&gt;\n&#34;
+            &#34;&lt;evidence&gt;second evidence&lt;/evidence&gt;&#34;
+        )
+        result = parse_evidence_and_answer(text)
+        assert result.evidence == &#34;first evidence&#34;
+        assert any(&#34;multiple &lt;evidence&gt;&#34; in w for w in result.parse_warnings)
+
+    def test_repeated_answer_blocks_takes_first_with_warning(self) -&gt; None:
+        text = (
+            &#34;&lt;evidence&gt;e&lt;/evidence&gt;\n&lt;answer&gt;first answer&lt;/answer&gt;\n&lt;answer&gt;second answer&lt;/answer&gt;&#34;
+        )
+        result = parse_evidence_and_answer(text)
+        assert result.answer == &#34;first answer&#34;
+        assert any(&#34;multiple &lt;answer&gt;&#34; in w for w in result.parse_warnings)
+
+    def test_clean_parse_has_no_warnings(self) -&gt; None:
+        text = &#34;&lt;evidence&gt;e&lt;/evidence&gt;&lt;answer&gt;a&lt;/answer&gt;&#34;
+        result = parse_evidence_and_answer(text)
+        assert result.parse_warnings == []</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">    def test_block_order_reversed_treated_as_malformed(self) -&gt; None:
+        # Reversed order suggests post-hoc rationalization (model wrote conclusion
+        # first, back-filled evidence). Violates the system prompt&#39;s &#34;draft evidence
+        # then compose answer&#34; instruction. Both fields empty; warning surfaces it.
+        text = &#34;&lt;answer&gt;answer first&lt;/answer&gt;\n&lt;evidence&gt;then evidence&lt;/evidence&gt;&#34;
+        result = parse_evidence_and_answer(text)
+        assert result.evidence == &#34;&#34;
+        assert result.answer == &#34;&#34;
+        assert result.raw_output == text
+        assert ParseWarning.REVERSED_ORDER in result.parse_warnings
+
+    def test_repeated_evidence_blocks_takes_first_with_warning(self) -&gt; None:
+        # If model emits two evidence blocks (shouldn&#39;t, but might), take the first
+        # and surface the multiplicity as a warning so it&#39;s not silently dropped.
+        text = (
+            &#34;&lt;evidence&gt;first evidence&lt;/evidence&gt;\n&#34;
+            &#34;&lt;answer&gt;middle&lt;/answer&gt;\n&#34;
+            &#34;&lt;evidence&gt;second evidence&lt;/evidence&gt;&#34;
+        )
+        result = parse_evidence_and_answer(text)
+        assert result.evidence == &#34;first evidence&#34;
+        assert ParseWarning.MULTIPLE_EVIDENCE_BLOCKS in result.parse_warnings
+
+    def test_repeated_answer_blocks_takes_first_with_warning(self) -&gt; None:
+        text = (
+            &#34;&lt;evidence&gt;e&lt;/evidence&gt;\n&lt;answer&gt;first answer&lt;/answer&gt;\n&lt;answer&gt;second answer&lt;/answer&gt;&#34;
+        )
+        result = parse_evidence_and_answer(text)
+        assert result.answer == &#34;first answer&#34;
+        assert ParseWarning.MULTIPLE_ANSWER_BLOCKS in result.parse_warnings
+
+    def test_clean_parse_has_no_warnings(self) -&gt; None:
+        text = &#34;&lt;evidence&gt;e&lt;/evidence&gt;&lt;answer&gt;a&lt;/answer&gt;&#34;
+        result = parse_evidence_and_answer(text)
+        assert result.parse_warnings == []</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-05-04T00-08-19-468Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-05-04T00-08-19-468Z" class="timestamp-link"><time datetime="2026-05-04T00:08:19.468Z" data-timestamp="2026-05-04T00:08:19.468Z">2026-05-04T00:08:19.468Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file /Users/<user>/projects/wiki-q-and-a/tests/unit/test_parser.py has been updated successfully.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-08-24-403Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-08-24-403Z" class="timestamp-link"><time datetime="2026-05-04T00:08:24.403Z" data-timestamp="2026-05-04T00:08:24.403Z">2026-05-04T00:08:24.403Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01XPgZJaMFBM6mCYcLSBZE74">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Run quality gates</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">uv run pytest tests/unit/test_parser.py 2&gt;&amp;1 | tail -5 &amp;&amp; echo &#34;---&#34; &amp;&amp; uv run ruff check src/ tests/unit/test_parser.py tests/unit/test_wikipedia.py tests/unit/test_formatting.py tests/unit/test_tools.py 2&gt;&amp;1 | tail -3 &amp;&amp; echo &#34;---&#34; &amp;&amp; uv run mypy src/ tests/unit/test_parser.py tests/unit/test_wikipedia.py tests/unit/test_formatting.py tests/unit/test_tools.py 2&gt;&amp;1 | tail -3</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-05-04T00-08-25-620Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-05-04T00-08-25-620Z" class="timestamp-link"><time datetime="2026-05-04T00:08:25.620Z" data-timestamp="2026-05-04T00:08:25.620Z">2026-05-04T00:08:25.620Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>collected 20 items
+
+tests/unit/test_parser.py ....................                           [100%]
+
+============================== 20 passed in 0.17s ==============================
+---
+All checks passed!
+---
+Success: no issues found in 18 source files</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-08-29-123Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-08-29-123Z" class="timestamp-link"><time datetime="2026-05-04T00:08:29.123Z" data-timestamp="2026-05-04T00:08:29.123Z">2026-05-04T00:08:29.123Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>All gates green. Round-trip smoke test through Pydantic to verify the StrEnum serializes the way we expect.</p></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-08-34-236Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-08-34-236Z" class="timestamp-link"><time datetime="2026-05-04T00:08:34.236Z" data-timestamp="2026-05-04T00:08:34.236Z">2026-05-04T00:08:34.236Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_015HTKyXWTyeUv48TPboA5J1">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Smoke-test enum round-trip and validation</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">uv run python -c &#34;
+from wiki_qa.agent_contract import AgentResult, ParseWarning, TokenUsage
+
+r = AgentResult(
+    question=&#39;q&#39;, evidence=&#39;&#39;, answer=&#39;&#39;, raw_output=&#39;garbage&#39;,
+    tool_calls=[], n_searches=0, queries=[],
+    stop_reason=&#39;end_turn&#39;,
+    usage=TokenUsage(input_tokens=1, output_tokens=1, cache_read_tokens=0, cache_creation_tokens=0),
+    raw_messages=[],
+    parse_warnings=[ParseWarning.MULTIPLE_EVIDENCE_BLOCKS, ParseWarning.REVERSED_ORDER],
+)
+
+j = r.model_dump_json()
+print(&#39;JSON:&#39;, j[-150:])
+
+r2 = AgentResult.model_validate_json(j)
+assert r2.parse_warnings == r.parse_warnings
+assert ParseWarning.REVERSED_ORDER in r2.parse_warnings
+print(&#39;round-trip preserved enum values:&#39;, r2.parse_warnings)
+
+# Validation rejects garbage codes via the schema
+try:
+    AgentResult.model_validate_json(j.replace(&#39;reversed_order&#39;, &#39;totally_made_up_code&#39;))
+    print(&#39;FAIL: should have raised&#39;)
+except Exception as e:
+    print(&#39;validation correctly rejected unknown code:&#39;, type(e).__name__)
+&#34;</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-05-04T00-08-34-394Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-05-04T00-08-34-394Z" class="timestamp-link"><time datetime="2026-05-04T00:08:34.394Z" data-timestamp="2026-05-04T00:08:34.394Z">2026-05-04T00:08:34.394Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>JSON: 1,&quot;output_tokens&quot;:1,&quot;cache_read_tokens&quot;:0,&quot;cache_creation_tokens&quot;:0},&quot;raw_messages&quot;:[],&quot;parse_warnings&quot;:[&quot;multiple_evidence_blocks&quot;,&quot;reversed_order&quot;]}
+round-trip preserved enum values: [&lt;ParseWarning.MULTIPLE_EVIDENCE_BLOCKS: &#x27;multiple_evidence_blocks&#x27;&gt;, &lt;ParseWarning.REVERSED_ORDER: &#x27;reversed_order&#x27;&gt;]
+validation correctly rejected unknown code: ValidationError</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-08-37-845Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-08-37-845Z" class="timestamp-link"><time datetime="2026-05-04T00:08:37.845Z" data-timestamp="2026-05-04T00:08:37.845Z">2026-05-04T00:08:37.845Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Working as expected:
+- JSON serializes as plain strings (<code>"multiple_evidence_blocks"</code>)
+- Round-trips back to enum values
+- Pydantic rejects unknown codes — schema enforcement, not just convention</p>
+<p>DECISIONS entry now.</p></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-08-38-416Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-08-38-416Z" class="timestamp-link"><time datetime="2026-05-04T00:08:38.416Z" data-timestamp="2026-05-04T00:08:38.416Z">2026-05-04T00:08:38.416Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01XaQUQw9vXZzrNzVfge5eE6">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Get current timestamp</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">date &#34;+%Y-%m-%d %H:%M&#34;</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-05-04T00-08-38-469Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-05-04T00-08-38-469Z" class="timestamp-link"><time datetime="2026-05-04T00:08:38.469Z" data-timestamp="2026-05-04T00:08:38.469Z">2026-05-04T00:08:38.469Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>2026-05-03 17:08</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-09-51-812Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-09-51-812Z" class="timestamp-link"><time datetime="2026-05-04T00:09:51.812Z" data-timestamp="2026-05-04T00:09:51.812Z">2026-05-04T00:09:51.812Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message tool-reply" id="msg-2026-05-04T00-10-09-349Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-05-04T00-10-09-349Z" class="timestamp-link"><time datetime="2026-05-04T00:10:09.349Z" data-timestamp="2026-05-04T00:10:09.349Z">2026-05-04T00:10:09.349Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file /Users/<user>/projects/wiki-q-and-a/src/wiki_qa/agent_contract.py has been updated successfully.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-09-56-405Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-09-56-405Z" class="timestamp-link"><time datetime="2026-05-04T00:09:56.405Z" data-timestamp="2026-05-04T00:09:56.405Z">2026-05-04T00:09:56.405Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>You're right. The enum has only the three I added; the parser detects more failure modes (missing block, unclosed tag, etc.) but currently surfaces them only as empty fields, no categorical signal. That's a gap — eval can't distinguish "model didn't try" from "model tried but malformed" from "model produced empty content."</p>
+<p>Doing the canonical list now. Logic for the additions, mutually exclusive within a block:</p>
+<ul>
+<li><strong>MISSING_EVIDENCE_BLOCK / MISSING_ANSWER_BLOCK</strong> — no match AND no opening tag in text. Model didn't try.</li>
+<li><strong>UNCLOSED_EVIDENCE_TAG / UNCLOSED_ANSWER_TAG</strong> — no match AND opening tag IS in text. Model tried but malformed (the more informative signal).</li>
+<li><strong>EMPTY_EVIDENCE_BLOCK / EMPTY_ANSWER_BLOCK</strong> — matched but content empty after strip. Structure clean, content null.</li>
+</ul>
+<p>Plus the existing three. Total 9 codes. Updating contract, parser, tests.</p></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-10-09-295Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-10-09-295Z" class="timestamp-link"><time datetime="2026-05-04T00:10:09.295Z" data-timestamp="2026-05-04T00:10:09.295Z">2026-05-04T00:10:09.295Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_013TSszHCJaMyCMsgJUBhfYV">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">agent_contract.py</span></div>
+<div class="file-tool-fullpath">/Users/<user>/projects/wiki-q-and-a/src/wiki_qa/agent_contract.py</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">class ParseWarning(StrEnum):
+    &#34;&#34;&#34;Categorical signals from the response parser.
+
+    Emitted when the model&#39;s output deviates from the expected structure.
+    Used by the eval as a deterministic correctness signal independent of
+    the judge&#39;s rubric scoring. Round-trips through JSON as plain strings
+    (StrEnum behavior).
+    &#34;&#34;&#34;
+
+    REVERSED_ORDER = &#34;reversed_order&#34;
+    &#34;&#34;&#34;`&lt;answer&gt;` block appeared before `&lt;evidence&gt;` block. Suggests post-hoc
+    rationalization rather than evidence-first reasoning. Parser refuses to
+    extract under this condition.&#34;&#34;&#34;
+
+    MULTIPLE_EVIDENCE_BLOCKS = &#34;multiple_evidence_blocks&#34;
+    &#34;&#34;&#34;Model emitted more than one `&lt;evidence&gt;` block. Parser took the first.
+    Count is recoverable from `raw_output`.&#34;&#34;&#34;
+
+    MULTIPLE_ANSWER_BLOCKS = &#34;multiple_answer_blocks&#34;
+    &#34;&#34;&#34;Model emitted more than one `&lt;answer&gt;` block. Parser took the first.
+    Count is recoverable from `raw_output`.&#34;&#34;&#34;</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">class ParseWarning(StrEnum):
+    &#34;&#34;&#34;Categorical signals from the response parser.
+
+    Emitted when the model&#39;s output deviates from the expected structure.
+    Used by the eval as a deterministic correctness signal independent of
+    the judge&#39;s rubric scoring. Round-trips through JSON as plain strings
+    (StrEnum behavior).
+
+    Within each block type (evidence/answer), the MISSING/UNCLOSED/EMPTY
+    codes are mutually exclusive — a block has exactly one diagnostic state.
+    REVERSED_ORDER and MULTIPLE_* are independent and can co-occur with the
+    block-state codes.
+    &#34;&#34;&#34;
+
+    REVERSED_ORDER = &#34;reversed_order&#34;
+    &#34;&#34;&#34;`&lt;answer&gt;` block appeared before `&lt;evidence&gt;` block. Suggests post-hoc
+    rationalization rather than evidence-first reasoning. Parser refuses to
+    extract under this condition.&#34;&#34;&#34;
+
+    MULTIPLE_EVIDENCE_BLOCKS = &#34;multiple_evidence_blocks&#34;
+    &#34;&#34;&#34;Model emitted more than one `&lt;evidence&gt;` block. Parser took the first.
+    Count is recoverable from `raw_output`.&#34;&#34;&#34;
+
+    MULTIPLE_ANSWER_BLOCKS = &#34;multiple_answer_blocks&#34;
+    &#34;&#34;&#34;Model emitted more than one `&lt;answer&gt;` block. Parser took the first.
+    Count is recoverable from `raw_output`.&#34;&#34;&#34;
+
+    MISSING_EVIDENCE_BLOCK = &#34;missing_evidence_block&#34;
+    &#34;&#34;&#34;No `&lt;evidence&gt;` opening tag present anywhere in the model&#39;s output.
+    Strongest signal that the model ignored the output structure entirely
+    for evidence.&#34;&#34;&#34;
+
+    MISSING_ANSWER_BLOCK = &#34;missing_answer_block&#34;
+    &#34;&#34;&#34;No `&lt;answer&gt;` opening tag present anywhere in the model&#39;s output.&#34;&#34;&#34;
+
+    UNCLOSED_EVIDENCE_TAG = &#34;unclosed_evidence_tag&#34;
+    &#34;&#34;&#34;`&lt;evidence&gt;` opening tag present but no matching `&lt;/evidence&gt;` close.
+    Distinct from MISSING_EVIDENCE_BLOCK — the model attempted the structure
+    but emitted it malformed.&#34;&#34;&#34;
+
+    UNCLOSED_ANSWER_TAG = &#34;unclosed_answer_tag&#34;
+    &#34;&#34;&#34;`&lt;answer&gt;` opening tag present but no matching `&lt;/answer&gt;` close.&#34;&#34;&#34;
+
+    EMPTY_EVIDENCE_BLOCK = &#34;empty_evidence_block&#34;
+    &#34;&#34;&#34;`&lt;evidence&gt;...&lt;/evidence&gt;` matched but content is empty (or whitespace
+    only) after stripping. Structure is clean; the model produced no
+    grounding content.&#34;&#34;&#34;
+
+    EMPTY_ANSWER_BLOCK = &#34;empty_answer_block&#34;
+    &#34;&#34;&#34;`&lt;answer&gt;...&lt;/answer&gt;` matched but content is empty (or whitespace
+    only) after stripping.&#34;&#34;&#34;</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-10-26-720Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-10-26-720Z" class="timestamp-link"><time datetime="2026-05-04T00:10:26.720Z" data-timestamp="2026-05-04T00:10:26.720Z">2026-05-04T00:10:26.720Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_012fpYGoCkF6AgTTPufS6yn3">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">parser.py</span></div>
+<div class="file-tool-fullpath">/Users/<user>/projects/wiki-q-and-a/src/wiki_qa/parser.py</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">def parse_evidence_and_answer(text: str) -&gt; ParsedOutput:
+    &#34;&#34;&#34;Extract &lt;evidence&gt; and &lt;answer&gt; block contents from model text.
+
+    First-block-wins for repeated tags, with a warning. Reversed order
+    (`&lt;answer&gt;` before `&lt;evidence&gt;`) is treated as malformed: both fields
+    return empty with a warning. `raw_output` is always the input verbatim.
+    &#34;&#34;&#34;
+    warnings: list[ParseWarning] = []
+
+    evidence_matches = list(_EVIDENCE_RE.finditer(text))
+    answer_matches = list(_ANSWER_RE.finditer(text))
+
+    if len(evidence_matches) &gt; 1:
+        warnings.append(ParseWarning.MULTIPLE_EVIDENCE_BLOCKS)
+    if len(answer_matches) &gt; 1:
+        warnings.append(ParseWarning.MULTIPLE_ANSWER_BLOCKS)
+
+    evidence_match = evidence_matches[0] if evidence_matches else None
+    answer_match = answer_matches[0] if answer_matches else None
+
+    # Strict order: evidence must precede answer per the system prompt contract.
+    # Reversed order suggests post-hoc rationalization — refuse to extract.
+    if (
+        evidence_match is not None
+        and answer_match is not None
+        and evidence_match.start() &gt; answer_match.start()
+    ):
+        warnings.append(ParseWarning.REVERSED_ORDER)
+        return ParsedOutput(evidence=&#34;&#34;, answer=&#34;&#34;, raw_output=text, parse_warnings=warnings)
+
+    evidence = evidence_match.group(1).strip() if evidence_match else &#34;&#34;
+    answer = answer_match.group(1).strip() if answer_match else &#34;&#34;
+
+    return ParsedOutput(
+        evidence=evidence,
+        answer=answer,
+        raw_output=text,
+        parse_warnings=warnings,
+    )</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">def parse_evidence_and_answer(text: str) -&gt; ParsedOutput:
+    &#34;&#34;&#34;Extract &lt;evidence&gt; and &lt;answer&gt; block contents from model text.
+
+    Surfaces a categorical warning for each structural anomaly. See
+    `ParseWarning` for the full taxonomy. `raw_output` is always the input
+    verbatim; a malformed parse never raises.
+    &#34;&#34;&#34;
+    warnings: list[ParseWarning] = []
+
+    evidence_matches = list(_EVIDENCE_RE.finditer(text))
+    answer_matches = list(_ANSWER_RE.finditer(text))
+
+    if len(evidence_matches) &gt; 1:
+        warnings.append(ParseWarning.MULTIPLE_EVIDENCE_BLOCKS)
+    if len(answer_matches) &gt; 1:
+        warnings.append(ParseWarning.MULTIPLE_ANSWER_BLOCKS)
+
+    evidence_match = evidence_matches[0] if evidence_matches else None
+    answer_match = answer_matches[0] if answer_matches else None
+
+    # Strict order: evidence must precede answer per the system prompt contract.
+    # Reversed order suggests post-hoc rationalization — refuse to extract.
+    # Both blocks exist in this branch, so the missing/unclosed/empty diagnostics
+    # below don&#39;t apply; reversed-order is the load-bearing signal.
+    if (
+        evidence_match is not None
+        and answer_match is not None
+        and evidence_match.start() &gt; answer_match.start()
+    ):
+        warnings.append(ParseWarning.REVERSED_ORDER)
+        return ParsedOutput(evidence=&#34;&#34;, answer=&#34;&#34;, raw_output=text, parse_warnings=warnings)
+
+    evidence = evidence_match.group(1).strip() if evidence_match else &#34;&#34;
+    answer = answer_match.group(1).strip() if answer_match else &#34;&#34;
+
+    # Per-block diagnostics. Within each block type these three states are
+    # mutually exclusive: MISSING (no opening tag), UNCLOSED (opening tag but
+    # no close), or EMPTY (matched but content stripped to empty). A clean
+    # parse with non-empty content emits no per-block warning.
+    if evidence_match is None:
+        if &#34;&lt;evidence&gt;&#34; in text:
+            warnings.append(ParseWarning.UNCLOSED_EVIDENCE_TAG)
+        else:
+            warnings.append(ParseWarning.MISSING_EVIDENCE_BLOCK)
+    elif evidence == &#34;&#34;:
+        warnings.append(ParseWarning.EMPTY_EVIDENCE_BLOCK)
+
+    if answer_match is None:
+        if &#34;&lt;answer&gt;&#34; in text:
+            warnings.append(ParseWarning.UNCLOSED_ANSWER_TAG)
+        else:
+            warnings.append(ParseWarning.MISSING_ANSWER_BLOCK)
+    elif answer == &#34;&#34;:
+        warnings.append(ParseWarning.EMPTY_ANSWER_BLOCK)
+
+    return ParsedOutput(
+        evidence=evidence,
+        answer=answer,
+        raw_output=text,
+        parse_warnings=warnings,
+    )</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-05-04T00-10-26-802Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-05-04T00-10-26-802Z" class="timestamp-link"><time datetime="2026-05-04T00:10:26.802Z" data-timestamp="2026-05-04T00:10:26.802Z">2026-05-04T00:10:26.802Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file /Users/<user>/projects/wiki-q-and-a/src/wiki_qa/parser.py has been updated successfully.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-10-30-291Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-10-30-291Z" class="timestamp-link"><time datetime="2026-05-04T00:10:30.291Z" data-timestamp="2026-05-04T00:10:30.291Z">2026-05-04T00:10:30.291Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Now updating tests — existing ones to assert the new warnings, plus new tests for unclosed and empty cases.</p></div></div></div>
+<div class="message tool-reply" id="msg-2026-05-04T00-10-49-228Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-05-04T00-10-49-228Z" class="timestamp-link"><time datetime="2026-05-04T00:10:49.228Z" data-timestamp="2026-05-04T00:10:49.228Z">2026-05-04T00:10:49.228Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file /Users/<user>/projects/wiki-q-and-a/tests/unit/test_parser.py has been updated successfully.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-10-49-163Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-10-49-163Z" class="timestamp-link"><time datetime="2026-05-04T00:10:49.163Z" data-timestamp="2026-05-04T00:10:49.163Z">2026-05-04T00:10:49.163Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_01J17Vbxj26xWHrqA8Vses8F">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">test_parser.py</span></div>
+<div class="file-tool-fullpath">/Users/<user>/projects/wiki-q-and-a/tests/unit/test_parser.py</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">class TestMalformedInput:
+    def test_missing_evidence_block_leaves_evidence_empty(self) -&gt; None:
+        text = &#34;&lt;answer&gt;Just an answer, no evidence block.&lt;/answer&gt;&#34;
+        result = parse_evidence_and_answer(text)
+        assert result.evidence == &#34;&#34;
+        assert result.answer == &#34;Just an answer, no evidence block.&#34;
+        assert result.raw_output == text
+
+    def test_missing_answer_block_leaves_answer_empty(self) -&gt; None:
+        text = &#34;&lt;evidence&gt;just evidence, no answer&lt;/evidence&gt;&#34;
+        result = parse_evidence_and_answer(text)
+        assert result.evidence == &#34;just evidence, no answer&#34;
+        assert result.answer == &#34;&#34;
+
+    def test_no_blocks_at_all_leaves_both_empty(self) -&gt; None:
+        text = &#34;I&#39;m sorry, I can&#39;t help with that.&#34;
+        result = parse_evidence_and_answer(text)
+        assert result.evidence == &#34;&#34;
+        assert result.answer == &#34;&#34;
+        assert result.raw_output == text
+
+    def test_empty_input_returns_all_empty(self) -&gt; None:
+        result = parse_evidence_and_answer(&#34;&#34;)
+        assert result.evidence == &#34;&#34;
+        assert result.answer == &#34;&#34;
+        assert result.raw_output == &#34;&#34;
+
+    def test_unclosed_evidence_tag_does_not_swallow_answer(self) -&gt; None:
+        # If evidence opens but never closes, don&#39;t scoop up the answer block too
+        text = &#34;&lt;evidence&gt;oops no closing\n&lt;answer&gt;real answer&lt;/answer&gt;&#34;
+        result = parse_evidence_and_answer(text)
+        assert result.evidence == &#34;&#34;
+        assert result.answer == &#34;real answer&#34;
+
+    def test_only_opening_tags_returns_empty(self) -&gt; None:
+        text = &#34;&lt;evidence&gt;&lt;answer&gt;&#34;
+        result = parse_evidence_and_answer(text)
+        assert result.evidence == &#34;&#34;
+        assert result.answer == &#34;&#34;</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">class TestMalformedInput:
+    def test_missing_evidence_block_leaves_evidence_empty(self) -&gt; None:
+        text = &#34;&lt;answer&gt;Just an answer, no evidence block.&lt;/answer&gt;&#34;
+        result = parse_evidence_and_answer(text)
+        assert result.evidence == &#34;&#34;
+        assert result.answer == &#34;Just an answer, no evidence block.&#34;
+        assert result.raw_output == text
+        assert ParseWarning.MISSING_EVIDENCE_BLOCK in result.parse_warnings
+        assert ParseWarning.MISSING_ANSWER_BLOCK not in result.parse_warnings
+
+    def test_missing_answer_block_leaves_answer_empty(self) -&gt; None:
+        text = &#34;&lt;evidence&gt;just evidence, no answer&lt;/evidence&gt;&#34;
+        result = parse_evidence_and_answer(text)
+        assert result.evidence == &#34;just evidence, no answer&#34;
+        assert result.answer == &#34;&#34;
+        assert ParseWarning.MISSING_ANSWER_BLOCK in result.parse_warnings
+        assert ParseWarning.MISSING_EVIDENCE_BLOCK not in result.parse_warnings
+
+    def test_no_blocks_at_all_emits_both_missing_warnings(self) -&gt; None:
+        text = &#34;I&#39;m sorry, I can&#39;t help with that.&#34;
+        result = parse_evidence_and_answer(text)
+        assert result.evidence == &#34;&#34;
+        assert result.answer == &#34;&#34;
+        assert result.raw_output == text
+        assert ParseWarning.MISSING_EVIDENCE_BLOCK in result.parse_warnings
+        assert ParseWarning.MISSING_ANSWER_BLOCK in result.parse_warnings
+
+    def test_empty_input_emits_both_missing_warnings(self) -&gt; None:
+        result = parse_evidence_and_answer(&#34;&#34;)
+        assert result.evidence == &#34;&#34;
+        assert result.answer == &#34;&#34;
+        assert result.raw_output == &#34;&#34;
+        assert ParseWarning.MISSING_EVIDENCE_BLOCK in result.parse_warnings
+        assert ParseWarning.MISSING_ANSWER_BLOCK in result.parse_warnings
+
+    def test_unclosed_evidence_tag_emits_unclosed_warning(self) -&gt; None:
+        # If evidence opens but never closes: don&#39;t swallow the answer block,
+        # AND distinguish from MISSING (model attempted the structure).
+        text = &#34;&lt;evidence&gt;oops no closing\n&lt;answer&gt;real answer&lt;/answer&gt;&#34;
+        result = parse_evidence_and_answer(text)
+        assert result.evidence == &#34;&#34;
+        assert result.answer == &#34;real answer&#34;
+        assert ParseWarning.UNCLOSED_EVIDENCE_TAG in result.parse_warnings
+        assert ParseWarning.MISSING_EVIDENCE_BLOCK not in result.parse_warnings
+
+    def test_unclosed_answer_tag_emits_unclosed_warning(self) -&gt; None:
+        text = &#34;&lt;evidence&gt;fine&lt;/evidence&gt;\n&lt;answer&gt;oops no close&#34;
+        result = parse_evidence_and_answer(text)
+        assert result.evidence == &#34;fine&#34;
+        assert result.answer == &#34;&#34;
+        assert ParseWarning.UNCLOSED_ANSWER_TAG in result.parse_warnings
+        assert ParseWarning.MISSING_ANSWER_BLOCK not in result.parse_warnings
+
+    def test_only_opening_tags_emits_both_unclosed_warnings(self) -&gt; None:
+        text = &#34;&lt;evidence&gt;&lt;answer&gt;&#34;
+        result = parse_evidence_and_answer(text)
+        assert result.evidence == &#34;&#34;
+        assert result.answer == &#34;&#34;
+        assert ParseWarning.UNCLOSED_EVIDENCE_TAG in result.parse_warnings
+        assert ParseWarning.UNCLOSED_ANSWER_TAG in result.parse_warnings
+
+    def test_empty_evidence_block_emits_empty_warning(self) -&gt; None:
+        # Structure clean, content null
+        text = &#34;&lt;evidence&gt;&lt;/evidence&gt;\n&lt;answer&gt;fine&lt;/answer&gt;&#34;
+        result = parse_evidence_and_answer(text)
+        assert result.evidence == &#34;&#34;
+        assert result.answer == &#34;fine&#34;
+        assert ParseWarning.EMPTY_EVIDENCE_BLOCK in result.parse_warnings
+        assert ParseWarning.MISSING_EVIDENCE_BLOCK not in result.parse_warnings
+        assert ParseWarning.UNCLOSED_EVIDENCE_TAG not in result.parse_warnings
+
+    def test_empty_answer_block_emits_empty_warning(self) -&gt; None:
+        text = &#34;&lt;evidence&gt;fine&lt;/evidence&gt;\n&lt;answer&gt;&lt;/answer&gt;&#34;
+        result = parse_evidence_and_answer(text)
+        assert result.evidence == &#34;fine&#34;
+        assert result.answer == &#34;&#34;
+        assert ParseWarning.EMPTY_ANSWER_BLOCK in result.parse_warnings
+
+    def test_whitespace_only_block_treated_as_empty(self) -&gt; None:
+        text = &#34;&lt;evidence&gt;   \n  &lt;/evidence&gt;\n&lt;answer&gt;fine&lt;/answer&gt;&#34;
+        result = parse_evidence_and_answer(text)
+        assert result.evidence == &#34;&#34;
+        assert ParseWarning.EMPTY_EVIDENCE_BLOCK in result.parse_warnings</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-10-54-320Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-10-54-320Z" class="timestamp-link"><time datetime="2026-05-04T00:10:54.320Z" data-timestamp="2026-05-04T00:10:54.320Z">2026-05-04T00:10:54.320Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-10-55-148Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-10-55-148Z" class="timestamp-link"><time datetime="2026-05-04T00:10:55.148Z" data-timestamp="2026-05-04T00:10:55.148Z">2026-05-04T00:10:55.148Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Yes — <code>src/wiki_qa/agent_contract.py</code> has all 9 enum values now. Verifying with the tests + a quick view of the contract.</p></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-10-56-574Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-10-56-574Z" class="timestamp-link"><time datetime="2026-05-04T00:10:56.574Z" data-timestamp="2026-05-04T00:10:56.574Z">2026-05-04T00:10:56.574Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01GpDj3hAsrjMwwjJdiVPhXY">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Quality gates after enum expansion</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">uv run pytest tests/unit/test_parser.py 2&gt;&amp;1 | tail -5 &amp;&amp; echo &#34;---&#34; &amp;&amp; uv run ruff check src/wiki_qa/ tests/unit/test_parser.py 2&gt;&amp;1 | tail -3 &amp;&amp; echo &#34;---&#34; &amp;&amp; uv run mypy src/wiki_qa/ tests/unit/test_parser.py 2&gt;&amp;1 | tail -3</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-05-04T00-10-57-372Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-05-04T00-10-57-372Z" class="timestamp-link"><time datetime="2026-05-04T00:10:57.372Z" data-timestamp="2026-05-04T00:10:57.372Z">2026-05-04T00:10:57.372Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>collected 24 items
+
+tests/unit/test_parser.py ........................                       [100%]
+
+============================== 24 passed in 0.08s ==============================
+---
+All checks passed!
+---
+pyproject.toml: note: unused section(s): module = [&#x27;respx&#x27;]
+Success: no issues found in 15 source files</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-11-00-732Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-11-00-732Z" class="timestamp-link"><time datetime="2026-05-04T00:11:00.732Z" data-timestamp="2026-05-04T00:11:00.732Z">2026-05-04T00:11:00.732Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_012qiJaMC8YY4SYXLhof5aah">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">List the enum values in the contract</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">grep -n &#39;= &#34;&#39; /Users/<user>/projects/wiki-q-and-a/src/wiki_qa/agent_contract.py | head -15</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-05-04T00-11-00-836Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-05-04T00-11-00-836Z" class="timestamp-link"><time datetime="2026-05-04T00:11:00.836Z" data-timestamp="2026-05-04T00:11:00.836Z">2026-05-04T00:11:00.836Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>35:    REVERSED_ORDER = &quot;reversed_order&quot;
+40:    MULTIPLE_EVIDENCE_BLOCKS = &quot;multiple_evidence_blocks&quot;
+44:    MULTIPLE_ANSWER_BLOCKS = &quot;multiple_answer_blocks&quot;
+48:    MISSING_EVIDENCE_BLOCK = &quot;missing_evidence_block&quot;
+53:    MISSING_ANSWER_BLOCK = &quot;missing_answer_block&quot;
+56:    UNCLOSED_EVIDENCE_TAG = &quot;unclosed_evidence_tag&quot;
+61:    UNCLOSED_ANSWER_TAG = &quot;unclosed_answer_tag&quot;
+64:    EMPTY_EVIDENCE_BLOCK = &quot;empty_evidence_block&quot;
+69:    EMPTY_ANSWER_BLOCK = &quot;empty_answer_block&quot;</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-11-13-155Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-11-13-155Z" class="timestamp-link"><time datetime="2026-05-04T00:11:13.155Z" data-timestamp="2026-05-04T00:11:13.155Z">2026-05-04T00:11:13.155Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Yes, contract has all 9 enum values:</p>
+<table>
+<thead>
+<tr>
+<th>Code</th>
+<th>Trigger</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>REVERSED_ORDER</code></td>
+<td><code>&lt;answer&gt;</code> before <code>&lt;evidence&gt;</code> (refuses to extract)</td>
+</tr>
+<tr>
+<td><code>MULTIPLE_EVIDENCE_BLOCKS</code></td>
+<td><code>&lt;evidence&gt;</code> appears more than once (takes first)</td>
+</tr>
+<tr>
+<td><code>MULTIPLE_ANSWER_BLOCKS</code></td>
+<td><code>&lt;answer&gt;</code> appears more than once (takes first)</td>
+</tr>
+<tr>
+<td><code>MISSING_EVIDENCE_BLOCK</code></td>
+<td>no <code>&lt;evidence&gt;</code> opening tag anywhere</td>
+</tr>
+<tr>
+<td><code>MISSING_ANSWER_BLOCK</code></td>
+<td>no <code>&lt;answer&gt;</code> opening tag anywhere</td>
+</tr>
+<tr>
+<td><code>UNCLOSED_EVIDENCE_TAG</code></td>
+<td><code>&lt;evidence&gt;</code> opens but no closing match</td>
+</tr>
+<tr>
+<td><code>UNCLOSED_ANSWER_TAG</code></td>
+<td><code>&lt;answer&gt;</code> opens but no closing match</td>
+</tr>
+<tr>
+<td><code>EMPTY_EVIDENCE_BLOCK</code></td>
+<td>matched but content empty after strip</td>
+</tr>
+<tr>
+<td><code>EMPTY_ANSWER_BLOCK</code></td>
+<td>matched but content empty after strip</td>
+</tr>
+</tbody>
+</table>
+<p>Per-block (evidence/answer): MISSING / UNCLOSED / EMPTY are mutually exclusive — a block is in exactly one diagnostic state. REVERSED_ORDER and MULTIPLE_* are independent and can co-occur with block-state codes (e.g., <code>MULTIPLE_EVIDENCE_BLOCKS</code> + <code>EMPTY_ANSWER_BLOCK</code> is valid).</p>
+<p>24/24 parser tests green, ruff clean, mypy clean.</p>
+<p>DECISIONS entry now to capture the canonical list as the official surface and the supersession of the prior 3-value enum.</p></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-11-13-603Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-11-13-603Z" class="timestamp-link"><time datetime="2026-05-04T00:11:13.603Z" data-timestamp="2026-05-04T00:11:13.603Z">2026-05-04T00:11:13.603Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_014hsDHpWwwmeAhpYYVyKgX6">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Get current timestamp</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">date &#34;+%Y-%m-%d %H:%M&#34;</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-05-04T00-11-13-673Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-05-04T00-11-13-673Z" class="timestamp-link"><time datetime="2026-05-04T00:11:13.673Z" data-timestamp="2026-05-04T00:11:13.673Z">2026-05-04T00:11:13.673Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>2026-05-03 17:11</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-11-35-613Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-11-35-613Z" class="timestamp-link"><time datetime="2026-05-04T00:11:35.613Z" data-timestamp="2026-05-04T00:11:35.613Z">2026-05-04T00:11:35.613Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_014Jh9BUVU9LaYCT3sviTM69">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Append DECISIONS entry for canonical enum taxonomy</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">cat &gt;&gt; /Users/<user>/projects/wiki-q-and-a/DECISIONS.md &lt;&lt;&#39;EOF&#39;
+
+## 2026-05-03 17:11 — `parse_warnings` typed as `list[ParseWarning]` StrEnum, canonical 9-value taxonomy (supersedes 17:06 `list[str]` choice)
+
+User pushback in two parts.
+
+**Part 1 (typing):** `list[str]` for categorical signals is the same anti-pattern Pydantic was meant to fix — downstream consumers substring-match on display text. Switched to `StrEnum` (`ParseWarning`) defined in `agent_contract.py`. Round-trips through JSON as plain strings (StrEnum default), validates at construction (Pydantic rejects unknown codes — verified via smoke test), refactor-safe at the type level. Trade-off accepted: lose the freeform detail the strings carried (e.g. &#34;(3) blocks&#34;); recover via `raw_output` if eval ever needs counts.
+
+**Part 2 (taxonomy completeness):** initial enum had only the 3 conditions that previously emitted warnings (REVERSED_ORDER, MULTIPLE_EVIDENCE_BLOCKS, MULTIPLE_ANSWER_BLOCKS). User correctly noted this missed real failure modes the parser already detected silently — missing block, unclosed tag, empty content. Eval couldn&#39;t distinguish &#34;model didn&#39;t try&#34; from &#34;model tried but malformed&#34; from &#34;model produced empty content.&#34;
+
+Canonical list is now 9 codes (in `src/wiki_qa/agent_contract.py:24-72`):
+
+- **Order**: `REVERSED_ORDER`
+- **Multiplicity**: `MULTIPLE_EVIDENCE_BLOCKS`, `MULTIPLE_ANSWER_BLOCKS`
+- **Per-block presence** (mutually exclusive within each block type):
+  - `MISSING_EVIDENCE_BLOCK` / `MISSING_ANSWER_BLOCK` — no opening tag anywhere
+  - `UNCLOSED_EVIDENCE_TAG` / `UNCLOSED_ANSWER_TAG` — opening tag without close (model attempted, malformed)
+  - `EMPTY_EVIDENCE_BLOCK` / `EMPTY_ANSWER_BLOCK` — matched but content empty after strip
+
+The MISSING / UNCLOSED / EMPTY split per block matters because the failure interpretations differ: missing = model ignored structure; unclosed = model attempted, broke format; empty = model produced clean structure with null content. Eval may want to penalize each differently.
+
+REVERSED_ORDER and MULTIPLE_* are independent and can co-occur with the block-state codes. Not all combinations are reachable — e.g., REVERSED_ORDER takes the early-return path so missing/unclosed/empty diagnostics don&#39;t fire alongside it (both blocks were present and matched, just in wrong order).
+
+**Coordination note for workstream B**: the contract field type changed from `list[str]` to `list[ParseWarning]` and the value set expanded from 3 to 9. Stub fixtures populating the field will need to switch from raw strings to enum members. Default `[]` still works for fixtures that don&#39;t populate. Consider adding deterministic eval checks that map specific warnings to rubric-dimension penalties (e.g., `MISSING_EVIDENCE_BLOCK` → calibration and groundedness both dock points).
+EOF
+echo &#34;Done.&#34;</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-05-04T00-11-35-682Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-05-04T00-11-35-682Z" class="timestamp-link"><time datetime="2026-05-04T00:11:35.682Z" data-timestamp="2026-05-04T00:11:35.682Z">2026-05-04T00:11:35.682Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Done.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-11-43-675Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-11-43-675Z" class="timestamp-link"><time datetime="2026-05-04T00:11:43.675Z" data-timestamp="2026-05-04T00:11:43.675Z">2026-05-04T00:11:43.675Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Done. Final state:</p>
+<p><strong>Contract</strong> (<code>src/wiki_qa/agent_contract.py</code>): <code>ParseWarning</code> StrEnum with 9 canonical values, fully documented per-value. <code>AgentResult.parse_warnings: list[ParseWarning] = Field(default_factory=list)</code>.</p>
+<p><strong>Parser</strong> (<code>src/wiki_qa/parser.py</code>): emits the right enum value(s) for every detected anomaly. MISSING/UNCLOSED/EMPTY are mutually exclusive per block type; the parser code is structured so they can't double-fire.</p>
+<p><strong>Tests</strong>: 24/24 green. New tests cover unclosed (both sides), empty (both sides), whitespace-only-as-empty, and the missing/unclosed distinction explicitly.</p>
+<p><strong>For workstream B coordination</strong>: type changed <code>list[str]</code> → <code>list[ParseWarning]</code>, value set 3 → 9. Stub fixtures using raw strings will fail Pydantic validation now. Default <code>[]</code> still works. Per-warning rubric-dimension mapping (e.g., <code>MISSING_EVIDENCE_BLOCK</code> → ding calibration + groundedness, <code>EMPTY_ANSWER_BLOCK</code> → all-dimensions zero) is a natural deterministic-check expansion.</p>
+<p>Ping the other agent when you're ready and I'll continue with the agent-loop tests.</p></div></div></div>
+<div class="message user" id="msg-2026-05-04T00-12-08-910Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-05-04T00-12-08-910Z" class="timestamp-link"><time datetime="2026-05-04T00:12:08.910Z" data-timestamp="2026-05-04T00:12:08.910Z">2026-05-04T00:12:08.910Z</time></a></div><div class="message-content">
+<div class="user-content"><p>You also update the parser to emit all the nine codes as well?</p></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-12-25-402Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-12-25-402Z" class="timestamp-link"><time datetime="2026-05-04T00:12:25.402Z" data-timestamp="2026-05-04T00:12:25.402Z">2026-05-04T00:12:25.402Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-12-25-792Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-12-25-792Z" class="timestamp-link"><time datetime="2026-05-04T00:12:25.792Z" data-timestamp="2026-05-04T00:12:25.792Z">2026-05-04T00:12:25.792Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Yes. Let me grep the parser to show all 9 codes are emitted.</p></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-12-26-415Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-12-26-415Z" class="timestamp-link"><time datetime="2026-05-04T00:12:26.415Z" data-timestamp="2026-05-04T00:12:26.415Z">2026-05-04T00:12:26.415Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01Xp3jJpKxkGC8mx9EY3BdFw">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">List every ParseWarning emitted by the parser</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">grep -n &#34;ParseWarning\.&#34; /Users/<user>/projects/wiki-q-and-a/src/wiki_qa/parser.py</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-05-04T00-12-26-462Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-05-04T00-12-26-462Z" class="timestamp-link"><time datetime="2026-05-04T00:12:26.462Z" data-timestamp="2026-05-04T00:12:26.462Z">2026-05-04T00:12:26.462Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>68:        warnings.append(ParseWarning.MULTIPLE_EVIDENCE_BLOCKS)
+70:        warnings.append(ParseWarning.MULTIPLE_ANSWER_BLOCKS)
+84:        warnings.append(ParseWarning.REVERSED_ORDER)
+96:            warnings.append(ParseWarning.UNCLOSED_EVIDENCE_TAG)
+98:            warnings.append(ParseWarning.MISSING_EVIDENCE_BLOCK)
+100:        warnings.append(ParseWarning.EMPTY_EVIDENCE_BLOCK)
+104:            warnings.append(ParseWarning.UNCLOSED_ANSWER_TAG)
+106:            warnings.append(ParseWarning.MISSING_ANSWER_BLOCK)
+108:        warnings.append(ParseWarning.EMPTY_ANSWER_BLOCK)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-12-31-935Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-12-31-935Z" class="timestamp-link"><time datetime="2026-05-04T00:12:31.935Z" data-timestamp="2026-05-04T00:12:31.935Z">2026-05-04T00:12:31.935Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>All 9 emitted, one site per code. Cross-checked against the contract:</p>
+<table>
+<thead>
+<tr>
+<th>Enum value</th>
+<th>Parser line</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>MULTIPLE_EVIDENCE_BLOCKS</code></td>
+<td>parser.py:68</td>
+</tr>
+<tr>
+<td><code>MULTIPLE_ANSWER_BLOCKS</code></td>
+<td>parser.py:70</td>
+</tr>
+<tr>
+<td><code>REVERSED_ORDER</code></td>
+<td>parser.py:84</td>
+</tr>
+<tr>
+<td><code>UNCLOSED_EVIDENCE_TAG</code></td>
+<td>parser.py:96</td>
+</tr>
+<tr>
+<td><code>MISSING_EVIDENCE_BLOCK</code></td>
+<td>parser.py:98</td>
+</tr>
+<tr>
+<td><code>EMPTY_EVIDENCE_BLOCK</code></td>
+<td>parser.py:100</td>
+</tr>
+<tr>
+<td><code>UNCLOSED_ANSWER_TAG</code></td>
+<td>parser.py:104</td>
+</tr>
+<tr>
+<td><code>MISSING_ANSWER_BLOCK</code></td>
+<td>parser.py:106</td>
+</tr>
+<tr>
+<td><code>EMPTY_ANSWER_BLOCK</code></td>
+<td>parser.py:108</td>
+</tr>
+</tbody>
+</table>
+<p>And every emit site has a corresponding test asserting the warning fires under the right condition (24/24 parser tests). No dead enum values, no silent code paths.</p></div></div></div>
+        
+
+<div class="pagination">
+<a href="index.html" class="index-link">Index</a>
+<a href="page-012.html">&larr; Prev</a>
+<a href="page-001.html">1</a>
+<a href="page-002.html">2</a>
+<a href="page-003.html">3</a>
+<a href="page-004.html">4</a>
+<a href="page-005.html">5</a>
+<a href="page-006.html">6</a>
+<a href="page-007.html">7</a>
+<a href="page-008.html">8</a>
+<a href="page-009.html">9</a>
+<a href="page-010.html">10</a>
+<a href="page-011.html">11</a>
+<a href="page-012.html">12</a>
+<span class="current">13</span>
+<a href="page-014.html">14</a>
+<a href="page-015.html">15</a>
+<a href="page-016.html">16</a>
+<a href="page-017.html">17</a>
+<a href="page-018.html">18</a>
+<a href="page-019.html">19</a>
+<a href="page-020.html">20</a>
+<a href="page-021.html">21</a>
+<a href="page-014.html">Next &rarr;</a>
+</div>
+
+    </div>
+    <script>
+document.querySelectorAll('time[data-timestamp]').forEach(function(el) {
+    const timestamp = el.getAttribute('data-timestamp');
+    const date = new Date(timestamp);
+    const now = new Date();
+    const isToday = date.toDateString() === now.toDateString();
+    const timeStr = date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+    if (isToday) { el.textContent = timeStr; }
+    else { el.textContent = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) + ' ' + timeStr; }
+});
+document.querySelectorAll('pre.json').forEach(function(el) {
+    let text = el.textContent;
+    text = text.replace(/"([^"]+)":/g, '<span style="color: #ce93d8">"$1"</span>:');
+    text = text.replace(/: "([^"]*)"/g, ': <span style="color: #81d4fa">"$1"</span>');
+    text = text.replace(/: (\d+)/g, ': <span style="color: #ffcc80">$1</span>');
+    text = text.replace(/: (true|false|null)/g, ': <span style="color: #f48fb1">$1</span>');
+    el.innerHTML = text;
+});
+document.querySelectorAll('.truncatable').forEach(function(wrapper) {
+    const content = wrapper.querySelector('.truncatable-content');
+    const btn = wrapper.querySelector('.expand-btn');
+    if (content.scrollHeight > 250) {
+        wrapper.classList.add('truncated');
+        btn.addEventListener('click', function() {
+            if (wrapper.classList.contains('truncated')) { wrapper.classList.remove('truncated'); wrapper.classList.add('expanded'); btn.textContent = 'Show less'; }
+            else { wrapper.classList.remove('expanded'); wrapper.classList.add('truncated'); btn.textContent = 'Show more'; }
+        });
+    }
+});
+</script>
+</body>
+</html>

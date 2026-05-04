@@ -1,0 +1,1510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claude Code transcript - page 14</title>
+    <style>
+:root { --bg-color: #f5f5f5; --card-bg: #ffffff; --user-bg: #e3f2fd; --user-border: #1976d2; --assistant-bg: #f5f5f5; --assistant-border: #9e9e9e; --thinking-bg: #fff8e1; --thinking-border: #ffc107; --thinking-text: #666; --tool-bg: #f3e5f5; --tool-border: #9c27b0; --tool-result-bg: #e8f5e9; --tool-error-bg: #ffebee; --text-color: #212121; --text-muted: #757575; --code-bg: #263238; --code-text: #aed581; }
+* { box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg-color); color: var(--text-color); margin: 0; padding: 16px; line-height: 1.6; }
+.container { max-width: 800px; margin: 0 auto; }
+h1 { font-size: 1.5rem; margin-bottom: 24px; padding-bottom: 8px; border-bottom: 2px solid var(--user-border); }
+.header-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; border-bottom: 2px solid var(--user-border); padding-bottom: 8px; margin-bottom: 24px; }
+.header-row h1 { border-bottom: none; padding-bottom: 0; margin-bottom: 0; flex: 1; min-width: 200px; }
+.message { margin-bottom: 16px; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.message.user { background: var(--user-bg); border-left: 4px solid var(--user-border); }
+.message.assistant { background: var(--card-bg); border-left: 4px solid var(--assistant-border); }
+.message.tool-reply { background: #fff8e1; border-left: 4px solid #ff9800; }
+.tool-reply .role-label { color: #e65100; }
+.tool-reply .tool-result { background: transparent; padding: 0; margin: 0; }
+.tool-reply .tool-result .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff8e1); }
+.message-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; background: rgba(0,0,0,0.03); font-size: 0.85rem; }
+.role-label { font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+.user .role-label { color: var(--user-border); }
+time { color: var(--text-muted); font-size: 0.8rem; }
+.timestamp-link { color: inherit; text-decoration: none; }
+.timestamp-link:hover { text-decoration: underline; }
+.message:target { animation: highlight 2s ease-out; }
+@keyframes highlight { 0% { background-color: rgba(25, 118, 210, 0.2); } 100% { background-color: transparent; } }
+.message-content { padding: 16px; }
+.message-content p { margin: 0 0 12px 0; }
+.message-content p:last-child { margin-bottom: 0; }
+.thinking { background: var(--thinking-bg); border: 1px solid var(--thinking-border); border-radius: 8px; padding: 12px; margin: 12px 0; font-size: 0.9rem; color: var(--thinking-text); }
+.thinking-label { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; color: #f57c00; margin-bottom: 8px; }
+.thinking p { margin: 8px 0; }
+.assistant-text { margin: 8px 0; }
+.tool-use { background: var(--tool-bg); border: 1px solid var(--tool-border); border-radius: 8px; padding: 12px; margin: 12px 0; }
+.tool-header { font-weight: 600; color: var(--tool-border); margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+.tool-icon { font-size: 1.1rem; }
+.tool-description { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 8px; font-style: italic; }
+.tool-result { background: var(--tool-result-bg); border-radius: 8px; padding: 12px; margin: 12px 0; }
+.tool-result.tool-error { background: var(--tool-error-bg); }
+.file-tool { border-radius: 8px; padding: 12px; margin: 12px 0; }
+.write-tool { background: linear-gradient(135deg, #e3f2fd 0%, #e8f5e9 100%); border: 1px solid #4caf50; }
+.edit-tool { background: linear-gradient(135deg, #fff3e0 0%, #fce4ec 100%); border: 1px solid #ff9800; }
+.file-tool-header { font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
+.write-header { color: #2e7d32; }
+.edit-header { color: #e65100; }
+.file-tool-icon { font-size: 1rem; }
+.file-tool-path { font-family: monospace; background: rgba(0,0,0,0.08); padding: 2px 8px; border-radius: 4px; }
+.file-tool-fullpath { font-family: monospace; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px; word-break: break-all; }
+.file-content { margin: 0; }
+.edit-section { display: flex; margin: 4px 0; border-radius: 4px; overflow: hidden; }
+.edit-label { padding: 8px 12px; font-weight: bold; font-family: monospace; display: flex; align-items: flex-start; }
+.edit-old { background: #fce4ec; }
+.edit-old .edit-label { color: #b71c1c; background: #f8bbd9; }
+.edit-old .edit-content { color: #880e4f; }
+.edit-new { background: #e8f5e9; }
+.edit-new .edit-label { color: #1b5e20; background: #a5d6a7; }
+.edit-new .edit-content { color: #1b5e20; }
+.edit-content { margin: 0; flex: 1; background: transparent; font-size: 0.85rem; }
+.edit-replace-all { font-size: 0.75rem; font-weight: normal; color: var(--text-muted); }
+.write-tool .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #e6f4ea); }
+.edit-tool .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff0e5); }
+.todo-list { background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%); border: 1px solid #81c784; border-radius: 8px; padding: 12px; margin: 12px 0; }
+.todo-header { font-weight: 600; color: #2e7d32; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
+.todo-items { list-style: none; margin: 0; padding: 0; }
+.todo-item { display: flex; align-items: flex-start; gap: 10px; padding: 6px 0; border-bottom: 1px solid rgba(0,0,0,0.06); font-size: 0.9rem; }
+.todo-item:last-child { border-bottom: none; }
+.todo-icon { flex-shrink: 0; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-weight: bold; border-radius: 50%; }
+.todo-completed .todo-icon { color: #2e7d32; background: rgba(46, 125, 50, 0.15); }
+.todo-completed .todo-content { color: #558b2f; text-decoration: line-through; }
+.todo-in-progress .todo-icon { color: #f57c00; background: rgba(245, 124, 0, 0.15); }
+.todo-in-progress .todo-content { color: #e65100; font-weight: 500; }
+.todo-pending .todo-icon { color: #757575; background: rgba(0,0,0,0.05); }
+.todo-pending .todo-content { color: #616161; }
+pre { background: var(--code-bg); color: var(--code-text); padding: 12px; border-radius: 6px; overflow-x: auto; font-size: 0.85rem; line-height: 1.5; margin: 8px 0; white-space: pre-wrap; word-wrap: break-word; }
+pre.json { color: #e0e0e0; }
+code { background: rgba(0,0,0,0.08); padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+pre code { background: none; padding: 0; }
+.user-content { margin: 0; }
+.truncatable { position: relative; }
+.truncatable.truncated .truncatable-content { max-height: 200px; overflow: hidden; }
+.truncatable.truncated::after { content: ''; position: absolute; bottom: 32px; left: 0; right: 0; height: 60px; background: linear-gradient(to bottom, transparent, var(--card-bg)); pointer-events: none; }
+.message.user .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--user-bg)); }
+.message.tool-reply .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff8e1); }
+.tool-use .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--tool-bg)); }
+.tool-result .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--tool-result-bg)); }
+.expand-btn { display: none; width: 100%; padding: 8px 16px; margin-top: 4px; background: rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.1); border-radius: 6px; cursor: pointer; font-size: 0.85rem; color: var(--text-muted); }
+.expand-btn:hover { background: rgba(0,0,0,0.1); }
+.truncatable.truncated .expand-btn, .truncatable.expanded .expand-btn { display: block; }
+.pagination { display: flex; justify-content: center; gap: 8px; margin: 24px 0; flex-wrap: wrap; }
+.pagination a, .pagination span { padding: 5px 10px; border-radius: 6px; text-decoration: none; font-size: 0.85rem; }
+.pagination a { background: var(--card-bg); color: var(--user-border); border: 1px solid var(--user-border); }
+.pagination a:hover { background: var(--user-bg); }
+.pagination .current { background: var(--user-border); color: white; }
+.pagination .disabled { color: var(--text-muted); border: 1px solid #ddd; }
+.pagination .index-link { background: var(--user-border); color: white; }
+details.continuation { margin-bottom: 16px; }
+details.continuation summary { cursor: pointer; padding: 12px 16px; background: var(--user-bg); border-left: 4px solid var(--user-border); border-radius: 12px; font-weight: 500; color: var(--text-muted); }
+details.continuation summary:hover { background: rgba(25, 118, 210, 0.15); }
+details.continuation[open] summary { border-radius: 12px 12px 0 0; margin-bottom: 0; }
+.index-item { margin-bottom: 16px; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); background: var(--user-bg); border-left: 4px solid var(--user-border); }
+.index-item a { display: block; text-decoration: none; color: inherit; }
+.index-item a:hover { background: rgba(25, 118, 210, 0.1); }
+.index-item-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; background: rgba(0,0,0,0.03); font-size: 0.85rem; }
+.index-item-number { font-weight: 600; color: var(--user-border); }
+.index-item-content { padding: 16px; }
+.index-item-stats { padding: 8px 16px 12px 32px; font-size: 0.85rem; color: var(--text-muted); border-top: 1px solid rgba(0,0,0,0.06); }
+.index-item-commit { margin-top: 6px; padding: 4px 8px; background: #fff3e0; border-radius: 4px; font-size: 0.85rem; color: #e65100; }
+.index-item-commit code { background: rgba(0,0,0,0.08); padding: 1px 4px; border-radius: 3px; font-size: 0.8rem; margin-right: 6px; }
+.commit-card { margin: 8px 0; padding: 10px 14px; background: #fff3e0; border-left: 4px solid #ff9800; border-radius: 6px; }
+.commit-card a { text-decoration: none; color: #5d4037; display: block; }
+.commit-card a:hover { color: #e65100; }
+.commit-card-hash { font-family: monospace; color: #e65100; font-weight: 600; margin-right: 8px; }
+.index-commit { margin-bottom: 12px; padding: 10px 16px; background: #fff3e0; border-left: 4px solid #ff9800; border-radius: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+.index-commit a { display: block; text-decoration: none; color: inherit; }
+.index-commit a:hover { background: rgba(255, 152, 0, 0.1); margin: -10px -16px; padding: 10px 16px; border-radius: 8px; }
+.index-commit-header { display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; margin-bottom: 4px; }
+.index-commit-hash { font-family: monospace; color: #e65100; font-weight: 600; }
+.index-commit-msg { color: #5d4037; }
+.index-item-long-text { margin-top: 8px; padding: 12px; background: var(--card-bg); border-radius: 8px; border-left: 3px solid var(--assistant-border); }
+.index-item-long-text .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--card-bg)); }
+.index-item-long-text-content { color: var(--text-color); }
+#search-box { display: none; align-items: center; gap: 8px; }
+#search-box input { padding: 6px 12px; border: 1px solid var(--assistant-border); border-radius: 6px; font-size: 16px; width: 180px; }
+#search-box button, #modal-search-btn, #modal-close-btn { background: var(--user-border); color: white; border: none; border-radius: 6px; padding: 6px 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+#search-box button:hover, #modal-search-btn:hover { background: #1565c0; }
+#modal-close-btn { background: var(--text-muted); margin-left: 8px; }
+#modal-close-btn:hover { background: #616161; }
+#search-modal[open] { border: none; border-radius: 12px; box-shadow: 0 4px 24px rgba(0,0,0,0.2); padding: 0; width: 90vw; max-width: 900px; height: 80vh; max-height: 80vh; display: flex; flex-direction: column; }
+#search-modal::backdrop { background: rgba(0,0,0,0.5); }
+.search-modal-header { display: flex; align-items: center; gap: 8px; padding: 16px; border-bottom: 1px solid var(--assistant-border); background: var(--bg-color); border-radius: 12px 12px 0 0; }
+.search-modal-header input { flex: 1; padding: 8px 12px; border: 1px solid var(--assistant-border); border-radius: 6px; font-size: 16px; }
+#search-status { padding: 8px 16px; font-size: 0.85rem; color: var(--text-muted); border-bottom: 1px solid rgba(0,0,0,0.06); }
+#search-results { flex: 1; overflow-y: auto; padding: 16px; }
+.search-result { margin-bottom: 16px; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.search-result a { display: block; text-decoration: none; color: inherit; }
+.search-result a:hover { background: rgba(25, 118, 210, 0.05); }
+.search-result-page { padding: 6px 12px; background: rgba(0,0,0,0.03); font-size: 0.8rem; color: var(--text-muted); border-bottom: 1px solid rgba(0,0,0,0.06); }
+.search-result-content { padding: 12px; }
+.search-result mark { background: #fff59d; padding: 1px 2px; border-radius: 2px; }
+@media (max-width: 600px) { body { padding: 8px; } .message, .index-item { border-radius: 8px; } .message-content, .index-item-content { padding: 12px; } pre { font-size: 0.8rem; padding: 8px; } #search-box input { width: 120px; } #search-modal[open] { width: 95vw; height: 90vh; } }
+</style>
+</head>
+<body>
+    <div class="container">
+        <h1><a href="index.html" style="color: inherit; text-decoration: none;">Claude Code transcript</a> - page 14/21</h1>
+        
+
+<div class="pagination">
+<a href="index.html" class="index-link">Index</a>
+<a href="page-013.html">&larr; Prev</a>
+<a href="page-001.html">1</a>
+<a href="page-002.html">2</a>
+<a href="page-003.html">3</a>
+<a href="page-004.html">4</a>
+<a href="page-005.html">5</a>
+<a href="page-006.html">6</a>
+<a href="page-007.html">7</a>
+<a href="page-008.html">8</a>
+<a href="page-009.html">9</a>
+<a href="page-010.html">10</a>
+<a href="page-011.html">11</a>
+<a href="page-012.html">12</a>
+<a href="page-013.html">13</a>
+<span class="current">14</span>
+<a href="page-015.html">15</a>
+<a href="page-016.html">16</a>
+<a href="page-017.html">17</a>
+<a href="page-018.html">18</a>
+<a href="page-019.html">19</a>
+<a href="page-020.html">20</a>
+<a href="page-021.html">21</a>
+<a href="page-015.html">Next &rarr;</a>
+</div>
+
+        
+<div class="message user" id="msg-2026-05-04T00-14-17-416Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-05-04T00-14-17-416Z" class="timestamp-link"><time datetime="2026-05-04T00:14:17.416Z" data-timestamp="2026-05-04T00:14:17.416Z">2026-05-04T00:14:17.416Z</time></a></div><div class="message-content">
+<div class="user-content"><p>Sounds good. What next here?</p></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-14-28-337Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-14-28-337Z" class="timestamp-link"><time datetime="2026-05-04T00:14:28.337Z" data-timestamp="2026-05-04T00:14:28.337Z">2026-05-04T00:14:28.337Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-14-40-667Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-14-40-667Z" class="timestamp-link"><time datetime="2026-05-04T00:14:40.667Z" data-timestamp="2026-05-04T00:14:40.667Z">2026-05-04T00:14:40.667Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Workstream A's critical path is the agent loop itself — that's the piece between "Wikipedia tool" and "thing the eval can actually run." Everything else (CLI, dataset, v1.1 prompt iterations) follows it.</p>
+<p>Proposed next: <strong>build the agent loop</strong>. ~45-60 min as I estimated earlier. Outline:</p>
+<ol>
+<li><strong>Tests first</strong> (~15-20 min). Mocked <code>anthropic.Anthropic.messages.create</code> returning fake content blocks. Cover:</li>
+<li>Single-turn (no tool use): model returns text directly → AgentResult populated, <code>n_searches=0</code></li>
+<li>Single search: model returns <code>tool_use</code>, dispatch hits real <code>search_wikipedia</code>, result fed back, model returns final answer</li>
+<li>Multi-search: 2-3 search turns before answer</li>
+<li>Search budget hit: model keeps calling tool past <code>max_iterations</code> → loop exits with stop_reason indicating budget exhausted</li>
+<li>Search error: <code>WikipediaSearchError</code> → wrapped as <code>&lt;search_error&gt;</code> tool_result, model recovers</li>
+<li>Output parsing: response wired through <code>parse_evidence_and_answer</code>, parse_warnings flow into AgentResult</li>
+<li>Token usage: aggregated across turns into <code>TokenUsage</code></li>
+<li>
+<p>Latency: per <code>ToolCall.latency_ms</code></p>
+</li>
+<li>
+<p><strong>Implementation</strong> (~20-25 min). <code>src/wiki_qa/agent.py</code> exposing <code>answer(question: str, *, max_iterations: int = 5) -&gt; AgentResult</code>. Reads <code>WIKI_QA_AGENT_MODEL</code> env var with <code>claude-opus-4-7</code> default. Uses <code>system_v1.md</code> content as the system prompt.</p>
+</li>
+<li>
+<p><strong>Quality gates + smoke test</strong> (~5-10 min). Real API call (1-2 turns), one well-known question. Burns one small Anthropic call — wanted to flag before doing it.</p>
+</li>
+</ol>
+<p>That's the next chunk. Other options if you want to redirect:</p>
+<ul>
+<li><strong>Hand-write the eval dataset</strong> instead — gives the harness something to score on once it's wired up. ~30-45 min for 35 cases.</li>
+<li><strong>CLI entry point</strong> — small, can come anytime; needed for the runnable-prototype deliverable.</li>
+<li><strong>Wait for harness</strong> — let workstream B finish, then build agent loop with their integration test as the immediate validator.</li>
+</ul>
+<p>I'd default to the agent loop since it unblocks everyone else, but call it.</p></div></div></div>
+<div class="message user" id="msg-2026-05-04T00-16-18-768Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-05-04T00-16-18-768Z" class="timestamp-link"><time datetime="2026-05-04T00:16:18.768Z" data-timestamp="2026-05-04T00:16:18.768Z">2026-05-04T00:16:18.768Z</time></a></div><div class="message-content">
+<div class="user-content"><p>More test is, you know, an an output which fails parsing. Right so that causes the parsing to fail and that's surfaced through all the different kinds of failure modes. I'd add a few different tests there Apart from that, I think this looks good. And then kick off the agent loop and do a really quick smoke test as well. Right? Pick a simple question, and once you're done just test with a small daily API call with a couple of turns and see what happens.</p></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-17-31-801Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-17-31-801Z" class="timestamp-link"><time datetime="2026-05-04T00:17:31.801Z" data-timestamp="2026-05-04T00:17:31.801Z">2026-05-04T00:17:31.801Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message tool-reply" id="msg-2026-05-04T00-18-31-581Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-05-04T00-18-31-581Z" class="timestamp-link"><time datetime="2026-05-04T00:18:31.581Z" data-timestamp="2026-05-04T00:18:31.581Z">2026-05-04T00:18:31.581Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>File created successfully at: /Users/<user>/projects/wiki-q-and-a/tests/unit/test_agent.py</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-17-34-772Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-17-34-772Z" class="timestamp-link"><time datetime="2026-05-04T00:17:34.772Z" data-timestamp="2026-05-04T00:17:34.772Z">2026-05-04T00:17:34.772Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Got it. Adding parser-failure-flow-through tests to the agent loop suite (6-7 distinct cases — clean, missing both, reversed, multiple, unclosed, empty), then loop tests, then implementation, then real smoke test.</p>
+<p><strong>Estimate: ~60 min.</strong> Checkpoints: tests scaffolded → loop tests green (mocked) → implementation done with quality gates → real-API smoke against "When was the Battle of Hastings?" with you watching the result.</p>
+<p>Starting now.</p></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-18-31-531Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-18-31-531Z" class="timestamp-link"><time datetime="2026-05-04T00:18:31.531Z" data-timestamp="2026-05-04T00:18:31.531Z">2026-05-04T00:18:31.531Z</time></a></div><div class="message-content"><div class="file-tool write-tool" data-tool-id="toolu_01NnsvxmWkiPQAUdxWjdYaya">
+<div class="file-tool-header write-header"><span class="file-tool-icon">📝</span> Write <span class="file-tool-path">test_agent.py</span></div>
+<div class="file-tool-fullpath">/Users/<user>/projects/wiki-q-and-a/tests/unit/test_agent.py</div>
+<div class="truncatable"><div class="truncatable-content"><pre class="file-content">&#34;&#34;&#34;Tests for the agent loop.
+
+The agent dispatches `search_wikipedia` calls in a loop against the
+Anthropic API, threads tool_results back, parses the final assistant text
+into evidence/answer, and returns an `AgentResult`.
+
+Strategy: inject a FakeClient that scripts Anthropic API responses; mock
+`search_wikipedia` itself via monkeypatch so we don&#39;t hit the real
+MediaWiki API. Tests target the loop&#39;s behavior, not the search client
+(which has its own suite).
+&#34;&#34;&#34;
+
+from __future__ import annotations
+
+from collections.abc import Callable
+from dataclasses import dataclass, field
+from typing import Any
+
+import pytest
+
+from wiki_qa.agent import answer
+from wiki_qa.agent_contract import ParseWarning
+from wiki_qa.wikipedia import SearchResult, WikipediaSearchError
+
+
+# ---------- Fakes for the Anthropic SDK ----------
+
+
+@dataclass
+class _FakeTextBlock:
+    text: str
+    type: str = &#34;text&#34;
+
+
+@dataclass
+class _FakeToolUseBlock:
+    id: str
+    name: str
+    input: dict[str, Any]
+    type: str = &#34;tool_use&#34;
+
+
+@dataclass
+class _FakeUsage:
+    input_tokens: int = 10
+    output_tokens: int = 20
+    cache_read_input_tokens: int = 0
+    cache_creation_input_tokens: int = 0
+
+
+@dataclass
+class _FakeResponse:
+    content: list[Any]
+    stop_reason: str = &#34;end_turn&#34;
+    usage: _FakeUsage = field(default_factory=_FakeUsage)
+
+
+@dataclass
+class _FakeMessages:
+    responses: list[_FakeResponse]
+    create_calls: list[dict[str, Any]] = field(default_factory=list)
+
+    def create(self, **kwargs: Any) -&gt; _FakeResponse:
+        self.create_calls.append(kwargs)
+        if not self.responses:
+            raise RuntimeError(&#34;FakeClient: no more scripted responses&#34;)
+        return self.responses.pop(0)
+
+
+class FakeClient:
+    &#34;&#34;&#34;Minimal stand-in for `anthropic.Anthropic`.
+
+    Only `client.messages.create(...)` is exercised by the agent loop; that&#39;s
+    the only entry point we need to script.
+    &#34;&#34;&#34;
+
+    def __init__(self, responses: list[_FakeResponse]) -&gt; None:
+        self.messages = _FakeMessages(responses=responses)
+
+
+def _text(text: str, stop_reason: str = &#34;end_turn&#34;) -&gt; _FakeResponse:
+    return _FakeResponse(content=[_FakeTextBlock(text=text)], stop_reason=stop_reason)
+
+
+def _tool_use(
+    tool_id: str = &#34;tool_1&#34;,
+    name: str = &#34;search_wikipedia&#34;,
+    query: str = &#34;Battle of Hastings&#34;,
+    stop_reason: str = &#34;tool_use&#34;,
+    preceding_text: str | None = None,
+) -&gt; _FakeResponse:
+    blocks: list[Any] = []
+    if preceding_text:
+        blocks.append(_FakeTextBlock(text=preceding_text))
+    blocks.append(_FakeToolUseBlock(id=tool_id, name=name, input={&#34;query&#34;: query}))
+    return _FakeResponse(content=blocks, stop_reason=stop_reason)
+
+
+# ---------- Fixture: monkeypatch search_wikipedia ----------
+
+
+@pytest.fixture
+def fake_search(
+    monkeypatch: pytest.MonkeyPatch,
+) -&gt; Callable[[Callable[..., list[SearchResult]]], None]:
+    &#34;&#34;&#34;Replace `wiki_qa.agent.search_wikipedia` with a caller-provided function.
+
+    Returns a setter so each test installs its own fake search behavior.
+    &#34;&#34;&#34;
+
+    def setter(impl: Callable[..., list[SearchResult]]) -&gt; None:
+        monkeypatch.setattr(&#34;wiki_qa.agent.search_wikipedia&#34;, impl)
+
+    return setter
+
+
+def _result(title: str = &#34;Battle of Hastings&#34;) -&gt; SearchResult:
+    return SearchResult(
+        title=title,
+        url=f&#34;https://en.wikipedia.org/wiki/{title.replace(&#39; &#39;, &#39;_&#39;)}&#34;,
+        extract=f&#34;Lead extract for {title}.&#34;,
+        page_id=1,
+        extract_truncated=False,
+    )
+
+
+# ---------- Tests ----------
+
+
+class TestSingleTurnNoToolUse:
+    def test_text_only_response_returns_parsed_answer(
+        self, fake_search: Callable[[Callable[..., list[SearchResult]]], None]
+    ) -&gt; None:
+        fake_search(lambda *_, **__: [])  # never called in this test
+        client = FakeClient([_text(&#34;&lt;evidence&gt;e&lt;/evidence&gt;&lt;answer&gt;final&lt;/answer&gt;&#34;)])
+        result = answer(&#34;q&#34;, client=client)
+        assert result.evidence == &#34;e&#34;
+        assert result.answer == &#34;final&#34;
+        assert result.n_searches == 0
+        assert result.tool_calls == []
+        assert result.queries == []
+        assert result.stop_reason == &#34;end_turn&#34;
+
+    def test_question_field_carried_through(
+        self, fake_search: Callable[[Callable[..., list[SearchResult]]], None]
+    ) -&gt; None:
+        fake_search(lambda *_, **__: [])
+        client = FakeClient([_text(&#34;&lt;evidence&gt;e&lt;/evidence&gt;&lt;answer&gt;a&lt;/answer&gt;&#34;)])
+        result = answer(&#34;what year was Hastings?&#34;, client=client)
+        assert result.question == &#34;what year was Hastings?&#34;
+
+
+class TestSingleSearch:
+    def test_tool_use_dispatches_search_then_returns_answer(
+        self, fake_search: Callable[[Callable[..., list[SearchResult]]], None]
+    ) -&gt; None:
+        captured_queries: list[str] = []
+
+        def fake(query: str, **__: Any) -&gt; list[SearchResult]:
+            captured_queries.append(query)
+            return [_result()]
+
+        fake_search(fake)
+
+        client = FakeClient(
+            [
+                _tool_use(query=&#34;Battle of Hastings&#34;),
+                _text(&#34;&lt;evidence&gt;e&lt;/evidence&gt;&lt;answer&gt;1066&lt;/answer&gt;&#34;),
+            ]
+        )
+        result = answer(&#34;when was the battle of hastings?&#34;, client=client)
+
+        assert captured_queries == [&#34;Battle of Hastings&#34;]
+        assert result.n_searches == 1
+        assert result.queries == [&#34;Battle of Hastings&#34;]
+        assert result.answer == &#34;1066&#34;
+        assert len(result.tool_calls) == 1
+        assert result.tool_calls[0].name == &#34;search_wikipedia&#34;
+        assert result.tool_calls[0].query == &#34;Battle of Hastings&#34;
+        assert &#34;Battle of Hastings&#34; in result.tool_calls[0].raw_result_str
+        assert result.tool_calls[0].latency_ms &gt;= 0
+
+    def test_tool_result_xml_passed_back_to_model(
+        self, fake_search: Callable[[Callable[..., list[SearchResult]]], None]
+    ) -&gt; None:
+        fake_search(lambda *_, **__: [_result(title=&#34;Niels Bohr&#34;)])
+        client = FakeClient(
+            [
+                _tool_use(query=&#34;Bohr&#34;),
+                _text(&#34;&lt;evidence&gt;e&lt;/evidence&gt;&lt;answer&gt;a&lt;/answer&gt;&#34;),
+            ]
+        )
+        answer(&#34;q&#34;, client=client)
+
+        # The second create() call should have a tool_result message containing
+        # XML built by format_results_for_model.
+        second_call = client.messages.create_calls[1]
+        last_user_message = second_call[&#34;messages&#34;][-1]
+        assert last_user_message[&#34;role&#34;] == &#34;user&#34;
+        tool_result_block = last_user_message[&#34;content&#34;][0]
+        assert tool_result_block[&#34;type&#34;] == &#34;tool_result&#34;
+        assert &#34;&lt;search_results&#34; in tool_result_block[&#34;content&#34;]
+        assert &#34;Niels Bohr&#34; in tool_result_block[&#34;content&#34;]
+
+
+class TestMultiSearch:
+    def test_three_search_turns_then_answer(
+        self, fake_search: Callable[[Callable[..., list[SearchResult]]], None]
+    ) -&gt; None:
+        fake_search(lambda *_, **__: [_result()])
+        client = FakeClient(
+            [
+                _tool_use(tool_id=&#34;t1&#34;, query=&#34;q1&#34;),
+                _tool_use(tool_id=&#34;t2&#34;, query=&#34;q2&#34;),
+                _tool_use(tool_id=&#34;t3&#34;, query=&#34;q3&#34;),
+                _text(&#34;&lt;evidence&gt;e&lt;/evidence&gt;&lt;answer&gt;final&lt;/answer&gt;&#34;),
+            ]
+        )
+        result = answer(&#34;multi-part q&#34;, client=client)
+
+        assert result.n_searches == 3
+        assert result.queries == [&#34;q1&#34;, &#34;q2&#34;, &#34;q3&#34;]
+        assert result.answer == &#34;final&#34;
+
+
+class TestBudgetEnforcement:
+    def test_max_iterations_caps_the_loop(
+        self, fake_search: Callable[[Callable[..., list[SearchResult]]], None]
+    ) -&gt; None:
+        fake_search(lambda *_, **__: [_result()])
+        # Model would search forever; we cap at 2
+        client = FakeClient(
+            [
+                _tool_use(tool_id=&#34;t1&#34;, query=&#34;q1&#34;),
+                _tool_use(tool_id=&#34;t2&#34;, query=&#34;q2&#34;),
+                _tool_use(tool_id=&#34;t3&#34;, query=&#34;q3&#34;),
+                _tool_use(tool_id=&#34;t4&#34;, query=&#34;q4&#34;),
+                _tool_use(tool_id=&#34;t5&#34;, query=&#34;q5&#34;),
+            ]
+        )
+        result = answer(&#34;q&#34;, client=client, max_iterations=2)
+
+        assert result.n_searches == 2
+        assert result.stop_reason == &#34;max_iterations&#34;
+        # No final answer was extracted — both blocks missing
+        assert result.evidence == &#34;&#34;
+        assert result.answer == &#34;&#34;
+
+
+class TestSearchError:
+    def test_wikipedia_error_surfaced_as_search_error_xml(
+        self, fake_search: Callable[[Callable[..., list[SearchResult]]], None]
+    ) -&gt; None:
+        def failing(*_: Any, **__: Any) -&gt; list[SearchResult]:
+            raise WikipediaSearchError(&#34;rate limit exceeded after 3 retries&#34;)
+
+        fake_search(failing)
+
+        client = FakeClient(
+            [
+                _tool_use(query=&#34;some query&#34;),
+                _text(&#34;&lt;evidence&gt;e&lt;/evidence&gt;&lt;answer&gt;recovered&lt;/answer&gt;&#34;),
+            ]
+        )
+        result = answer(&#34;q&#34;, client=client)
+
+        # Tool call recorded; raw_result_str carries the error envelope
+        assert len(result.tool_calls) == 1
+        assert result.tool_calls[0].raw_result_str.startswith(&#34;&lt;search_error&#34;)
+        assert &#34;rate limit&#34; in result.tool_calls[0].raw_result_str
+
+        # The error envelope was passed back to the model as tool_result content
+        second_call = client.messages.create_calls[1]
+        tool_result_block = second_call[&#34;messages&#34;][-1][&#34;content&#34;][0]
+        assert &#34;&lt;search_error&#34; in tool_result_block[&#34;content&#34;]
+
+        # Agent continued and produced an answer
+        assert result.answer == &#34;recovered&#34;
+
+
+class TestUsageAggregation:
+    def test_token_usage_summed_across_turns(
+        self, fake_search: Callable[[Callable[..., list[SearchResult]]], None]
+    ) -&gt; None:
+        fake_search(lambda *_, **__: [_result()])
+        client = FakeClient(
+            [
+                _FakeResponse(
+                    content=[_FakeToolUseBlock(id=&#34;t1&#34;, name=&#34;search_wikipedia&#34;, input={&#34;query&#34;: &#34;x&#34;})],
+                    stop_reason=&#34;tool_use&#34;,
+                    usage=_FakeUsage(input_tokens=100, output_tokens=50),
+                ),
+                _FakeResponse(
+                    content=[_FakeTextBlock(text=&#34;&lt;evidence&gt;e&lt;/evidence&gt;&lt;answer&gt;a&lt;/answer&gt;&#34;)],
+                    stop_reason=&#34;end_turn&#34;,
+                    usage=_FakeUsage(input_tokens=200, output_tokens=80),
+                ),
+            ]
+        )
+        result = answer(&#34;q&#34;, client=client)
+
+        assert result.usage.input_tokens == 300
+        assert result.usage.output_tokens == 130
+
+
+class TestModelAndPromptWiring:
+    def test_uses_env_var_model_id(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+        fake_search: Callable[[Callable[..., list[SearchResult]]], None],
+    ) -&gt; None:
+        monkeypatch.setenv(&#34;WIKI_QA_AGENT_MODEL&#34;, &#34;claude-test-model&#34;)
+        fake_search(lambda *_, **__: [])
+        client = FakeClient([_text(&#34;&lt;evidence&gt;e&lt;/evidence&gt;&lt;answer&gt;a&lt;/answer&gt;&#34;)])
+        answer(&#34;q&#34;, client=client)
+
+        assert client.messages.create_calls[0][&#34;model&#34;] == &#34;claude-test-model&#34;
+
+    def test_default_model_is_opus_4_7(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+        fake_search: Callable[[Callable[..., list[SearchResult]]], None],
+    ) -&gt; None:
+        monkeypatch.delenv(&#34;WIKI_QA_AGENT_MODEL&#34;, raising=False)
+        fake_search(lambda *_, **__: [])
+        client = FakeClient([_text(&#34;&lt;evidence&gt;e&lt;/evidence&gt;&lt;answer&gt;a&lt;/answer&gt;&#34;)])
+        answer(&#34;q&#34;, client=client)
+
+        assert client.messages.create_calls[0][&#34;model&#34;] == &#34;claude-opus-4-7&#34;
+
+    def test_system_prompt_loaded_and_passed(
+        self, fake_search: Callable[[Callable[..., list[SearchResult]]], None]
+    ) -&gt; None:
+        fake_search(lambda *_, **__: [])
+        client = FakeClient([_text(&#34;&lt;evidence&gt;e&lt;/evidence&gt;&lt;answer&gt;a&lt;/answer&gt;&#34;)])
+        answer(&#34;q&#34;, client=client)
+
+        system = client.messages.create_calls[0][&#34;system&#34;]
+        # Must include the load-bearing principles from system_v1.md
+        assert &#34;research assistant&#34; in system.lower()
+        assert &#34;grounding&#34; in system.lower() or &#34;grounded&#34; in system.lower()
+        assert &#34;evidence&#34; in system.lower()
+
+    def test_explicit_system_prompt_override(
+        self, fake_search: Callable[[Callable[..., list[SearchResult]]], None]
+    ) -&gt; None:
+        fake_search(lambda *_, **__: [])
+        client = FakeClient([_text(&#34;&lt;evidence&gt;e&lt;/evidence&gt;&lt;answer&gt;a&lt;/answer&gt;&#34;)])
+        answer(&#34;q&#34;, client=client, system_prompt=&#34;custom prompt body&#34;)
+
+        assert client.messages.create_calls[0][&#34;system&#34;] == &#34;custom prompt body&#34;
+
+    def test_tool_definition_registered(
+        self, fake_search: Callable[[Callable[..., list[SearchResult]]], None]
+    ) -&gt; None:
+        fake_search(lambda *_, **__: [])
+        client = FakeClient([_text(&#34;&lt;evidence&gt;e&lt;/evidence&gt;&lt;answer&gt;a&lt;/answer&gt;&#34;)])
+        answer(&#34;q&#34;, client=client)
+
+        tools = client.messages.create_calls[0][&#34;tools&#34;]
+        assert len(tools) == 1
+        assert tools[0][&#34;name&#34;] == &#34;search_wikipedia&#34;
+
+
+# ---------- Parser-failure flow-through ----------
+
+
+class TestParseFailuresFlowToAgentResult:
+    &#34;&#34;&#34;For each ParseWarning the parser can emit, verify it appears on
+    AgentResult.parse_warnings when the model&#39;s output triggers it.&#34;&#34;&#34;
+
+    def test_clean_output_has_no_warnings(
+        self, fake_search: Callable[[Callable[..., list[SearchResult]]], None]
+    ) -&gt; None:
+        fake_search(lambda *_, **__: [])
+        client = FakeClient([_text(&#34;&lt;evidence&gt;e&lt;/evidence&gt;&lt;answer&gt;a&lt;/answer&gt;&#34;)])
+        result = answer(&#34;q&#34;, client=client)
+        assert result.parse_warnings == []
+
+    def test_no_blocks_produces_both_missing_warnings(
+        self, fake_search: Callable[[Callable[..., list[SearchResult]]], None]
+    ) -&gt; None:
+        fake_search(lambda *_, **__: [])
+        client = FakeClient([_text(&#34;Sorry, I cannot help with that.&#34;)])
+        result = answer(&#34;q&#34;, client=client)
+        assert ParseWarning.MISSING_EVIDENCE_BLOCK in result.parse_warnings
+        assert ParseWarning.MISSING_ANSWER_BLOCK in result.parse_warnings
+        assert result.evidence == &#34;&#34;
+        assert result.answer == &#34;&#34;
+
+    def test_reversed_order_produces_warning_and_empty_fields(
+        self, fake_search: Callable[[Callable[..., list[SearchResult]]], None]
+    ) -&gt; None:
+        fake_search(lambda *_, **__: [])
+        client = FakeClient([_text(&#34;&lt;answer&gt;a&lt;/answer&gt;&lt;evidence&gt;e&lt;/evidence&gt;&#34;)])
+        result = answer(&#34;q&#34;, client=client)
+        assert ParseWarning.REVERSED_ORDER in result.parse_warnings
+        assert result.evidence == &#34;&#34;
+        assert result.answer == &#34;&#34;
+
+    def test_multiple_evidence_blocks_propagates(
+        self, fake_search: Callable[[Callable[..., list[SearchResult]]], None]
+    ) -&gt; None:
+        fake_search(lambda *_, **__: [])
+        client = FakeClient(
+            [_text(&#34;&lt;evidence&gt;first&lt;/evidence&gt;&lt;evidence&gt;second&lt;/evidence&gt;&lt;answer&gt;a&lt;/answer&gt;&#34;)]
+        )
+        result = answer(&#34;q&#34;, client=client)
+        assert ParseWarning.MULTIPLE_EVIDENCE_BLOCKS in result.parse_warnings
+        assert result.evidence == &#34;first&#34;
+
+    def test_unclosed_evidence_tag_propagates(
+        self, fake_search: Callable[[Callable[..., list[SearchResult]]], None]
+    ) -&gt; None:
+        fake_search(lambda *_, **__: [])
+        client = FakeClient(
+            [_text(&#34;&lt;evidence&gt;oops never closes\n&lt;answer&gt;real answer&lt;/answer&gt;&#34;)]
+        )
+        result = answer(&#34;q&#34;, client=client)
+        assert ParseWarning.UNCLOSED_EVIDENCE_TAG in result.parse_warnings
+        assert result.answer == &#34;real answer&#34;
+
+    def test_empty_evidence_block_propagates(
+        self, fake_search: Callable[[Callable[..., list[SearchResult]]], None]
+    ) -&gt; None:
+        fake_search(lambda *_, **__: [])
+        client = FakeClient([_text(&#34;&lt;evidence&gt;&lt;/evidence&gt;&lt;answer&gt;a&lt;/answer&gt;&#34;)])
+        result = answer(&#34;q&#34;, client=client)
+        assert ParseWarning.EMPTY_EVIDENCE_BLOCK in result.parse_warnings
+
+    def test_max_iterations_path_produces_missing_blocks(
+        self, fake_search: Callable[[Callable[..., list[SearchResult]]], None]
+    ) -&gt; None:
+        # Hitting max_iterations means no final assistant text was captured;
+        # parser should produce MISSING_* warnings on the empty string.
+        fake_search(lambda *_, **__: [_result()])
+        client = FakeClient(
+            [
+                _tool_use(tool_id=&#34;t1&#34;, query=&#34;q1&#34;),
+                _tool_use(tool_id=&#34;t2&#34;, query=&#34;q2&#34;),
+            ]
+        )
+        result = answer(&#34;q&#34;, client=client, max_iterations=1)
+        assert result.stop_reason == &#34;max_iterations&#34;
+        assert ParseWarning.MISSING_EVIDENCE_BLOCK in result.parse_warnings
+        assert ParseWarning.MISSING_ANSWER_BLOCK in result.parse_warnings
+</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-18-35-447Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-18-35-447Z" class="timestamp-link"><time datetime="2026-05-04T00:18:35.447Z" data-timestamp="2026-05-04T00:18:35.447Z">2026-05-04T00:18:35.447Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01HTsD9gntPofVoXYoyckPdp">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Run agent tests — expect red (no agent.py yet)</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">uv run pytest tests/unit/test_agent.py 2&gt;&amp;1 | tail -10</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-05-04T00-18-35-991Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-05-04T00-18-35-991Z" class="timestamp-link"><time datetime="2026-05-04T00:18:35.991Z" data-timestamp="2026-05-04T00:18:35.991Z">2026-05-04T00:18:35.991Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>/opt/homebrew/Cellar/python@3.14/3.14.3_1/Frameworks/Python.framework/Versions/3.14/lib/python3.14/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/unit/test_agent.py:21: in &lt;module&gt;
+    from wiki_qa.agent import answer
+E   ModuleNotFoundError: No module named &#x27;wiki_qa.agent&#x27;
+=========================== short test summary info ============================
+ERROR tests/unit/test_agent.py
+!!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+=============================== 1 error in 0.07s ===============================</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-18-38-975Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-18-38-975Z" class="timestamp-link"><time datetime="2026-05-04T00:18:38.975Z" data-timestamp="2026-05-04T00:18:38.975Z">2026-05-04T00:18:38.975Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Red as expected. Implementing.</p></div></div></div>
+<div class="message tool-reply" id="msg-2026-05-04T00-19-06-155Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-05-04T00-19-06-155Z" class="timestamp-link"><time datetime="2026-05-04T00:19:06.155Z" data-timestamp="2026-05-04T00:19:06.155Z">2026-05-04T00:19:06.155Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>File created successfully at: /Users/<user>/projects/wiki-q-and-a/src/wiki_qa/agent.py</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-19-06-113Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-19-06-113Z" class="timestamp-link"><time datetime="2026-05-04T00:19:06.113Z" data-timestamp="2026-05-04T00:19:06.113Z">2026-05-04T00:19:06.113Z</time></a></div><div class="message-content"><div class="file-tool write-tool" data-tool-id="toolu_01Lcn139J8ny4DCQgRgBeQLg">
+<div class="file-tool-header write-header"><span class="file-tool-icon">📝</span> Write <span class="file-tool-path">agent.py</span></div>
+<div class="file-tool-fullpath">/Users/<user>/projects/wiki-q-and-a/src/wiki_qa/agent.py</div>
+<div class="truncatable"><div class="truncatable-content"><pre class="file-content">&#34;&#34;&#34;Agent loop: dispatches `search_wikipedia` calls against the Anthropic API.
+
+Reads model id from `WIKI_QA_AGENT_MODEL` (default `claude-opus-4-7`), system
+prompt from `prompts/system_v1.md` (the section after the `---` divider), and
+caps the search loop at `max_iterations`.
+
+Returns an `AgentResult` populated with parsed evidence/answer, the full
+tool-call trace, token usage, stop reason, and any structural parse_warnings
+surfaced by the response parser. Never raises on a Wikipedia search failure
+— errors are wrapped in `&lt;search_error&gt;` and fed back to the model so it can
+recover.
+&#34;&#34;&#34;
+
+from __future__ import annotations
+
+import logging
+import os
+import time
+from pathlib import Path
+from typing import Any
+
+import anthropic
+
+from wiki_qa.agent_contract import AgentResult, ToolCall, TokenUsage
+from wiki_qa.formatting import format_error_for_model, format_results_for_model
+from wiki_qa.parser import parse_evidence_and_answer
+from wiki_qa.tools import SEARCH_WIKIPEDIA_TOOL
+from wiki_qa.wikipedia import WikipediaSearchError, search_wikipedia
+
+_DEFAULT_MODEL = &#34;claude-opus-4-7&#34;
+_MAX_TOKENS = 4096
+_SYSTEM_PROMPT_PATH = Path(__file__).resolve().parent.parent.parent / &#34;prompts&#34; / &#34;system_v1.md&#34;
+
+logger = logging.getLogger(__name__)
+
+
+def _load_system_prompt() -&gt; str:
+    &#34;&#34;&#34;Read `prompts/system_v1.md` and return the body after the `---` divider.
+
+    The file has a header explaining what it is, then `---`, then the actual
+    system prompt. We send only the body to the API.
+    &#34;&#34;&#34;
+    text = _SYSTEM_PROMPT_PATH.read_text()
+    parts = text.split(&#34;\n---\n&#34;, 1)
+    return (parts[1] if len(parts) == 2 else text).strip()
+
+
+def answer(
+    question: str,
+    *,
+    max_iterations: int = 5,
+    system_prompt: str | None = None,
+    client: anthropic.Anthropic | Any | None = None,
+) -&gt; AgentResult:
+    &#34;&#34;&#34;Answer a question by looping over search_wikipedia calls until the model returns text.
+
+    `client` is dependency-injected so tests can pass a fake; production callers
+    omit it and get a default Anthropic client (which reads `ANTHROPIC_API_KEY`
+    from the environment).
+    &#34;&#34;&#34;
+    if client is None:
+        client = anthropic.Anthropic()
+    if system_prompt is None:
+        system_prompt = _load_system_prompt()
+
+    model = os.environ.get(&#34;WIKI_QA_AGENT_MODEL&#34;, _DEFAULT_MODEL)
+
+    messages: list[dict[str, Any]] = [{&#34;role&#34;: &#34;user&#34;, &#34;content&#34;: question}]
+    raw_messages: list[dict[str, Any]] = [{&#34;role&#34;: &#34;user&#34;, &#34;content&#34;: question}]
+    tool_calls: list[ToolCall] = []
+    queries: list[str] = []
+
+    total_input = 0
+    total_output = 0
+    total_cache_read = 0
+    total_cache_creation = 0
+    stop_reason = &#34;unknown&#34;
+    final_text = &#34;&#34;
+
+    for _ in range(max_iterations):
+        response = client.messages.create(
+            model=model,
+            max_tokens=_MAX_TOKENS,
+            system=system_prompt,
+            tools=[SEARCH_WIKIPEDIA_TOOL],
+            messages=messages,
+        )
+
+        total_input += response.usage.input_tokens
+        total_output += response.usage.output_tokens
+        total_cache_read += getattr(response.usage, &#34;cache_read_input_tokens&#34;, 0) or 0
+        total_cache_creation += getattr(response.usage, &#34;cache_creation_input_tokens&#34;, 0) or 0
+
+        stop_reason = response.stop_reason
+
+        tool_use_blocks = [b for b in response.content if b.type == &#34;tool_use&#34;]
+
+        # Capture the assistant message regardless of whether tools were called
+        assistant_content = _serialize_assistant_content(response.content)
+        raw_messages.append({&#34;role&#34;: &#34;assistant&#34;, &#34;content&#34;: assistant_content})
+
+        if not tool_use_blocks:
+            text_blocks = [b.text for b in response.content if b.type == &#34;text&#34;]
+            final_text = &#34;\n&#34;.join(text_blocks)
+            break
+
+        # Append assistant turn (with tool_use) to messages so the next turn
+        # can carry the tool_result responses.
+        messages.append({&#34;role&#34;: &#34;assistant&#34;, &#34;content&#34;: assistant_content})
+
+        tool_results = []
+        for block in tool_use_blocks:
+            if block.name == &#34;search_wikipedia&#34;:
+                query = block.input.get(&#34;query&#34;, &#34;&#34;)
+                queries.append(query)
+                start = time.perf_counter()
+                try:
+                    results = search_wikipedia(query)
+                    raw_result_str = format_results_for_model(query, results)
+                except WikipediaSearchError as e:
+                    raw_result_str = format_error_for_model(query=query, reason=str(e))
+                latency_ms = int((time.perf_counter() - start) * 1000)
+                tool_calls.append(
+                    ToolCall(
+                        name=&#34;search_wikipedia&#34;,
+                        query=query,
+                        raw_result_str=raw_result_str,
+                        latency_ms=latency_ms,
+                    )
+                )
+                tool_results.append(
+                    {
+                        &#34;type&#34;: &#34;tool_result&#34;,
+                        &#34;tool_use_id&#34;: block.id,
+                        &#34;content&#34;: raw_result_str,
+                    }
+                )
+
+        user_turn = {&#34;role&#34;: &#34;user&#34;, &#34;content&#34;: tool_results}
+        messages.append(user_turn)
+        raw_messages.append(user_turn)
+    else:
+        # Loop exhausted without a text-only turn breaking out
+        stop_reason = &#34;max_iterations&#34;
+        logger.warning(
+            &#34;agent hit max_iterations=%d for question=%r without producing a final answer&#34;,
+            max_iterations,
+            question,
+        )
+
+    parsed = parse_evidence_and_answer(final_text)
+
+    if parsed.parse_warnings:
+        logger.warning(
+            &#34;agent response had parse warnings for question=%r: %s&#34;,
+            question,
+            [w.value for w in parsed.parse_warnings],
+        )
+
+    return AgentResult(
+        question=question,
+        evidence=parsed.evidence,
+        answer=parsed.answer,
+        raw_output=parsed.raw_output,
+        tool_calls=tool_calls,
+        n_searches=len(tool_calls),
+        queries=queries,
+        stop_reason=stop_reason,
+        usage=TokenUsage(
+            input_tokens=total_input,
+            output_tokens=total_output,
+            cache_read_tokens=total_cache_read,
+            cache_creation_tokens=total_cache_creation,
+        ),
+        raw_messages=raw_messages,
+        parse_warnings=list(parsed.parse_warnings),
+    )
+
+
+def _serialize_assistant_content(content: list[Any]) -&gt; list[dict[str, Any]]:
+    &#34;&#34;&#34;Convert anthropic SDK content blocks into JSON-serializable dicts.
+
+    The SDK returns typed objects; the API expects dicts on subsequent turns
+    when we echo the assistant&#39;s tool_use blocks back as part of the
+    conversation history.
+    &#34;&#34;&#34;
+    out: list[dict[str, Any]] = []
+    for block in content:
+        if block.type == &#34;text&#34;:
+            out.append({&#34;type&#34;: &#34;text&#34;, &#34;text&#34;: block.text})
+        elif block.type == &#34;tool_use&#34;:
+            out.append(
+                {
+                    &#34;type&#34;: &#34;tool_use&#34;,
+                    &#34;id&#34;: block.id,
+                    &#34;name&#34;: block.name,
+                    &#34;input&#34;: block.input,
+                }
+            )
+    return out
+</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-19-09-959Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-19-09-959Z" class="timestamp-link"><time datetime="2026-05-04T00:19:09.959Z" data-timestamp="2026-05-04T00:19:09.959Z">2026-05-04T00:19:09.959Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01P3CzPhgKREdkrB4bTaZdhU">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Run agent tests after impl</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">uv run pytest tests/unit/test_agent.py 2&gt;&amp;1 | tail -30</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-05-04T00-19-11-065Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-05-04T00-19-11-065Z" class="timestamp-link"><time datetime="2026-05-04T00:19:11.065Z" data-timestamp="2026-05-04T00:19:11.065Z">2026-05-04T00:19:11.065Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>============================= test session starts ==============================
+platform darwin -- Python 3.14.3, pytest-9.0.3, pluggy-1.6.0
+rootdir: /Users/<user>/projects/wiki-q-and-a
+configfile: pyproject.toml
+plugins: cov-7.1.0, respx-0.23.1, anyio-4.13.0
+collected 20 items
+
+tests/unit/test_agent.py ....................                            [100%]
+
+============================== 20 passed in 0.63s ==============================</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-19-13-915Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-19-13-915Z" class="timestamp-link"><time datetime="2026-05-04T00:19:13.915Z" data-timestamp="2026-05-04T00:19:13.915Z">2026-05-04T00:19:13.915Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>20/20 agent tests green on first run. Quality gates.</p></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-19-15-129Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-19-15-129Z" class="timestamp-link"><time datetime="2026-05-04T00:19:15.129Z" data-timestamp="2026-05-04T00:19:15.129Z">2026-05-04T00:19:15.129Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01FiMnD2ThHzZ9nE6S86UgMK">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Format + lint + type check</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">uv run ruff format src/wiki_qa/agent.py tests/unit/test_agent.py &amp;&amp; uv run ruff check src/wiki_qa/agent.py tests/unit/test_agent.py 2&gt;&amp;1 | tail -5 &amp;&amp; echo &#34;---&#34; &amp;&amp; uv run mypy src/wiki_qa/agent.py tests/unit/test_agent.py 2&gt;&amp;1 | tail -5</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-05-04T00-19-16-422Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-05-04T00-19-16-422Z" class="timestamp-link"><time datetime="2026-05-04T00:19:16.422Z" data-timestamp="2026-05-04T00:19:16.422Z">2026-05-04T00:19:16.422Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>1 file reformatted, 1 file left unchanged
+   |
+help: Organize imports
+
+Found 2 errors.
+[*] 2 fixable with the `--fix` option.
+---
+src/wiki_qa/agent.py:134: error: Item &quot;TextEditorCodeExecutionToolResultBlock&quot; of &quot;TextBlock | ThinkingBlock | RedactedThinkingBlock | ToolUseBlock | ServerToolUseBlock | &lt;8 more items&gt;&quot; has no attribute &quot;id&quot;  [union-attr]
+src/wiki_qa/agent.py:134: error: Item &quot;ToolSearchToolResultBlock&quot; of &quot;TextBlock | ThinkingBlock | RedactedThinkingBlock | ToolUseBlock | ServerToolUseBlock | &lt;8 more items&gt;&quot; has no attribute &quot;id&quot;  [union-attr]
+src/wiki_qa/agent.py:134: error: Item &quot;ContainerUploadBlock&quot; of &quot;TextBlock | ThinkingBlock | RedactedThinkingBlock | ToolUseBlock | ServerToolUseBlock | &lt;8 more items&gt;&quot; has no attribute &quot;id&quot;  [union-attr]
+pyproject.toml: note: unused section(s): module = [&#x27;respx&#x27;]
+Found 49 errors in 1 file (checked 2 source files)
+[This command modified 1 file you&#x27;ve previously read: tests/unit/test_agent.py. Call Read before editing.]</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-20-03-866Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-20-03-866Z" class="timestamp-link"><time datetime="2026-05-04T00:20:03.866Z" data-timestamp="2026-05-04T00:20:03.866Z">2026-05-04T00:20:03.866Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-20-06-122Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-20-06-122Z" class="timestamp-link"><time datetime="2026-05-04T00:20:06.122Z" data-timestamp="2026-05-04T00:20:06.122Z">2026-05-04T00:20:06.122Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Two issues: ruff wants imports organized, mypy is choking on the Anthropic SDK's typed response union (49 errors all stem from accessing <code>.id</code>/<code>.name</code>/etc on the response.content union without narrowing). Cleanest fix: duck-type the response blocks via <code>Any</code> since my fakes don't inherit from the SDK types and <code>.type</code>-string checking is the SDK's documented pattern.</p></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-20-06-938Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-20-06-938Z" class="timestamp-link"><time datetime="2026-05-04T00:20:06.938Z" data-timestamp="2026-05-04T00:20:06.938Z">2026-05-04T00:20:06.938Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01XJHooZEVrS8CpFwXybv21q">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Auto-fix import ordering</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">uv run ruff check --fix src/wiki_qa/agent.py tests/unit/test_agent.py 2&gt;&amp;1 | tail -3</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-05-04T00-20-07-113Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-05-04T00-20-07-113Z" class="timestamp-link"><time datetime="2026-05-04T00:20:07.113Z" data-timestamp="2026-05-04T00:20:07.113Z">2026-05-04T00:20:07.113Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Found 2 errors (2 fixed, 0 remaining).
+[This command modified 2 files you&#x27;ve previously read: tests/unit/test_agent.py, src/wiki_qa/agent.py. Call Read before editing.]</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-20-14-879Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-20-14-879Z" class="timestamp-link"><time datetime="2026-05-04T00:20:14.879Z" data-timestamp="2026-05-04T00:20:14.879Z">2026-05-04T00:20:14.879Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-20-19-552Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-20-19-552Z" class="timestamp-link"><time datetime="2026-05-04T00:20:19.552Z" data-timestamp="2026-05-04T00:20:19.552Z">2026-05-04T00:20:19.552Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_01ABjpYL7phZSEwp4CnoZVyS">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">agent.py</span></div>
+<div class="file-tool-fullpath">/Users/<user>/projects/wiki-q-and-a/src/wiki_qa/agent.py</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">    for _ in range(max_iterations):
+        response = client.messages.create(
+            model=model,
+            max_tokens=_MAX_TOKENS,
+            system=system_prompt,
+            tools=[SEARCH_WIKIPEDIA_TOOL],
+            messages=messages,
+        )</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">    for _ in range(max_iterations):
+        # Type as Any: the SDK&#39;s response.content is a union of &gt;12 block types,
+        # only two of which we handle (text, tool_use). Mypy can&#39;t narrow on the
+        # `.type` string check because narrowing across unions that wide isn&#39;t
+        # supported. Duck-typing is the SDK&#39;s documented pattern; the unit tests
+        # exercise both code paths against fakes.
+        response: Any = client.messages.create(
+            model=model,
+            max_tokens=_MAX_TOKENS,
+            system=system_prompt,
+            tools=[SEARCH_WIKIPEDIA_TOOL],
+            messages=messages,
+        )</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-05-04T00-20-19-627Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-05-04T00-20-19-627Z" class="timestamp-link"><time datetime="2026-05-04T00:20:19.627Z" data-timestamp="2026-05-04T00:20:19.627Z">2026-05-04T00:20:19.627Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file /Users/<user>/projects/wiki-q-and-a/src/wiki_qa/agent.py has been updated successfully.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-20-22-935Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-20-22-935Z" class="timestamp-link"><time datetime="2026-05-04T00:20:22.935Z" data-timestamp="2026-05-04T00:20:22.935Z">2026-05-04T00:20:22.935Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_012b1qAUQGetoqi49hRJ3TW7">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Re-run mypy after Any annotation</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">uv run mypy src/wiki_qa/agent.py tests/unit/test_agent.py 2&gt;&amp;1 | tail -10</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-05-04T00-20-23-516Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-05-04T00-20-23-516Z" class="timestamp-link"><time datetime="2026-05-04T00:20:23.516Z" data-timestamp="2026-05-04T00:20:23.516Z">2026-05-04T00:20:23.516Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>src/wiki_qa/agent.py:90: error: List item 0 has incompatible type &quot;dict[str, Any]&quot;; expected &quot;ToolParam | ToolBash20250124Param | CodeExecutionTool20250522Param | CodeExecutionTool20250825Param | CodeExecutionTool20260120Param | &lt;11 more items&gt;&quot;  [list-item]
+src/wiki_qa/agent.py:91: error: Argument &quot;messages&quot; to &quot;create&quot; of &quot;Messages&quot; has incompatible type &quot;list[dict[str, Any]]&quot;; expected &quot;Iterable[MessageParam]&quot;  [arg-type]
+pyproject.toml: note: unused section(s): module = [&#x27;respx&#x27;]
+Found 2 errors in 1 file (checked 2 source files)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-20-32-005Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-20-32-005Z" class="timestamp-link"><time datetime="2026-05-04T00:20:32.005Z" data-timestamp="2026-05-04T00:20:32.005Z">2026-05-04T00:20:32.005Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message tool-reply" id="msg-2026-05-04T00-20-37-179Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-05-04T00-20-37-179Z" class="timestamp-link"><time datetime="2026-05-04T00:20:37.179Z" data-timestamp="2026-05-04T00:20:37.179Z">2026-05-04T00:20:37.179Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file /Users/<user>/projects/wiki-q-and-a/src/wiki_qa/agent.py has been updated successfully.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-20-37-120Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-20-37-120Z" class="timestamp-link"><time datetime="2026-05-04T00:20:37.120Z" data-timestamp="2026-05-04T00:20:37.120Z">2026-05-04T00:20:37.120Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_01V1QpdEhTt24NKDeMKiE3TR">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">agent.py</span></div>
+<div class="file-tool-fullpath">/Users/<user>/projects/wiki-q-and-a/src/wiki_qa/agent.py</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">    client: anthropic.Anthropic | Any | None = None,
+) -&gt; AgentResult:
+    &#34;&#34;&#34;Answer a question by looping over search_wikipedia calls until the model returns text.
+
+    `client` is dependency-injected so tests can pass a fake; production callers
+    omit it and get a default Anthropic client (which reads `ANTHROPIC_API_KEY`
+    from the environment).
+    &#34;&#34;&#34;
+    if client is None:
+        client = anthropic.Anthropic()</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">    client: Any = None,
+) -&gt; AgentResult:
+    &#34;&#34;&#34;Answer a question by looping over search_wikipedia calls until the model returns text.
+
+    `client` is dependency-injected so tests can pass a fake; production callers
+    omit it and get a default Anthropic client (which reads `ANTHROPIC_API_KEY`
+    from the environment). Typed as `Any` because the SDK&#39;s `messages.create`
+    type signature is too strict for the dict-shaped messages we hand it
+    (which are valid at the API level), and because the test fakes are
+    duck-typed rather than subclasses of `anthropic.Anthropic`.
+    &#34;&#34;&#34;
+    if client is None:
+        client = anthropic.Anthropic()</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-20-40-487Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-20-40-487Z" class="timestamp-link"><time datetime="2026-05-04T00:20:40.487Z" data-timestamp="2026-05-04T00:20:40.487Z">2026-05-04T00:20:40.487Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_012dd6VZbcX7Aam97hCG7rjU">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Mypy on full source + tests</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">uv run mypy src/ tests/unit/ 2&gt;&amp;1 | tail -5</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-05-04T00-20-41-129Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-05-04T00-20-41-129Z" class="timestamp-link"><time datetime="2026-05-04T00:20:41.129Z" data-timestamp="2026-05-04T00:20:41.129Z">2026-05-04T00:20:41.129Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Success: no issues found in 28 source files</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-20-44-514Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-20-44-514Z" class="timestamp-link"><time datetime="2026-05-04T00:20:44.514Z" data-timestamp="2026-05-04T00:20:44.514Z">2026-05-04T00:20:44.514Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_016J9kZ7BuABYJkztKNo6ieV">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Final quality gates</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">uv run ruff check src/ tests/unit/ 2&gt;&amp;1 | tail -3 &amp;&amp; echo &#34;---&#34; &amp;&amp; uv run pytest tests/unit/test_agent.py tests/unit/test_parser.py tests/unit/test_wikipedia.py tests/unit/test_formatting.py tests/unit/test_tools.py 2&gt;&amp;1 | tail -5</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-05-04T00-20-45-442Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-05-04T00-20-45-442Z" class="timestamp-link"><time datetime="2026-05-04T00:20:45.442Z" data-timestamp="2026-05-04T00:20:45.442Z">2026-05-04T00:20:45.442Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>All checks passed!
+---
+tests/unit/test_wikipedia.py ................                            [ 74%]
+tests/unit/test_formatting.py ...........                                [ 87%]
+tests/unit/test_tools.py ..........                                      [100%]
+
+============================== 81 passed in 0.42s ==============================</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-20-51-226Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-20-51-226Z" class="timestamp-link"><time datetime="2026-05-04T00:20:51.226Z" data-timestamp="2026-05-04T00:20:51.226Z">2026-05-04T00:20:51.226Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>All gates green: 81/81 tests, ruff clean, mypy clean across 28 source files. Now the smoke test against the real API. Pinging you before I burn the call.</p>
+<p><strong>Plan:</strong> load <code>.env</code>, instantiate <code>anthropic.Anthropic()</code>, call <code>answer("When was the Battle of Hastings?")</code>. Print the parsed evidence, answer, search count, queries used, parse warnings, stop reason, token usage. Expect: 1 search ("Battle of Hastings"), short answer of "1066" with citation, no parse warnings.</p>
+<p>OK to proceed?</p></div></div></div>
+<div class="message user" id="msg-2026-05-04T00-21-36-096Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-05-04T00-21-36-096Z" class="timestamp-link"><time datetime="2026-05-04T00:21:36.096Z" data-timestamp="2026-05-04T00:21:36.096Z">2026-05-04T00:21:36.096Z</time></a></div><div class="message-content">
+<div class="user-content"><p>yes</p></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-21-42-967Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-21-42-967Z" class="timestamp-link"><time datetime="2026-05-04T00:21:42.967Z" data-timestamp="2026-05-04T00:21:42.967Z">2026-05-04T00:21:42.967Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-21-48-403Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-21-48-403Z" class="timestamp-link"><time datetime="2026-05-04T00:21:48.403Z" data-timestamp="2026-05-04T00:21:48.403Z">2026-05-04T00:21:48.403Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01Ro3QPXyKCp7hfMaegXUVkD">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Smoke test against real Anthropic API with one simple question</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">uv run python -c &#34;
+from dotenv import load_dotenv
+load_dotenv()
+
+import json
+from wiki_qa.agent import answer
+
+result = answer(&#39;When was the Battle of Hastings?&#39;)
+
+print(&#39;=&#39; * 70)
+print(&#39;STOP REASON:&#39;, result.stop_reason)
+print(&#39;N SEARCHES:&#39;, result.n_searches)
+print(&#39;QUERIES:&#39;, result.queries)
+print(&#39;PARSE WARNINGS:&#39;, [w.value for w in result.parse_warnings])
+print()
+print(&#39;USAGE:&#39;)
+print(&#39;  input_tokens:        &#39;, result.usage.input_tokens)
+print(&#39;  output_tokens:       &#39;, result.usage.output_tokens)
+print(&#39;  cache_read_tokens:   &#39;, result.usage.cache_read_tokens)
+print(&#39;  cache_creation_tokens:&#39;, result.usage.cache_creation_tokens)
+print()
+print(&#39;=&#39; * 70)
+print(&#39;EVIDENCE:&#39;)
+print(result.evidence[:600] + (&#39;...&#39; if len(result.evidence) &gt; 600 else &#39;&#39;))
+print()
+print(&#39;=&#39; * 70)
+print(&#39;ANSWER:&#39;)
+print(result.answer)
+print(&#39;=&#39; * 70)
+
+# Show tool calls briefly
+for i, tc in enumerate(result.tool_calls, 1):
+    print(f\&#34;[ToolCall {i}] query={tc.query!r}  latency={tc.latency_ms}ms  result_len={len(tc.raw_result_str)} chars\&#34;)
+&#34; 2&gt;&amp;1 | tail -60</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-05-04T00-21-49-232Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-05-04T00-21-49-232Z" class="timestamp-link"><time datetime="2026-05-04T00:21:49.232Z" data-timestamp="2026-05-04T00:21:49.232Z">2026-05-04T00:21:49.232Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Traceback (most recent call last):
+  File &quot;&lt;string&gt;&quot;, line 8, in &lt;module&gt;
+    result = answer(&#x27;When was the Battle of Hastings?&#x27;)
+  File &quot;/Users/<user>/projects/wiki-q-and-a/src/wiki_qa/agent.py&quot;, line 89, in answer
+    response: Any = client.messages.create(
+                    ~~~~~~~~~~~~~~~~~~~~~~^
+        model=model,
+        ^^^^^^^^^^^^
+    ...&lt;3 lines&gt;...
+        messages=messages,
+        ^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File &quot;/Users/<user>/projects/wiki-q-and-a/.venv/lib/python3.14/site-packages/anthropic/_utils/_utils.py&quot;, line 268, in wrapper
+    return func(*args, **kwargs)
+  File &quot;/Users/<user>/projects/wiki-q-and-a/.venv/lib/python3.14/site-packages/anthropic/resources/messages/messages.py&quot;, line 991, in create
+    return self._post(
+           ~~~~~~~~~~^
+        &quot;/v1/messages&quot;,
+        ^^^^^^^^^^^^^^^
+    ...&lt;30 lines&gt;...
+        stream_cls=Stream[RawMessageStreamEvent],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File &quot;/Users/<user>/projects/wiki-q-and-a/.venv/lib/python3.14/site-packages/anthropic/_base_client.py&quot;, line 1368, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File &quot;/Users/<user>/projects/wiki-q-and-a/.venv/lib/python3.14/site-packages/anthropic/_base_client.py&quot;, line 1062, in request
+    request = self._build_request(options, retries_taken=retries_taken)
+  File &quot;/Users/<user>/projects/wiki-q-and-a/.venv/lib/python3.14/site-packages/anthropic/_base_client.py&quot;, line 521, in _build_request
+    headers = self._build_headers(options, retries_taken=retries_taken)
+  File &quot;/Users/<user>/projects/wiki-q-and-a/.venv/lib/python3.14/site-packages/anthropic/_base_client.py&quot;, line 451, in _build_headers
+    self._validate_headers(headers_dict, custom_headers)
+    ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File &quot;/Users/<user>/projects/wiki-q-and-a/.venv/lib/python3.14/site-packages/anthropic/_client.py&quot;, line 196, in _validate_headers
+    raise TypeError(
+        &#x27;&quot;Could not resolve authentication method. Expected either api_key or auth_token to be set. Or for one of the `X-Api-Key` or `Authorization` headers to be explicitly omitted&quot;&#x27;
+    )
+TypeError: &quot;Could not resolve authentication method. Expected either api_key or auth_token to be set. Or for one of the `X-Api-Key` or `Authorization` headers to be explicitly omitted&quot;</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-21-55-846Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-21-55-846Z" class="timestamp-link"><time datetime="2026-05-04T00:21:55.846Z" data-timestamp="2026-05-04T00:21:55.846Z">2026-05-04T00:21:55.846Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-21-56-679Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-21-56-679Z" class="timestamp-link"><time datetime="2026-05-04T00:21:56.679Z" data-timestamp="2026-05-04T00:21:56.679Z">2026-05-04T00:21:56.679Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p><code>.env</code> not picking up. Let me check what's there.</p></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-21-57-862Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-21-57-862Z" class="timestamp-link"><time datetime="2026-05-04T00:21:57.862Z" data-timestamp="2026-05-04T00:21:57.862Z">2026-05-04T00:21:57.862Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01TmXTQbjRV8FaDyYzG7P41k">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Check if ANTHROPIC_API_KEY loads from .env</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">uv run python -c &#34;
+from dotenv import load_dotenv
+import os
+load_dotenv()
+key = os.environ.get(&#39;ANTHROPIC_API_KEY&#39;, &#39;&#39;)
+print(&#39;key present:&#39;, bool(key))
+print(&#39;key prefix:&#39;, key[:10] if key else &#39;(none)&#39;)
+print(&#39;key length:&#39;, len(key))
+&#34;</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-05-04T00-21-58-037Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-05-04T00-21-58-037Z" class="timestamp-link"><time datetime="2026-05-04T00:21:58.037Z" data-timestamp="2026-05-04T00:21:58.037Z">2026-05-04T00:21:58.037Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>key present: False
+key prefix: (none)
+key length: 0</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-22-03-367Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-22-03-367Z" class="timestamp-link"><time datetime="2026-05-04T00:22:03.367Z" data-timestamp="2026-05-04T00:22:03.367Z">2026-05-04T00:22:03.367Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01Q626xcRyHVwUx5XUsmCMpR">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Inspect .env file to see what format it&#39;s in (without revealing the key)</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">ls -la /Users/<user>/projects/wiki-q-and-a/.env &amp;&amp; head -c 30 /Users/<user>/projects/wiki-q-and-a/.env &amp;&amp; echo &#34;&#34; &amp;&amp; wc -l /Users/<user>/projects/wiki-q-and-a/.env</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-05-04T00-22-03-505Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-05-04T00-22-03-505Z" class="timestamp-link"><time datetime="2026-05-04T00:22:03.505Z" data-timestamp="2026-05-04T00:22:03.505Z">2026-05-04T00:22:03.505Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>-rw-r--r--  1 sid  staff  127 May  3 16:05 /Users/<user>/projects/wiki-q-and-a/.env
+AHTHROPIC_API_KEY=sk-ant-api03
+       1 /Users/<user>/projects/wiki-q-and-a/.env</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-22-06-735Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-22-06-735Z" class="timestamp-link"><time datetime="2026-05-04T00:22:06.735Z" data-timestamp="2026-05-04T00:22:06.735Z">2026-05-04T00:22:06.735Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-22-08-391Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-22-08-391Z" class="timestamp-link"><time datetime="2026-05-04T00:22:08.391Z" data-timestamp="2026-05-04T00:22:08.391Z">2026-05-04T00:22:08.391Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Typo in your <code>.env</code> — first 30 chars show <code>AHTHROPIC_API_KEY=...</code> (missing the leading <strong>N</strong> — should be <code>ANTHROPIC_API_KEY</code>). Won't touch your <code>.env</code> myself since the real key's in there. Fix it on your end (<code>AHTHROPIC</code> → <code>ANTHROPIC</code>) and I'll rerun the smoke test.</p></div></div></div>
+<div class="message user" id="msg-2026-05-04T00-22-28-606Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-05-04T00-22-28-606Z" class="timestamp-link"><time datetime="2026-05-04T00:22:28.606Z" data-timestamp="2026-05-04T00:22:28.606Z">2026-05-04T00:22:28.606Z</time></a></div><div class="message-content">
+<div class="user-content"><p>fixed - try again please</p></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-22-37-083Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-22-37-083Z" class="timestamp-link"><time datetime="2026-05-04T00:22:37.083Z" data-timestamp="2026-05-04T00:22:37.083Z">2026-05-04T00:22:37.083Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01FPTCc6Tbbe8aSZshV669wi">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Smoke test against real Anthropic API</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">uv run python -c &#34;
+from dotenv import load_dotenv
+load_dotenv()
+
+from wiki_qa.agent import answer
+
+result = answer(&#39;When was the Battle of Hastings?&#39;)
+
+print(&#39;=&#39; * 70)
+print(&#39;STOP REASON:&#39;, result.stop_reason)
+print(&#39;N SEARCHES:&#39;, result.n_searches)
+print(&#39;QUERIES:&#39;, result.queries)
+print(&#39;PARSE WARNINGS:&#39;, [w.value for w in result.parse_warnings])
+print()
+print(&#39;USAGE:&#39;)
+print(&#39;  input_tokens:        &#39;, result.usage.input_tokens)
+print(&#39;  output_tokens:       &#39;, result.usage.output_tokens)
+print(&#39;  cache_read_tokens:   &#39;, result.usage.cache_read_tokens)
+print(&#39;  cache_creation_tokens:&#39;, result.usage.cache_creation_tokens)
+print()
+print(&#39;=&#39; * 70)
+print(&#39;EVIDENCE:&#39;)
+print(result.evidence[:600] + (&#39;...&#39; if len(result.evidence) &gt; 600 else &#39;&#39;))
+print()
+print(&#39;=&#39; * 70)
+print(&#39;ANSWER:&#39;)
+print(result.answer)
+print(&#39;=&#39; * 70)
+
+for i, tc in enumerate(result.tool_calls, 1):
+    print(f&#39;[ToolCall {i}] query={tc.query!r}  latency={tc.latency_ms}ms  result_len={len(tc.raw_result_str)} chars&#39;)
+&#34; 2&gt;&amp;1 | tail -60</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-05-04T00-22-44-337Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-05-04T00-22-44-337Z" class="timestamp-link"><time datetime="2026-05-04T00:22:44.337Z" data-timestamp="2026-05-04T00:22:44.337Z">2026-05-04T00:22:44.337Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>======================================================================
+STOP REASON: end_turn
+N SEARCHES: 1
+QUERIES: [&#x27;Battle of Hastings&#x27;]
+PARSE WARNINGS: []
+
+USAGE:
+  input_tokens:         8009
+  output_tokens:        380
+  cache_read_tokens:    0
+  cache_creation_tokens: 0
+
+======================================================================
+EVIDENCE:
+[Source: Battle of Hastings] &quot;The Battle of Hastings was fought on 14 October 1066 between the Norman-French army of William, Duke of Normandy, and an English army under the Anglo-Saxon King Harold Godwinson, beginning the Norman Conquest of England.&quot;
+
+======================================================================
+ANSWER:
+The Battle of Hastings was fought on **14 October 1066**. According to the [Battle of Hastings] article, it pitted the Norman-French army of William, Duke of Normandy, against an English army under King Harold Godwinson, and resulted in a decisive Norman victory that began the Norman Conquest of England. The battle took place about 7 miles (11 km) northwest of Hastings, near the present-day town of Battle in East Sussex.
+
+Sources:
+Battle of Hastings - https://en.wikipedia.org/wiki/Battle_of_Hastings
+======================================================================
+[ToolCall 1] query=&#x27;Battle of Hastings&#x27;  latency=376ms  result_len=3445 chars</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-23-02-023Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-23-02-023Z" class="timestamp-link"><time datetime="2026-05-04T00:23:02.023Z" data-timestamp="2026-05-04T00:23:02.023Z">2026-05-04T00:23:02.023Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-23-10-877Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-23-10-877Z" class="timestamp-link"><time datetime="2026-05-04T00:23:10.877Z" data-timestamp="2026-05-04T00:23:10.877Z">2026-05-04T00:23:10.877Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>End-to-end works on the first real call.</p>
+<p><strong>What landed:</strong>
+- 1 search with query <code>"Battle of Hastings"</code> — exactly the noun-phrase style the tool description asks for
+- Stop reason <code>end_turn</code> (natural termination), 0 parse warnings (clean evidence + answer blocks in correct order)
+- Evidence block contains a direct quote from the Wikipedia lead
+- Answer cites <code>[Battle of Hastings]</code> inline (bracket-only, no markdown link), gets the date right, and ends with the plain-text <code>Sources:</code> section in <code>Title - URL</code> format
+- 376ms latency on the Wikipedia hit; ~8K input + 380 output tokens (~$0.03 at Opus pricing — confirms cost isn't a real constraint at this scale)</p>
+<p><strong>Three small observations worth noting</strong> (nothing broken, just calibrating against the prompt):</p>
+<ol>
+<li><strong>The model bolded <code>**14 October 1066**</code> in the answer.</strong> Not specified by the prompt either way. If we want plain prose, easy to add. If we don't care, fine.</li>
+<li><strong>Answer included a small geographic fact</strong> ("7 miles northwest of Hastings, near the present-day town of Battle in East Sussex") that wasn't strictly needed for the question. It IS grounded (almost certainly in the same lead extract), so passes groundedness — but for a single-fact question this is on the edge of "thorough vs. comprehensive." A weak signal that the v1.1 length tightening (1-3 sentences for single-fact) might be the right call. Worth watching across more cases.</li>
+<li><strong>No decomposition for the single-fact question.</strong> The model didn't over-search. Exactly the behavior we wanted.</li>
+</ol>
+<p>Workstream A is now functionally complete: Wikipedia tool → tool definition → agent loop → parser → AgentResult, end-to-end working against the real API. 81 unit tests + 4 live integration tests, all green; ruff + mypy clean across 28 source files.</p>
+<p>Want me to commit this batch of work now, or wait until workstream B converges and we can do a single "harness + agent both working" commit?</p></div></div></div>
+<div class="message user" id="msg-2026-05-04T00-24-22-517Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-05-04T00-24-22-517Z" class="timestamp-link"><time datetime="2026-05-04T00:24:22.517Z" data-timestamp="2026-05-04T00:24:22.517Z">2026-05-04T00:24:22.517Z</time></a></div><div class="message-content">
+<div class="user-content"><p>commit please</p></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-24-26-203Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-24-26-203Z" class="timestamp-link"><time datetime="2026-05-04T00:24:26.203Z" data-timestamp="2026-05-04T00:24:26.203Z">2026-05-04T00:24:26.203Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-24-26-628Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-24-26-628Z" class="timestamp-link"><time datetime="2026-05-04T00:24:26.628Z" data-timestamp="2026-05-04T00:24:26.628Z">2026-05-04T00:24:26.628Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01XEirMZ89buYP27s31LeRgr">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Check working tree status and diff stats</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">git status &amp;&amp; echo &#34;---&#34; &amp;&amp; git diff --stat HEAD 2&gt;&amp;1 | tail -30</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-05-04T00-24-26-714Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-05-04T00-24-26-714Z" class="timestamp-link"><time datetime="2026-05-04T00:24:26.714Z" data-timestamp="2026-05-04T00:24:26.714Z">2026-05-04T00:24:26.714Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>On branch main
+Changes not staged for commit:
+  (use &quot;git add &lt;file&gt;...&quot; to update what will be committed)
+  (use &quot;git restore &lt;file&gt;...&quot; to discard changes in working directory)
+	modified:   CLAUDE.md
+	modified:   DECISIONS.md
+	modified:   plans/eval_harness.md
+	modified:   src/wiki_qa/agent_contract.py
+	modified:   tests/unit/eval/test_dataset.py
+
+Untracked files:
+  (use &quot;git add &lt;file&gt;...&quot; to include in what will be committed)
+	src/wiki_qa/agent.py
+	src/wiki_qa/agent_stub.py
+	src/wiki_qa/eval/__main__.py
+	src/wiki_qa/eval/behavior_checks.py
+	src/wiki_qa/eval/dataset.py
+	src/wiki_qa/eval/results.py
+	src/wiki_qa/eval/runner.py
+	src/wiki_qa/eval/schema.py
+	src/wiki_qa/parser.py
+	tests/eval/
+	tests/unit/eval/test_behavior_checks.py
+	tests/unit/eval/test_cli.py
+	tests/unit/eval/test_dev_cases_smoke.py
+	tests/unit/eval/test_judge.py
+	tests/unit/eval/test_runner.py
+	tests/unit/test_agent.py
+	tests/unit/test_agent_stub.py
+	tests/unit/test_parser.py
+
+no changes added to commit (use &quot;git add&quot; and/or &quot;git commit -a&quot;)
+---
+ CLAUDE.md                       |  21 ++++
+ DECISIONS.md                    | 209 ++++++++++++++++++++++++++++++++++++++++
+ plans/eval_harness.md           |  49 +++++++---
+ src/wiki_qa/agent_contract.py   |  87 +++++++++++++++--
+ tests/unit/eval/test_dataset.py |   2 +-
+ 5 files changed, 348 insertions(+), 20 deletions(-)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-24-49-041Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-24-49-041Z" class="timestamp-link"><time datetime="2026-05-04T00:24:49.041Z" data-timestamp="2026-05-04T00:24:49.041Z">2026-05-04T00:24:49.041Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-24-50-180Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-24-50-180Z" class="timestamp-link"><time datetime="2026-05-04T00:24:50.180Z" data-timestamp="2026-05-04T00:24:50.180Z">2026-05-04T00:24:50.180Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Quick check on the working tree state — earlier the harness agent had a test importing an unimplemented module. Let me see if their files are now coherent before deciding scope.</p></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-24-50-963Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-24-50-963Z" class="timestamp-link"><time datetime="2026-05-04T00:24:50.963Z" data-timestamp="2026-05-04T00:24:50.963Z">2026-05-04T00:24:50.963Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_019n17cJSQjR5Hs4tT7vkUf5">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Run full unit suite to see what&#39;s passing across both workstreams</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">uv run pytest tests/unit/ 2&gt;&amp;1 | tail -8</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-05-04T00-24-52-018Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-05-04T00-24-52-018Z" class="timestamp-link"><time datetime="2026-05-04T00:24:52.018Z" data-timestamp="2026-05-04T00:24:52.018Z">2026-05-04T00:24:52.018Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/unit/eval/test_judge.py:22: in &lt;module&gt;
+    from wiki_qa.eval.judge import (
+E   ModuleNotFoundError: No module named &#x27;wiki_qa.eval.judge&#x27;
+=========================== short test summary info ============================
+ERROR tests/unit/eval/test_judge.py
+!!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+=============================== 1 error in 0.41s ===============================</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-25-07-285Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-25-07-285Z" class="timestamp-link"><time datetime="2026-05-04T00:25:07.285Z" data-timestamp="2026-05-04T00:25:07.285Z">2026-05-04T00:25:07.285Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-25-08-248Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-25-08-248Z" class="timestamp-link"><time datetime="2026-05-04T00:25:08.248Z" data-timestamp="2026-05-04T00:25:08.248Z">2026-05-04T00:25:08.248Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Workstream B has an in-flight test (<code>test_judge.py</code> imports <code>wiki_qa.eval.judge</code> which they haven't written yet). That's a collection error, blocks the whole suite. Mine pass — running them explicitly to confirm before committing.</p></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-25-09-226Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-25-09-226Z" class="timestamp-link"><time datetime="2026-05-04T00:25:09.226Z" data-timestamp="2026-05-04T00:25:09.226Z">2026-05-04T00:25:09.226Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01RD46SA9jHb3BEQ3sGZm7fX">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Run only the workstream-A tests</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">uv run pytest tests/unit/test_agent.py tests/unit/test_parser.py tests/unit/test_wikipedia.py tests/unit/test_formatting.py tests/unit/test_tools.py 2&gt;&amp;1 | tail -5</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-05-04T00-25-09-994Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-05-04T00-25-09-994Z" class="timestamp-link"><time datetime="2026-05-04T00:25:09.994Z" data-timestamp="2026-05-04T00:25:09.994Z">2026-05-04T00:25:09.994Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>tests/unit/test_wikipedia.py ................                            [ 74%]
+tests/unit/test_formatting.py ...........                                [ 87%]
+tests/unit/test_tools.py ..........                                      [100%]
+
+============================== 81 passed in 0.35s ==============================</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-25-13-082Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-25-13-082Z" class="timestamp-link"><time datetime="2026-05-04T00:25:13.082Z" data-timestamp="2026-05-04T00:25:13.082Z">2026-05-04T00:25:13.082Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-25-14-035Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-25-14-035Z" class="timestamp-link"><time datetime="2026-05-04T00:25:14.035Z" data-timestamp="2026-05-04T00:25:14.035Z">2026-05-04T00:25:14.035Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01FcggPr5VuQwWkKeJkz5Bbf">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Run workstream-B tests excluding the in-flight judge test</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">uv run pytest tests/unit/eval/ --ignore=tests/unit/eval/test_judge.py 2&gt;&amp;1 | tail -5</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-05-04T00-25-14-620Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-05-04T00-25-14-620Z" class="timestamp-link"><time datetime="2026-05-04T00:25:14.620Z" data-timestamp="2026-05-04T00:25:14.620Z">2026-05-04T00:25:14.620Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>FAILED tests/unit/eval/test_runner.py::test_runner_concurrency_1_and_3_produce_identical_output
+FAILED tests/unit/eval/test_runner.py::test_runner_summary_counts_ok_vs_error
+FAILED tests/unit/eval/test_runner.py::test_runner_does_not_call_default_agent_when_agent_fn_provided
+FAILED tests/unit/eval/test_runner.py::test_eval_result_round_trip_via_jsonl
+======================== 11 failed, 56 passed in 0.23s =========================</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-25-33-557Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-25-33-557Z" class="timestamp-link"><time datetime="2026-05-04T00:25:33.557Z" data-timestamp="2026-05-04T00:25:33.557Z">2026-05-04T00:25:33.557Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-25-36-113Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-25-36-113Z" class="timestamp-link"><time datetime="2026-05-04T00:25:36.113Z" data-timestamp="2026-05-04T00:25:36.113Z">2026-05-04T00:25:36.113Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Mine green (81/81). Workstream B has 11 in-flight failures + 1 broken collection — they're mid-build on their side. Going to commit just workstream A's work cleanly so the push lands on a coherent milestone. Workstream B can commit their state when they're ready.</p>
+<p>Then on the push: the repo isn't on GitHub yet (no remote). Once committed, I'll need to know whether you want me to <code>gh repo create</code> it (private vs public, repo name) or whether you'll create it manually and I'll just add the remote.</p></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-25-37-186Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-25-37-186Z" class="timestamp-link"><time datetime="2026-05-04T00:25:37.186Z" data-timestamp="2026-05-04T00:25:37.186Z">2026-05-04T00:25:37.186Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01Cb5WcYJzYrZwBxbopjGSUA">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Stage workstream-A changes only</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">git add CLAUDE.md DECISIONS.md plans/eval_harness.md src/wiki_qa/agent_contract.py src/wiki_qa/agent.py src/wiki_qa/parser.py tests/unit/test_agent.py tests/unit/test_parser.py &amp;&amp; git status</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-05-04T00-25-37-331Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-05-04T00-25-37-331Z" class="timestamp-link"><time datetime="2026-05-04T00:25:37.331Z" data-timestamp="2026-05-04T00:25:37.331Z">2026-05-04T00:25:37.331Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>On branch main
+Changes to be committed:
+  (use &quot;git restore --staged &lt;file&gt;...&quot; to unstage)
+	modified:   CLAUDE.md
+	modified:   DECISIONS.md
+	modified:   plans/eval_harness.md
+	new file:   src/wiki_qa/agent.py
+	modified:   src/wiki_qa/agent_contract.py
+	new file:   src/wiki_qa/parser.py
+	new file:   tests/unit/test_agent.py
+	new file:   tests/unit/test_parser.py
+
+Changes not staged for commit:
+  (use &quot;git add &lt;file&gt;...&quot; to update what will be committed)
+  (use &quot;git restore &lt;file&gt;...&quot; to discard changes in working directory)
+	modified:   tests/unit/eval/test_dataset.py
+
+Untracked files:
+  (use &quot;git add &lt;file&gt;...&quot; to include in what will be committed)
+	src/wiki_qa/agent_stub.py
+	src/wiki_qa/eval/__main__.py
+	src/wiki_qa/eval/behavior_checks.py
+	src/wiki_qa/eval/dataset.py
+	src/wiki_qa/eval/judge.py
+	src/wiki_qa/eval/results.py
+	src/wiki_qa/eval/runner.py
+	src/wiki_qa/eval/schema.py
+	tests/eval/
+	tests/unit/eval/test_behavior_checks.py
+	tests/unit/eval/test_cli.py
+	tests/unit/eval/test_dev_cases_smoke.py
+	tests/unit/eval/test_judge.py
+	tests/unit/eval/test_runner.py
+	tests/unit/test_agent_stub.py</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-26-03-754Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-26-03-754Z" class="timestamp-link"><time datetime="2026-05-04T00:26:03.754Z" data-timestamp="2026-05-04T00:26:03.754Z">2026-05-04T00:26:03.754Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_0127WXB2Ypn9SvwxTS44PrkV">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Commit workstream A milestone</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">git commit -m &#34;$(cat &lt;&lt;&#39;EOF&#39;
+Agent loop: end-to-end Wikipedia QA agent against Anthropic API
+
+Workstream A is now functionally complete: question goes in, the agent
+loops over search_wikipedia tool calls against the real Anthropic API,
+threads tool_results back into the conversation, and parses the final
+assistant text into evidence/answer/raw_output. Verified end-to-end with
+a smoke test (&#34;When was the Battle of Hastings?&#34; → 1 search, 0 parse
+warnings, well-cited answer with the right date).
+
+This commit:
+
+- src/wiki_qa/agent.py: the dispatch loop. WIKI_QA_AGENT_MODEL env var
+  with claude-opus-4-7 default; system prompt loaded from
+  prompts/system_v1.md (body after the --- divider); search budget via
+  max_iterations (default 5); WikipediaSearchError caught and surfaced as
+  &lt;search_error&gt; tool_result so the model can recover; per-call
+  ToolCall(query, raw_result_str, latency_ms) and aggregated TokenUsage
+  threaded into AgentResult; parse_warnings logged via logging.warning
+  AND propagated to AgentResult.parse_warnings for eval consumption.
+
+- src/wiki_qa/parser.py: tolerant &lt;evidence&gt;/&lt;answer&gt; parser. Substring
+  extraction (not xml.etree) so unescaped `&lt;` `&gt;` `&amp;` in extracts don&#39;t
+  break parsing. Strict on structure: reversed order (&lt;answer&gt; before
+  &lt;evidence&gt;) refuses to extract; multiplicity logged but first-wins.
+  Returns ParsedOutput with evidence, answer, raw_output, parse_warnings.
+
+- src/wiki_qa/agent_contract.py: ParseWarning StrEnum with the canonical
+  9-value taxonomy (REVERSED_ORDER, MULTIPLE_*, MISSING_*, UNCLOSED_*,
+  EMPTY_*); AgentResult.parse_warnings: list[ParseWarning] field added
+  with default_factory=list so existing constructors don&#39;t break. JSON
+  round-trips cleanly via Pydantic.
+
+- CLAUDE.md: codified the &#34;shared types use Pydantic, never list[str]
+  for categorical signals&#34; convention.
+
+- DECISIONS.md: the back-and-forth rationale across this session — system
+  prompt v1 design and v1.1 changes planned, parser strictness
+  (tolerance is for content; strictness is for structure), Pydantic
+  contract conversion, parse_warnings lifted from local helper to
+  contract after pushback, ParseWarning enum taxonomy expanded from 3 to
+  9 codes.
+
+- plans/eval_harness.md: false_premise field rename
+  (must_correct_premise → must_surface_premise_discrepancy) + citation
+  check updates to match the v1 prompt&#39;s plain-text Sources section.
+
+Tests:
+- 20 agent loop tests (mocked Anthropic SDK + monkeypatched
+  search_wikipedia; covers single-turn, single-search, multi-search,
+  budget enforcement, search-error recovery, token aggregation, model/
+  prompt wiring, and 7 parser-failure flow-through cases).
+- 24 parser tests (one per ParseWarning code, plus tolerance and
+  raw_output preservation cases).
+- All workstream-A tests green (81/81 unit + 4 live integration).
+  ruff format/lint and mypy --strict clean across 28 source files.
+
+Workstream B (eval harness) is in flight in the same tree; their
+in-progress files are intentionally NOT included in this commit so this
+lands on a coherent milestone. They&#39;ll commit their state when ready.
+
+Co-Authored-By: Claude Opus 4.7 &lt;noreply@anthropic.com&gt;
+EOF
+)&#34; 2&gt;&amp;1 | tail -8</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-05-04T00-26-03-867Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-05-04T00-26-03-867Z" class="timestamp-link"><time datetime="2026-05-04T00:26:03.867Z" data-timestamp="2026-05-04T00:26:03.867Z">2026-05-04T00:26:03.867Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><div class="commit-card"><a href="https://github.com/jjanon-git/wiki-q-and-a/commit/31e6d97"><span class="commit-card-hash">31e6d97</span> Agent loop: end-to-end Wikipedia QA agent against Anthropic API</a></div><pre>8 files changed, 1357 insertions(+), 19 deletions(-)
+ create mode 100644 src/wiki_qa/agent.py
+ create mode 100644 src/wiki_qa/parser.py
+ create mode 100644 tests/unit/test_agent.py
+ create mode 100644 tests/unit/test_parser.py</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-26-06-598Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-26-06-598Z" class="timestamp-link"><time datetime="2026-05-04T00:26:06.598Z" data-timestamp="2026-05-04T00:26:06.598Z">2026-05-04T00:26:06.598Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_014wSJH3WHnbSNsdkAs4NXPK">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Show commit history</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">git log --oneline -5</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-05-04T00-26-06-703Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-05-04T00-26-06-703Z" class="timestamp-link"><time datetime="2026-05-04T00:26:06.703Z" data-timestamp="2026-05-04T00:26:06.703Z">2026-05-04T00:26:06.703Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>31e6d97 Agent loop: end-to-end Wikipedia QA agent against Anthropic API
+e0ba5e4 Initial scaffold: Wikipedia search tool, planning artifacts, system prompt v1</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-26-14-244Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-26-14-244Z" class="timestamp-link"><time datetime="2026-05-04T00:26:14.244Z" data-timestamp="2026-05-04T00:26:14.244Z">2026-05-04T00:26:14.244Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Committed <code>31e6d97</code>. Working tree still has workstream B's files untracked + their <code>tests/unit/eval/test_dataset.py</code> modification — those are theirs to commit when ready.</p>
+<p>For the push: <strong>no GitHub remote exists yet</strong>. Two paths:</p>
+<p><strong>Option A — I create the repo via <code>gh</code></strong>: I run <code>gh repo create wiki-q-and-a --private --source=. --remote=origin --push</code>. Need from you: repo name OK as <code>wiki-q-and-a</code>? Public or private? (Take-home assignment — private leaning given it has your reasoning, eval cases, etc.)</p>
+<p><strong>Option B — you create it manually</strong> on github.com, then I add the remote and push: <code>git remote add origin &lt;url&gt; &amp;&amp; git push -u origin main</code>.</p>
+<p>Either works. Tell me which and (if A) public/private + name.</p></div></div></div>
+        
+
+<div class="pagination">
+<a href="index.html" class="index-link">Index</a>
+<a href="page-013.html">&larr; Prev</a>
+<a href="page-001.html">1</a>
+<a href="page-002.html">2</a>
+<a href="page-003.html">3</a>
+<a href="page-004.html">4</a>
+<a href="page-005.html">5</a>
+<a href="page-006.html">6</a>
+<a href="page-007.html">7</a>
+<a href="page-008.html">8</a>
+<a href="page-009.html">9</a>
+<a href="page-010.html">10</a>
+<a href="page-011.html">11</a>
+<a href="page-012.html">12</a>
+<a href="page-013.html">13</a>
+<span class="current">14</span>
+<a href="page-015.html">15</a>
+<a href="page-016.html">16</a>
+<a href="page-017.html">17</a>
+<a href="page-018.html">18</a>
+<a href="page-019.html">19</a>
+<a href="page-020.html">20</a>
+<a href="page-021.html">21</a>
+<a href="page-015.html">Next &rarr;</a>
+</div>
+
+    </div>
+    <script>
+document.querySelectorAll('time[data-timestamp]').forEach(function(el) {
+    const timestamp = el.getAttribute('data-timestamp');
+    const date = new Date(timestamp);
+    const now = new Date();
+    const isToday = date.toDateString() === now.toDateString();
+    const timeStr = date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+    if (isToday) { el.textContent = timeStr; }
+    else { el.textContent = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) + ' ' + timeStr; }
+});
+document.querySelectorAll('pre.json').forEach(function(el) {
+    let text = el.textContent;
+    text = text.replace(/"([^"]+)":/g, '<span style="color: #ce93d8">"$1"</span>:');
+    text = text.replace(/: "([^"]*)"/g, ': <span style="color: #81d4fa">"$1"</span>');
+    text = text.replace(/: (\d+)/g, ': <span style="color: #ffcc80">$1</span>');
+    text = text.replace(/: (true|false|null)/g, ': <span style="color: #f48fb1">$1</span>');
+    el.innerHTML = text;
+});
+document.querySelectorAll('.truncatable').forEach(function(wrapper) {
+    const content = wrapper.querySelector('.truncatable-content');
+    const btn = wrapper.querySelector('.expand-btn');
+    if (content.scrollHeight > 250) {
+        wrapper.classList.add('truncated');
+        btn.addEventListener('click', function() {
+            if (wrapper.classList.contains('truncated')) { wrapper.classList.remove('truncated'); wrapper.classList.add('expanded'); btn.textContent = 'Show less'; }
+            else { wrapper.classList.remove('expanded'); wrapper.classList.add('truncated'); btn.textContent = 'Show more'; }
+        });
+    }
+});
+</script>
+</body>
+</html>

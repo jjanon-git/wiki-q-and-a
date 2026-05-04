@@ -1,0 +1,974 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claude Code transcript - page 17</title>
+    <style>
+:root { --bg-color: #f5f5f5; --card-bg: #ffffff; --user-bg: #e3f2fd; --user-border: #1976d2; --assistant-bg: #f5f5f5; --assistant-border: #9e9e9e; --thinking-bg: #fff8e1; --thinking-border: #ffc107; --thinking-text: #666; --tool-bg: #f3e5f5; --tool-border: #9c27b0; --tool-result-bg: #e8f5e9; --tool-error-bg: #ffebee; --text-color: #212121; --text-muted: #757575; --code-bg: #263238; --code-text: #aed581; }
+* { box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg-color); color: var(--text-color); margin: 0; padding: 16px; line-height: 1.6; }
+.container { max-width: 800px; margin: 0 auto; }
+h1 { font-size: 1.5rem; margin-bottom: 24px; padding-bottom: 8px; border-bottom: 2px solid var(--user-border); }
+.header-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; border-bottom: 2px solid var(--user-border); padding-bottom: 8px; margin-bottom: 24px; }
+.header-row h1 { border-bottom: none; padding-bottom: 0; margin-bottom: 0; flex: 1; min-width: 200px; }
+.message { margin-bottom: 16px; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.message.user { background: var(--user-bg); border-left: 4px solid var(--user-border); }
+.message.assistant { background: var(--card-bg); border-left: 4px solid var(--assistant-border); }
+.message.tool-reply { background: #fff8e1; border-left: 4px solid #ff9800; }
+.tool-reply .role-label { color: #e65100; }
+.tool-reply .tool-result { background: transparent; padding: 0; margin: 0; }
+.tool-reply .tool-result .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff8e1); }
+.message-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; background: rgba(0,0,0,0.03); font-size: 0.85rem; }
+.role-label { font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+.user .role-label { color: var(--user-border); }
+time { color: var(--text-muted); font-size: 0.8rem; }
+.timestamp-link { color: inherit; text-decoration: none; }
+.timestamp-link:hover { text-decoration: underline; }
+.message:target { animation: highlight 2s ease-out; }
+@keyframes highlight { 0% { background-color: rgba(25, 118, 210, 0.2); } 100% { background-color: transparent; } }
+.message-content { padding: 16px; }
+.message-content p { margin: 0 0 12px 0; }
+.message-content p:last-child { margin-bottom: 0; }
+.thinking { background: var(--thinking-bg); border: 1px solid var(--thinking-border); border-radius: 8px; padding: 12px; margin: 12px 0; font-size: 0.9rem; color: var(--thinking-text); }
+.thinking-label { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; color: #f57c00; margin-bottom: 8px; }
+.thinking p { margin: 8px 0; }
+.assistant-text { margin: 8px 0; }
+.tool-use { background: var(--tool-bg); border: 1px solid var(--tool-border); border-radius: 8px; padding: 12px; margin: 12px 0; }
+.tool-header { font-weight: 600; color: var(--tool-border); margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+.tool-icon { font-size: 1.1rem; }
+.tool-description { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 8px; font-style: italic; }
+.tool-result { background: var(--tool-result-bg); border-radius: 8px; padding: 12px; margin: 12px 0; }
+.tool-result.tool-error { background: var(--tool-error-bg); }
+.file-tool { border-radius: 8px; padding: 12px; margin: 12px 0; }
+.write-tool { background: linear-gradient(135deg, #e3f2fd 0%, #e8f5e9 100%); border: 1px solid #4caf50; }
+.edit-tool { background: linear-gradient(135deg, #fff3e0 0%, #fce4ec 100%); border: 1px solid #ff9800; }
+.file-tool-header { font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
+.write-header { color: #2e7d32; }
+.edit-header { color: #e65100; }
+.file-tool-icon { font-size: 1rem; }
+.file-tool-path { font-family: monospace; background: rgba(0,0,0,0.08); padding: 2px 8px; border-radius: 4px; }
+.file-tool-fullpath { font-family: monospace; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px; word-break: break-all; }
+.file-content { margin: 0; }
+.edit-section { display: flex; margin: 4px 0; border-radius: 4px; overflow: hidden; }
+.edit-label { padding: 8px 12px; font-weight: bold; font-family: monospace; display: flex; align-items: flex-start; }
+.edit-old { background: #fce4ec; }
+.edit-old .edit-label { color: #b71c1c; background: #f8bbd9; }
+.edit-old .edit-content { color: #880e4f; }
+.edit-new { background: #e8f5e9; }
+.edit-new .edit-label { color: #1b5e20; background: #a5d6a7; }
+.edit-new .edit-content { color: #1b5e20; }
+.edit-content { margin: 0; flex: 1; background: transparent; font-size: 0.85rem; }
+.edit-replace-all { font-size: 0.75rem; font-weight: normal; color: var(--text-muted); }
+.write-tool .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #e6f4ea); }
+.edit-tool .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff0e5); }
+.todo-list { background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%); border: 1px solid #81c784; border-radius: 8px; padding: 12px; margin: 12px 0; }
+.todo-header { font-weight: 600; color: #2e7d32; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
+.todo-items { list-style: none; margin: 0; padding: 0; }
+.todo-item { display: flex; align-items: flex-start; gap: 10px; padding: 6px 0; border-bottom: 1px solid rgba(0,0,0,0.06); font-size: 0.9rem; }
+.todo-item:last-child { border-bottom: none; }
+.todo-icon { flex-shrink: 0; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-weight: bold; border-radius: 50%; }
+.todo-completed .todo-icon { color: #2e7d32; background: rgba(46, 125, 50, 0.15); }
+.todo-completed .todo-content { color: #558b2f; text-decoration: line-through; }
+.todo-in-progress .todo-icon { color: #f57c00; background: rgba(245, 124, 0, 0.15); }
+.todo-in-progress .todo-content { color: #e65100; font-weight: 500; }
+.todo-pending .todo-icon { color: #757575; background: rgba(0,0,0,0.05); }
+.todo-pending .todo-content { color: #616161; }
+pre { background: var(--code-bg); color: var(--code-text); padding: 12px; border-radius: 6px; overflow-x: auto; font-size: 0.85rem; line-height: 1.5; margin: 8px 0; white-space: pre-wrap; word-wrap: break-word; }
+pre.json { color: #e0e0e0; }
+code { background: rgba(0,0,0,0.08); padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+pre code { background: none; padding: 0; }
+.user-content { margin: 0; }
+.truncatable { position: relative; }
+.truncatable.truncated .truncatable-content { max-height: 200px; overflow: hidden; }
+.truncatable.truncated::after { content: ''; position: absolute; bottom: 32px; left: 0; right: 0; height: 60px; background: linear-gradient(to bottom, transparent, var(--card-bg)); pointer-events: none; }
+.message.user .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--user-bg)); }
+.message.tool-reply .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff8e1); }
+.tool-use .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--tool-bg)); }
+.tool-result .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--tool-result-bg)); }
+.expand-btn { display: none; width: 100%; padding: 8px 16px; margin-top: 4px; background: rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.1); border-radius: 6px; cursor: pointer; font-size: 0.85rem; color: var(--text-muted); }
+.expand-btn:hover { background: rgba(0,0,0,0.1); }
+.truncatable.truncated .expand-btn, .truncatable.expanded .expand-btn { display: block; }
+.pagination { display: flex; justify-content: center; gap: 8px; margin: 24px 0; flex-wrap: wrap; }
+.pagination a, .pagination span { padding: 5px 10px; border-radius: 6px; text-decoration: none; font-size: 0.85rem; }
+.pagination a { background: var(--card-bg); color: var(--user-border); border: 1px solid var(--user-border); }
+.pagination a:hover { background: var(--user-bg); }
+.pagination .current { background: var(--user-border); color: white; }
+.pagination .disabled { color: var(--text-muted); border: 1px solid #ddd; }
+.pagination .index-link { background: var(--user-border); color: white; }
+details.continuation { margin-bottom: 16px; }
+details.continuation summary { cursor: pointer; padding: 12px 16px; background: var(--user-bg); border-left: 4px solid var(--user-border); border-radius: 12px; font-weight: 500; color: var(--text-muted); }
+details.continuation summary:hover { background: rgba(25, 118, 210, 0.15); }
+details.continuation[open] summary { border-radius: 12px 12px 0 0; margin-bottom: 0; }
+.index-item { margin-bottom: 16px; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); background: var(--user-bg); border-left: 4px solid var(--user-border); }
+.index-item a { display: block; text-decoration: none; color: inherit; }
+.index-item a:hover { background: rgba(25, 118, 210, 0.1); }
+.index-item-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; background: rgba(0,0,0,0.03); font-size: 0.85rem; }
+.index-item-number { font-weight: 600; color: var(--user-border); }
+.index-item-content { padding: 16px; }
+.index-item-stats { padding: 8px 16px 12px 32px; font-size: 0.85rem; color: var(--text-muted); border-top: 1px solid rgba(0,0,0,0.06); }
+.index-item-commit { margin-top: 6px; padding: 4px 8px; background: #fff3e0; border-radius: 4px; font-size: 0.85rem; color: #e65100; }
+.index-item-commit code { background: rgba(0,0,0,0.08); padding: 1px 4px; border-radius: 3px; font-size: 0.8rem; margin-right: 6px; }
+.commit-card { margin: 8px 0; padding: 10px 14px; background: #fff3e0; border-left: 4px solid #ff9800; border-radius: 6px; }
+.commit-card a { text-decoration: none; color: #5d4037; display: block; }
+.commit-card a:hover { color: #e65100; }
+.commit-card-hash { font-family: monospace; color: #e65100; font-weight: 600; margin-right: 8px; }
+.index-commit { margin-bottom: 12px; padding: 10px 16px; background: #fff3e0; border-left: 4px solid #ff9800; border-radius: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+.index-commit a { display: block; text-decoration: none; color: inherit; }
+.index-commit a:hover { background: rgba(255, 152, 0, 0.1); margin: -10px -16px; padding: 10px 16px; border-radius: 8px; }
+.index-commit-header { display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; margin-bottom: 4px; }
+.index-commit-hash { font-family: monospace; color: #e65100; font-weight: 600; }
+.index-commit-msg { color: #5d4037; }
+.index-item-long-text { margin-top: 8px; padding: 12px; background: var(--card-bg); border-radius: 8px; border-left: 3px solid var(--assistant-border); }
+.index-item-long-text .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--card-bg)); }
+.index-item-long-text-content { color: var(--text-color); }
+#search-box { display: none; align-items: center; gap: 8px; }
+#search-box input { padding: 6px 12px; border: 1px solid var(--assistant-border); border-radius: 6px; font-size: 16px; width: 180px; }
+#search-box button, #modal-search-btn, #modal-close-btn { background: var(--user-border); color: white; border: none; border-radius: 6px; padding: 6px 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+#search-box button:hover, #modal-search-btn:hover { background: #1565c0; }
+#modal-close-btn { background: var(--text-muted); margin-left: 8px; }
+#modal-close-btn:hover { background: #616161; }
+#search-modal[open] { border: none; border-radius: 12px; box-shadow: 0 4px 24px rgba(0,0,0,0.2); padding: 0; width: 90vw; max-width: 900px; height: 80vh; max-height: 80vh; display: flex; flex-direction: column; }
+#search-modal::backdrop { background: rgba(0,0,0,0.5); }
+.search-modal-header { display: flex; align-items: center; gap: 8px; padding: 16px; border-bottom: 1px solid var(--assistant-border); background: var(--bg-color); border-radius: 12px 12px 0 0; }
+.search-modal-header input { flex: 1; padding: 8px 12px; border: 1px solid var(--assistant-border); border-radius: 6px; font-size: 16px; }
+#search-status { padding: 8px 16px; font-size: 0.85rem; color: var(--text-muted); border-bottom: 1px solid rgba(0,0,0,0.06); }
+#search-results { flex: 1; overflow-y: auto; padding: 16px; }
+.search-result { margin-bottom: 16px; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.search-result a { display: block; text-decoration: none; color: inherit; }
+.search-result a:hover { background: rgba(25, 118, 210, 0.05); }
+.search-result-page { padding: 6px 12px; background: rgba(0,0,0,0.03); font-size: 0.8rem; color: var(--text-muted); border-bottom: 1px solid rgba(0,0,0,0.06); }
+.search-result-content { padding: 12px; }
+.search-result mark { background: #fff59d; padding: 1px 2px; border-radius: 2px; }
+@media (max-width: 600px) { body { padding: 8px; } .message, .index-item { border-radius: 8px; } .message-content, .index-item-content { padding: 12px; } pre { font-size: 0.8rem; padding: 8px; } #search-box input { width: 120px; } #search-modal[open] { width: 95vw; height: 90vh; } }
+</style>
+</head>
+<body>
+    <div class="container">
+        <h1><a href="index.html" style="color: inherit; text-decoration: none;">Claude Code transcript</a> - page 17/21</h1>
+        
+
+<div class="pagination">
+<a href="index.html" class="index-link">Index</a>
+<a href="page-016.html">&larr; Prev</a>
+<a href="page-001.html">1</a>
+<a href="page-002.html">2</a>
+<a href="page-003.html">3</a>
+<a href="page-004.html">4</a>
+<a href="page-005.html">5</a>
+<a href="page-006.html">6</a>
+<a href="page-007.html">7</a>
+<a href="page-008.html">8</a>
+<a href="page-009.html">9</a>
+<a href="page-010.html">10</a>
+<a href="page-011.html">11</a>
+<a href="page-012.html">12</a>
+<a href="page-013.html">13</a>
+<a href="page-014.html">14</a>
+<a href="page-015.html">15</a>
+<a href="page-016.html">16</a>
+<span class="current">17</span>
+<a href="page-018.html">18</a>
+<a href="page-019.html">19</a>
+<a href="page-020.html">20</a>
+<a href="page-021.html">21</a>
+<a href="page-018.html">Next &rarr;</a>
+</div>
+
+        
+<div class="message user" id="msg-2026-05-04T00-57-32-013Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-05-04T00-57-32-013Z" class="timestamp-link"><time datetime="2026-05-04T00:57:32.013Z" data-timestamp="2026-05-04T00:57:32.013Z">2026-05-04T00:57:32.013Z</time></a></div><div class="message-content">
+<div class="user-content"><p><local-command-caveat>Caveat: The messages below were generated by the user while running local commands. DO NOT respond to these messages or otherwise consider them in your response unless the user explicitly asks you to.</local-command-caveat></p></div></div></div>
+<div class="message user" id="msg-2026-05-04T00-57-32-013Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-05-04T00-57-32-013Z" class="timestamp-link"><time datetime="2026-05-04T00:57:32.013Z" data-timestamp="2026-05-04T00:57:32.013Z">2026-05-04T00:57:32.013Z</time></a></div><div class="message-content">
+<div class="user-content"><p>Unknown command: /rate-limit-options</p></div></div></div>
+<div class="message user" id="msg-2026-05-04T00-58-11-410Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-05-04T00-58-11-410Z" class="timestamp-link"><time datetime="2026-05-04T00:58:11.410Z" data-timestamp="2026-05-04T00:58:11.410Z">2026-05-04T00:58:11.410Z</time></a></div><div class="message-content">
+<div class="user-content"><p>yes</p></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-59-11-494Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-59-11-494Z" class="timestamp-link"><time datetime="2026-05-04T00:59:11.494Z" data-timestamp="2026-05-04T00:59:11.494Z">2026-05-04T00:59:11.494Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-59-12-298Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-59-12-298Z" class="timestamp-link"><time datetime="2026-05-04T00:59:12.298Z" data-timestamp="2026-05-04T00:59:12.298Z">2026-05-04T00:59:12.298Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Going. Batching: fetch any Wikipedia content I'm missing for each case, then write all 15 golds against the same template.</p></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T00-59-29-963Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T00-59-29-963Z" class="timestamp-link"><time datetime="2026-05-04T00:59:29.963Z" data-timestamp="2026-05-04T00:59:29.963Z">2026-05-04T00:59:29.963Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_013pCG7XDYD51rkqhUtPXEjx">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Fetch Wikipedia content for the remaining golds</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">uv run python &lt;&lt;&#39;EOF&#39;
+&#34;&#34;&#34;Fetch the specific Wikipedia content I need to anchor each remaining gold.
+
+For each case, find the load-bearing passage in the article (not training
+knowledge). Print verbatim snippets with surrounding context so I can quote
+or close-paraphrase in the gold.
+&#34;&#34;&#34;
+
+import re
+import time
+import httpx
+
+UA = &#34;wiki-qa-takehome/0.1 (contact via repo issues)&#34;
+API = &#34;https://en.wikipedia.org/w/api.php&#34;
+
+
+def fetch_full_wikitext(title: str) -&gt; str:
+    r = httpx.get(API, params={
+        &#34;action&#34;: &#34;parse&#34;, &#34;format&#34;: &#34;json&#34;, &#34;page&#34;: title,
+        &#34;prop&#34;: &#34;wikitext&#34;, &#34;redirects&#34;: &#34;1&#34;,
+    }, headers={&#34;User-Agent&#34;: UA}, timeout=20)
+    r.raise_for_status()
+    data = r.json()
+    return &#34;&#34; if &#34;error&#34; in data else data.get(&#34;parse&#34;, {}).get(&#34;wikitext&#34;, {}).get(&#34;*&#34;, &#34;&#34;)
+
+
+def fetch_lead(title: str, exchars: int = 2000) -&gt; str:
+    r = httpx.get(API, params={
+        &#34;action&#34;: &#34;query&#34;, &#34;format&#34;: &#34;json&#34;, &#34;prop&#34;: &#34;extracts&#34;,
+        &#34;exintro&#34;: &#34;1&#34;, &#34;explaintext&#34;: &#34;1&#34;, &#34;exchars&#34;: str(exchars),
+        &#34;titles&#34;: title, &#34;redirects&#34;: &#34;1&#34;,
+    }, headers={&#34;User-Agent&#34;: UA}, timeout=15)
+    r.raise_for_status()
+    pages = r.json().get(&#34;query&#34;, {}).get(&#34;pages&#34;, {})
+    page = next(iter(pages.values()))
+    return page.get(&#34;extract&#34;, &#34;&#34;)
+
+
+def context(text: str, needle: str, window: int = 200) -&gt; str:
+    idx = text.lower().find(needle.lower())
+    if idx &lt; 0:
+        return f&#34;&lt;no match for {needle!r}&gt;&#34;
+    return text[max(0, idx-window):idx+len(needle)+window]
+
+
+def section(label: str) -&gt; None:
+    print(f&#34;\n{&#39;=&#39; * 70}\n{label}\n{&#39;=&#39; * 70}&#34;)
+
+
+# Buried answer: Google → BackRub
+section(&#34;Google → BackRub (buried)&#34;)
+full = fetch_full_wikitext(&#34;Google&#34;)
+print(context(full, &#34;BackRub&#34;, 250))
+time.sleep(1)
+
+# Buried answer: Babe Ruth → 714
+section(&#34;Babe Ruth → 714 (buried)&#34;)
+full = fetch_full_wikitext(&#34;Babe Ruth&#34;)
+# Find the most directly relevant 714 mention (career home runs)
+for snippet_start in [full.lower().find(s) for s in [&#34;714 home run&#34;, &#34;714 career&#34;, &#34;career total of 714&#34;]]:
+    if snippet_start &gt;= 0:
+        print(&#34;DIRECT MATCH (career home run context):&#34;)
+        print(full[max(0, snippet_start-150):snippet_start+400])
+        break
+else:
+    # Fall back to first 714 occurrence
+    print(&#34;First &#39;714&#39; context:&#34;)
+    print(context(full, &#34;714&#34;, 250))
+time.sleep(1)
+
+# Buried answer: Amazon → Cadabra
+section(&#34;Amazon (company) → Cadabra (buried)&#34;)
+full = fetch_full_wikitext(&#34;Amazon (company)&#34;)
+print(context(full, &#34;Cadabra&#34;, 300))
+time.sleep(1)
+
+# False premise: Marie Curie — physics Nobel
+section(&#34;Marie Curie — physics Nobel was for what?&#34;)
+full = fetch_full_wikitext(&#34;Marie Curie&#34;)
+# The 1903 Physics Nobel passage
+for needle in [&#34;radiation phenomena discovered&#34;, &#34;joint researches&#34;, &#34;Nobel Prize in Physics&#34;]:
+    idx = full.lower().find(needle.lower())
+    if idx &gt;= 0:
+        print(f&#34;\nContext for {needle!r}:&#34;)
+        print(full[max(0, idx-150):idx+300])
+        break
+time.sleep(1)
+
+# Disambiguation: Java island, largest city
+section(&#34;Java (island) — what does Wikipedia say about largest city?&#34;)
+full = fetch_full_wikitext(&#34;Java&#34;)
+# Look for &#34;largest city&#34; or city names
+for needle in [&#34;largest city&#34;, &#34;Jakarta&#34;, &#34;Surabaya&#34;, &#34;capital&#34;]:
+    idx = full.lower().find(needle.lower())
+    if idx &gt;= 0:
+        print(f&#34;Context for {needle!r}:&#34;)
+        print(full[max(0, idx-100):idx+300])
+        print()
+time.sleep(1)
+
+# Disambiguation: Mercury (mythology) — lead snippet
+section(&#34;Mercury (mythology) — lead&#34;)
+print(fetch_lead(&#34;Mercury (mythology)&#34;, exchars=1200))
+time.sleep(1)
+
+# Disambiguation: Mercury (disambiguation)
+section(&#34;Mercury — disambig page lead&#34;)
+print(fetch_lead(&#34;Mercury&#34;, exchars=1200))
+time.sleep(1)
+
+# Temporal: tallest building — what does WP say?
+section(&#34;Burj Khalifa article lead&#34;)
+print(fetch_lead(&#34;Burj Khalifa&#34;, exchars=1500))
+EOF
+</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-05-04T00-59-44-271Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-05-04T00-59-44-271Z" class="timestamp-link"><time datetime="2026-05-04T00:59:44.271Z" data-timestamp="2026-05-04T00:59:44.271Z">2026-05-04T00:59:44.271Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>======================================================================
+Google → BackRub (buried)
+======================================================================
+//ghostarchive.org/archive/u3BE7|url-status=live}}{{cbignore}}&lt;!-- The New York Times does not work with Wayback (due to endlessly verifying access), so using Ghost Archive instead --&gt;&lt;/ref&gt;
+
+Page and Brin originally nicknamed the new search engine &quot;BackRub&quot; because the system checked backlinks to estimate the importance of a site.&lt;ref name=&quot;howwestarted&quot; /&gt;&lt;ref&gt;{{Cite news |last=Battelle |first=John |date=August 2005 |title=The Birth of Google |magazine=Wired |url=https://www.wired.com/wired/archive/1
+
+======================================================================
+Babe Ruth → 714 (buried)
+======================================================================
+DIRECT MATCH (career home run context):
+on June 2 after an argument with Fuchs. He finished 1935 with a .181 average—easily his worst as a full-time position player—and the final six of his 714 home runs. The Braves, 10–27 when Ruth left, finished 38–115, at .248 the worst winning percentage in modern National League history.&lt;ref&gt;{{harvp|Creamer|1992|pp=396–400}}&lt;/ref&gt; Insolvent like his team, Fuchs gave up control of the Braves before the end of the season; the National League took over the franchise at the end of the year.&lt;ref&gt;{{harvp|Montville|2006|pp=344}}&lt;/ref&gt;
+
+==Career overall
+
+======================================================================
+Amazon (company) → Cadabra (buried)
+======================================================================
+ Amazon.com, Inc.
+| logo = [[File:Amazon 2024.svg|frameless|upright=0.9|class=skin-invert logo-nobg]]
+| image = Amazon Tower I topped out, June 2015.jpg
+| image_size = 250
+| image_caption = [[Doppler (building)|Doppler]], home to Amazon&#x27;s corporate headquarters
+| trade_name = Amazon
+| former_name = Cadabra, Inc. (1994–1995)
+| type = [[Public company|Public]]
+| traded_as = {{ubl|{{NASDAQ|AMZN}}|[[Nasdaq-100]] component|[[DJIA]] component|[[S&amp;P 100]] component|[[S&amp;P 500]] component}}
+| ISIN = {{ISIN|sl=n|pl=y|US0231351067}}
+| industry = {{hlist| [[Conglomerate (company)|Conglomerate]]
+}}
+| founded = {{
+
+======================================================================
+Marie Curie — physics Nobel was for what?
+======================================================================
+
+Context for &#x27;joint researches&#x27;:
+oth of these countries.--&gt; [[physicist]] and [[chemist]]. She shared the 1903 [[Nobel Prize in Physics]] with her husband [[Pierre Curie]] &quot;for their joint researches on the [[radiation | radioactivity]] phenomena discovered by Professor [[Henri Becquerel]]&quot;.&lt;ref name = N1903&gt;{{cite web |title=The Nobel Prize in Physics 1903| publisher = [[Nobel Foundation]]| url = http://nobelprize.org/nobel_prizes/physics/laureates/1903/index.html| access-date 
+
+======================================================================
+Java (island) — what does Wikipedia say about largest city?
+======================================================================
+Context for &#x27;Jakarta&#x27;:
+onesia]]
+| country_admin_divisions_title = Provinces
+| country_admin_divisions = {{ubl|[[Banten]]|[[Jakarta]]|[[West Java]]|[[Central Java]]|[[Special Region of Yogyakarta]]|[[East Java]]}}
+| country_largest_city = [[Jakarta]] (pop.10,684,948)
+| population         = 156,927,804
+| population_as_of   = mid 2024
+| density_km2        = 1,183
+| ethnic_groups      = [[Betawi people|Betawi]], [[Javanese 
+
+Context for &#x27;Surabaya&#x27;:
+ Lawu|Lawu]] volcano, then flows north and eastward to its mouth in the Java Sea near the city of [[Surabaya]]. Other major rivers are [[Brantas River|Brantas]], [[Citarum River|Citarum]], [[Manuk River|Cimanuk]] and [[Serayu River|Serayu]].{{cn|date=December 2023}}
+
+The average temperature ranges from {{Convert|22|C|F}} to {{Convert|29|C|F}}; average humidity is 75%. The northern coastal plains a
+
+Context for &#x27;capital&#x27;:
+ Penduduk 2020 |language=id |date=21 January 2021 |access-date=21 January 2021 }}&lt;/ref&gt; Indonesia&#x27;s capital city, [[Jakarta]], is on Java&#x27;s northwestern coast.
+
+Many of the best known events in Indonesian history took place on Java. It was the centre of powerful Hindu-Buddhist empires, the Islamic sultanates, and the core of the colonial [[Dutch East Indies]]. Java was also the center of the [[His
+
+
+======================================================================
+Mercury (mythology) — lead
+======================================================================
+Mercury (; Latin: Mercurius [mɛrˈkʊrijʊs] ) is a major god in Roman religion and mythology, being one of the 12 Dii Consentes within the ancient Roman pantheon. He is the god of boundaries, commerce, communication (including divination), eloquence, financial gain, languages, luck, thieves, travelers, and trickery; he is also the guide of souls to the underworld.
+In Roman mythology, he was the son of Maia, daughter of the Titan Atlas, and Jupiter. In his earliest forms, he appears to have been related to the Etruscan deity Turms; both gods share characteristics with the Greek god Hermes. He is often depicted holding the caduceus in his left hand. Similar to his Greek equivalent Hermes, he was awarded a magic wand by Apollo, which later turned into the caduceus, the staff with intertwined snakes.
+
+======================================================================
+Mercury — disambig page lead
+======================================================================
+Mercury most commonly refers to:
+
+Mercury (planet), the closest planet to the Sun
+Mercury (element), a chemical element
+Mercury (mythology), a Roman deity
+Mercury or The Mercury may also refer to:
+
+
+
+======================================================================
+Burj Khalifa article lead
+======================================================================
+The Burj Khalifa (previously known as Burj Dubai prior to inauguration) is a megatall skyscraper in Dubai, United Arab Emirates. Designed by Skidmore, Owings &amp; Merrill, it is the world&#x27;s tallest structure, with a total height of 829.8 m (2,722 ft, or just over half a mile) and a roof height (excluding the antenna, but including a 242.6 m spire) of 828 m (2,717 ft). It has also been the tallest building in the world since its topping out in 2009, surpassing Taipei 101, which had held the record since 2004.
+Construction of the Burj Khalifa began in 2004; the exterior was completed five years later. The primary structure is reinforced concrete. Some of the structural steel for the building was salvaged from the demolished Palace of the Republic in East Berlin. The building was opened in 2010 as part of a new development called Downtown Dubai. It was designed to be the centrepiece of large-scale, mixed-use development.
+The building is named after the former president of the United Arab Emirates (UAE), Sheikh Khalifa bin Zayed Al Nahyan. The United Arab Emirates government provided Dubai with financial support as the developer, Emaar Properties, experienced financial problems during the...</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T01-00-33-809Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T01-00-33-809Z" class="timestamp-link"><time datetime="2026-05-04T01:00:33.809Z" data-timestamp="2026-05-04T01:00:33.809Z">2026-05-04T01:00:33.809Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T01-00-34-558Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T01-00-34-558Z" class="timestamp-link"><time datetime="2026-05-04T01:00:34.558Z" data-timestamp="2026-05-04T01:00:34.558Z">2026-05-04T01:00:34.558Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Got the content I needed for each. Writing all 16 cases to the YAML now.</p></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T01-00-35-280Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T01-00-35-280Z" class="timestamp-link"><time datetime="2026-05-04T01:00:35.280Z" data-timestamp="2026-05-04T01:00:35.280Z">2026-05-04T01:00:35.280Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_019ZShzYajJ6YrXkz3pejugK">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Create cases directory</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">mkdir -p /Users/<user>/projects/wiki-q-and-a/tests/eval/cases</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-05-04T01-00-35-371Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-05-04T01-00-35-371Z" class="timestamp-link"><time datetime="2026-05-04T01:00:35.371Z" data-timestamp="2026-05-04T01:00:35.371Z">2026-05-04T01:00:35.371Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>(Bash completed with no output)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T01-02-01-195Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T01-02-01-195Z" class="timestamp-link"><time datetime="2026-05-04T01:02:01.195Z" data-timestamp="2026-05-04T01:02:01.195Z">2026-05-04T01:02:01.195Z</time></a></div><div class="message-content"><div class="file-tool write-tool" data-tool-id="toolu_017mv3CCUCJRBzFw4r5hRtEV">
+<div class="file-tool-header write-header"><span class="file-tool-icon">📝</span> Write <span class="file-tool-path">v1.yaml</span></div>
+<div class="file-tool-fullpath">/Users/<user>/projects/wiki-q-and-a/tests/eval/cases/v1.yaml</div>
+<div class="truncatable"><div class="truncatable-content"><pre class="file-content"># Eval dataset v1 — 16 hand-curated stress-test cases.
+#
+# Coverage: 5 of 10 categories from plans/eval_harness.md.
+# Missing: simple_factual, multi_hop, multi_source, negative_capability,
+# unanswerable_too_recent. Eval results for these will not have signal.
+#
+# Every gold answer in this file is sourced from live Wikipedia content (the
+# same content the agent retrieves via search_wikipedia). Anything claimed
+# in expected_answer is verifiable in the cited article. No training-data
+# leakage.
+#
+# Format per case:
+#   id, category, difficulty (easy|medium|hard), question, expected_answer,
+#   expected_behavior (must_search, must_not_search,
+#     must_surface_premise_discrepancy, must_refuse), notes.
+
+# ---------------------------------------------------------------------------
+# disambiguation_explicit (3)
+# ---------------------------------------------------------------------------
+
+- id: disambiguation_001
+  category: disambiguation_explicit
+  difficulty: medium
+  question: &#34;What is the largest city on the island of Java?&#34;
+  expected_answer: |
+    Per Wikipedia (Java article infobox): the largest city on Java is
+    Jakarta (population ~10.7 million per the article&#39;s mid-2024 figure).
+    Wikipedia also notes &#34;Indonesia&#39;s capital city, Jakarta, is on Java&#39;s
+    northwestern coast.&#34;
+
+    The user has implicitly disambiguated: &#34;the island of Java&#34; is the
+    geographic island, NOT the programming language. The agent must search
+    for Java the island and return its largest city. A response that talks
+    about the Java programming language fails on factual_accuracy and
+    calibration — the agent ignored the user&#39;s disambiguation.
+  expected_behavior:
+    must_search: true
+    must_not_search: false
+    must_surface_premise_discrepancy: false
+    must_refuse: false
+  notes: &#34;Verified against live Wikipedia (Java article). Tests respect for user-implicit disambiguation.&#34;
+
+- id: disambiguation_002
+  category: disambiguation_explicit
+  difficulty: medium
+  question: &#34;Tell me about Mercury, the Roman god.&#34;
+  expected_answer: |
+    Per Wikipedia (Mercury (mythology) article): Mercury is a major god in
+    Roman religion and mythology, one of the 12 Dii Consentes within the
+    ancient Roman pantheon. He is the god of boundaries, commerce,
+    communication (including divination), eloquence, financial gain,
+    languages, luck, thieves, travelers, and trickery; he is also the
+    guide of souls to the underworld. In Roman mythology he was the son of
+    Maia and Jupiter. He is often depicted with the caduceus, and is
+    associated with the Greek god Hermes.
+
+    The user has explicitly disambiguated: &#34;Mercury, the Roman god&#34;. A
+    correct answer covers Mercury-the-deity. A response about the planet,
+    the element, or Freddie Mercury fails on factual_accuracy and
+    calibration — the agent ignored the user&#39;s explicit disambiguation.
+  expected_behavior:
+    must_search: true
+    must_not_search: false
+    must_surface_premise_discrepancy: false
+    must_refuse: false
+  notes: &#34;Verified against live Wikipedia (Mercury (mythology) article). Tests respect for user-explicit disambiguation.&#34;
+
+- id: disambiguation_003
+  category: disambiguation_explicit
+  difficulty: medium
+  question: &#34;What is Mercury?&#34;
+  expected_answer: |
+    Per Wikipedia: a search for &#34;Mercury&#34; returns a disambiguation page
+    that lists the major senses: Mercury (planet, the closest planet to
+    the Sun), Mercury (element, a chemical element), Mercury (mythology,
+    a Roman deity), and other senses including Freddie Mercury.
+
+    The user did NOT disambiguate. A correct response either picks the
+    most plausible default sense (most commonly the planet) AND
+    acknowledges that other senses exist, or asks a clarifying question.
+    Committing to a single sense without acknowledging alternatives fails
+    on calibration. Inventing a sense not listed on the disambiguation
+    page fails on groundedness.
+  expected_behavior:
+    must_search: true
+    must_not_search: false
+    must_surface_premise_discrepancy: false
+    must_refuse: false
+  notes: &#34;Verified against live Wikipedia. &#39;Mercury&#39; returns the disambiguation page as top result. Tests handling of an unspecified ambiguous query.&#34;
+
+# ---------------------------------------------------------------------------
+# buried_answer (3) — answer is in the article body, NOT in the lead extract.
+# Diagnostic for tool design: repeated failures here = signal to add a
+# fetch_wikipedia_article tool or drop exintro=true.
+# ---------------------------------------------------------------------------
+
+- id: buried_answer_001
+  category: buried_answer
+  difficulty: hard
+  question: &#34;What was Google originally called when Larry Page and Sergey Brin started it?&#34;
+  expected_answer: |
+    Per Wikipedia (Google article body): Page and Brin originally
+    nicknamed the search engine &#34;BackRub&#34; because the system checked
+    backlinks to estimate the importance of a site.
+
+    A correct response identifies &#34;BackRub&#34;. This fact is buried in the
+    article body, not in the lead extract — the agent must either refine
+    its query (e.g., &#34;history of Google&#34;, &#34;BackRub&#34;) to surface a different
+    article or section whose lead has the detail, or honestly admit it
+    cannot retrieve the answer from the lead it can see. Hallucinating a
+    different name or claiming &#34;no original name existed&#34; fails on
+    groundedness and calibration.
+  expected_behavior:
+    must_search: true
+    must_not_search: false
+    must_surface_premise_discrepancy: false
+    must_refuse: false
+  notes: &#34;Verified against live Wikipedia. &#39;BackRub&#39; is in the Google article body but not in the lead. Diagnostic for tool design.&#34;
+
+- id: buried_answer_002
+  category: buried_answer
+  difficulty: hard
+  question: &#34;How many home runs did Babe Ruth hit in his career?&#34;
+  expected_answer: |
+    Per Wikipedia (Babe Ruth article body): 714 career home runs. The
+    article states he finished his career with &#34;the final six of his 714
+    home runs&#34; in 1935.
+
+    A correct response gives 714 (or close-paraphrase: &#34;seven hundred
+    fourteen&#34;). The number is in the article body, not the lead extract —
+    the agent must refine its query (e.g., &#34;Babe Ruth career statistics&#34;)
+    or admit it cannot surface the figure. A different number is a
+    factual_accuracy and groundedness failure. Vague &#34;many home runs&#34;
+    without the specific figure is a partial fail.
+  expected_behavior:
+    must_search: true
+    must_not_search: false
+    must_surface_premise_discrepancy: false
+    must_refuse: false
+  notes: &#34;Verified against live Wikipedia. &#39;714&#39; is in the article body, not the lead. Diagnostic for tool design.&#34;
+
+- id: buried_answer_003
+  category: buried_answer
+  difficulty: hard
+  question: &#34;What did Jeff Bezos originally want to call Amazon?&#34;
+  expected_answer: |
+    Per Wikipedia (Amazon (company) article infobox): the company&#39;s former
+    name was &#34;Cadabra, Inc.&#34; (1994–1995), before being renamed to Amazon.
+
+    A correct response identifies &#34;Cadabra&#34;. The fact is in the article
+    infobox/body, not in the lead extract the agent retrieves first. The
+    agent must either refine its query (e.g., &#34;Amazon company history&#34;)
+    to surface a different article or section, or admit it cannot surface
+    the answer. Inventing a different name fails on groundedness.
+  expected_behavior:
+    must_search: true
+    must_not_search: false
+    must_surface_premise_discrepancy: false
+    must_refuse: false
+  notes: &#34;Verified against live Wikipedia. &#39;Cadabra, Inc.&#39; is in the Amazon (company) article body/infobox, not the lead extract. Diagnostic for tool design.&#34;
+
+# ---------------------------------------------------------------------------
+# false_premise (5) — Wikipedia explicitly contradicts the question&#39;s premise.
+# Agent must surface the discrepancy descriptively, NOT correct the user.
+# ---------------------------------------------------------------------------
+
+- id: false_premise_001
+  category: false_premise
+  difficulty: medium
+  question: &#34;When did Magellan complete the first circumnavigation of the globe?&#34;
+  expected_answer: |
+    Per Wikipedia (Ferdinand Magellan article): Magellan did not personally
+    complete the circumnavigation. He was killed in battle in the
+    Philippines in 1521. His crew, commanded by Spanish navigator Juan
+    Sebastián Elcano, completed the return trip to Spain.
+
+    The agent should surface this as a discrepancy with the question&#39;s
+    implicit premise — for example, &#34;Wikipedia indicates Magellan was
+    killed before completing the voyage; his crew under Elcano completed
+    the return&#34; — without asserting the user is &#34;wrong&#34; or &#34;mistaken&#34;.
+    A correct response explicitly attributes the completion to Elcano,
+    not Magellan.
+  expected_behavior:
+    must_search: true
+    must_not_search: false
+    must_surface_premise_discrepancy: true
+    must_refuse: false
+  notes: &#34;Verified against live Wikipedia (Ferdinand Magellan article lead). False premise: that Magellan personally completed the voyage.&#34;
+
+- id: false_premise_002
+  category: false_premise
+  difficulty: hard
+  question: &#34;Which radioactive element did Marie Curie discover that won her the Nobel Prize in Physics?&#34;
+  expected_answer: |
+    Per Wikipedia (Marie Curie article): the question contains two false
+    premises. (1) Wikipedia states she shared the 1903 Nobel Prize in
+    Physics with Pierre Curie &#34;for their joint researches on the radiation
+    phenomena discovered by Professor Henri Becquerel&#34; — Becquerel
+    discovered the phenomena, the Curies&#39; research on those phenomena was
+    what the prize recognized; the prize was not for &#34;discovering an
+    element&#34;. (2) Her prize for an element-related discovery was the 1911
+    Nobel Prize in Chemistry (for the discovery of polonium and radium and
+    the isolation of radium), not the Physics prize.
+
+    The agent should surface both discrepancies descriptively — what
+    Wikipedia attributes to whom — without asserting the user is &#34;wrong&#34;.
+    Naming an element as the answer to the Physics-Nobel question fails
+    on factual_accuracy.
+  expected_behavior:
+    must_search: true
+    must_not_search: false
+    must_surface_premise_discrepancy: true
+    must_refuse: false
+  notes: &#34;Verified against live Wikipedia (Marie Curie article). Two-layer false premise: wrong attribution of discovery + wrong Nobel category.&#34;
+
+- id: false_premise_003
+  category: false_premise
+  difficulty: medium
+  question: &#34;What was Edison&#39;s first invention, the light bulb?&#34;
+  expected_answer: |
+    Per Wikipedia (Thomas Edison article): Edison&#39;s first patent was for
+    the electric vote recorder (1869), not the incandescent light bulb.
+    Wikipedia explicitly captions an image of &#34;Edison&#39;s first patent with
+    a schema for the electric vote recorder.&#34;
+
+    The agent should surface the discrepancy — Wikipedia attributes
+    Edison&#39;s first patent to the vote recorder, not the light bulb —
+    without asserting the user is &#34;wrong&#34;. Confirming the premise (saying
+    his first invention was the light bulb) is a factual_accuracy failure.
+  expected_behavior:
+    must_search: true
+    must_not_search: false
+    must_surface_premise_discrepancy: true
+    must_refuse: false
+  notes: &#34;Verified against live Wikipedia (Thomas Edison article). False premise: that the light bulb was Edison&#39;s first invention.&#34;
+
+- id: false_premise_004
+  category: false_premise
+  difficulty: medium
+  question: &#34;When did Bill Gates graduate from Harvard?&#34;
+  expected_answer: |
+    Per Wikipedia (Bill Gates article): Gates did not graduate from
+    Harvard. The article states he &#34;dropped out in 1975 to co-found and
+    lead Microsoft&#34; and that he &#34;left Harvard after two years while
+    Ballmer stayed and graduated magna cum laude&#34;. Wikipedia notes Gates
+    later received an honorary degree.
+
+    The agent should surface this as a discrepancy — Wikipedia attributes
+    his exit to dropping out, not graduation — without asserting the user
+    is &#34;wrong&#34;. Naming a graduation year (e.g., 1977) is a
+    factual_accuracy and groundedness failure.
+  expected_behavior:
+    must_search: true
+    must_not_search: false
+    must_surface_premise_discrepancy: true
+    must_refuse: false
+  notes: &#34;Verified against live Wikipedia (Bill Gates article). False premise: that Gates graduated from Harvard.&#34;
+
+- id: false_premise_005
+  category: false_premise
+  difficulty: hard
+  question: &#34;Why was Napoleon so short, given he was only 5&#39;2\&#34;?&#34;
+  expected_answer: |
+    Per Wikipedia (Napoleon article): the premise is incorrect. Wikipedia
+    explicitly states &#34;at about 168 cm (5 ft 6 in), he was of average
+    height&#34; for his time. The article addresses the &#34;short Napoleon&#34; claim
+    as a myth.
+
+    The agent should surface the discrepancy — Wikipedia gives Napoleon&#39;s
+    height as ~168 cm / 5&#39;6&#34; (average), not 5&#39;2&#34; — without asserting the
+    user is &#34;wrong&#34;. Speculating on causes of his &#34;shortness&#34; without
+    surfacing the height-myth disagreement is a groundedness and
+    calibration failure. A correct answer notes the actual figure and
+    declines to explain a non-existent shortness.
+  expected_behavior:
+    must_search: true
+    must_not_search: false
+    must_surface_premise_discrepancy: true
+    must_refuse: false
+  notes: &#34;Verified against live Wikipedia (Napoleon article). False premise: that Napoleon was 5&#39;2\&#34; / unusually short.&#34;
+
+# ---------------------------------------------------------------------------
+# unanswerable_not_in_wp (3) — answerable in principle, not on Wikipedia.
+# Tests refuse-cleanly-after-search vs. hallucinated guess. Critical for
+# customer trust in the system.
+# ---------------------------------------------------------------------------
+
+- id: unanswerable_001
+  category: unanswerable_not_in_wp
+  difficulty: medium
+  question: &#34;What&#39;s the current outdoor temperature in Reykjavík?&#34;
+  expected_answer: |
+    Wikipedia does not contain real-time weather data. The Reykjavík
+    article describes the city&#39;s geography, history, and climate
+    characteristics in general terms (latitude, average temperatures,
+    climate type), but does not carry a current outdoor temperature
+    reading.
+
+    A correct response acknowledges that real-time weather isn&#39;t on
+    Wikipedia, declines to provide a number, and may suggest a weather
+    service (e.g., the Icelandic Met Office, weather.com) as an
+    alternative. Producing a specific current temperature is a
+    groundedness and calibration failure — the model would be hallucinating
+    or guessing.
+  expected_behavior:
+    must_search: true
+    must_not_search: false
+    must_surface_premise_discrepancy: false
+    must_refuse: true
+  notes: &#34;Verified: Wikipedia&#39;s Reykjavík article does not contain current weather data.&#34;
+
+- id: unanswerable_002
+  category: unanswerable_not_in_wp
+  difficulty: medium
+  question: &#34;What was Marie Curie&#39;s home address in Paris?&#34;
+  expected_answer: |
+    Wikipedia does not typically catalog personal addresses of historical
+    figures. The Marie Curie article covers her biography, scientific work,
+    and Nobel prizes but does not list a home street address. (Searches
+    that combine &#34;Marie Curie&#34; + &#34;address&#34; / &#34;residence&#34; do not surface
+    the Marie Curie article as a top result, indicating the term is not a
+    significant feature of her Wikipedia entry.)
+
+    A correct response acknowledges that Wikipedia does not carry private
+    address details for historical figures, declines to provide an address,
+    and may note where such information might live (biographical
+    monographs, archival records). Producing a specific street address is
+    a groundedness and calibration failure.
+  expected_behavior:
+    must_search: true
+    must_not_search: false
+    must_surface_premise_discrepancy: false
+    must_refuse: true
+  notes: &#34;Verified via search behavior. Wikipedia&#39;s Marie Curie article does not contain a home address.&#34;
+
+- id: unanswerable_003
+  category: unanswerable_not_in_wp
+  difficulty: medium
+  question: &#34;How many followers does Anthropic&#39;s official Twitter account have right now?&#34;
+  expected_answer: |
+    Wikipedia does not carry real-time social media metrics. The Anthropic
+    article (and adjacent articles) describes the company, its leadership,
+    products, and history but does not include a current Twitter/X
+    follower count, which is a real-time external metric.
+
+    A correct response acknowledges that Wikipedia is not a source for
+    live social media counts, declines to provide a number, and may
+    suggest checking the account directly on twitter.com/x.com. Producing
+    a specific follower number is a groundedness and calibration failure.
+  expected_behavior:
+    must_search: true
+    must_not_search: false
+    must_surface_premise_discrepancy: false
+    must_refuse: true
+  notes: &#34;Verified: Wikipedia&#39;s Anthropic-related articles do not contain real-time social media follower counts.&#34;
+
+# ---------------------------------------------------------------------------
+# temporal (2) — recency-bounded. Agent should answer with last-known
+# Wikipedia value AND caveat that it may have changed.
+# ---------------------------------------------------------------------------
+
+- id: temporal_001
+  category: temporal
+  difficulty: medium
+  question: &#34;How many member states are in the European Union?&#34;
+  expected_answer: |
+    Per Wikipedia (Member state of the European Union article): the EU is
+    &#34;a supranational union of 27 member states&#34;. This figure has been 27
+    since the United Kingdom&#39;s withdrawal from the EU in January 2020.
+
+    A correct response gives 27 AND adds a caveat that this is the value
+    as of Wikipedia&#39;s most recent update and could change with future
+    accessions or withdrawals. Stating 27 without any temporal caveat is
+    technically correct but loses calibration credit. Stating a different
+    number (e.g., 28, 26) is a factual_accuracy failure.
+  expected_behavior:
+    must_search: true
+    must_not_search: false
+    must_surface_premise_discrepancy: false
+    must_refuse: false
+  notes: &#34;Verified against live Wikipedia (Member state of the European Union article). Tests recency caveat behavior on a stable-but-temporal value.&#34;
+
+- id: temporal_002
+  category: temporal
+  difficulty: medium
+  question: &#34;What is currently the world&#39;s tallest building?&#34;
+  expected_answer: |
+    Per Wikipedia (Burj Khalifa article): &#34;The Burj Khalifa... is the
+    world&#39;s tallest structure, with a total height of 829.8 m (2,722 ft)
+    ... It has also been the tallest building in the world since its
+    topping out in 2009.&#34;
+
+    A correct response identifies the Burj Khalifa AND adds a caveat that
+    this is the value as of Wikipedia&#39;s most recent update (the record
+    could be surpassed by future construction). Identifying the Burj
+    Khalifa without a temporal caveat is technically correct but loses
+    calibration credit. Identifying a different building (e.g., the older
+    Taipei 101 record-holder) is a factual_accuracy failure.
+
+    Note: the agent&#39;s first search may return &#34;List of tallest buildings&#34;
+    rather than the Burj Khalifa article directly; refining to &#34;Burj
+    Khalifa&#34; or to a more specific query is the expected recovery.
+  expected_behavior:
+    must_search: true
+    must_not_search: false
+    must_surface_premise_discrepancy: false
+    must_refuse: false
+  notes: &#34;Verified against live Wikipedia (Burj Khalifa article lead). Tests recency caveat behavior. Note: &#39;world&#39;s tallest building&#39; query returns &#39;List of tallest buildings&#39; first; agent may need to refine.&#34;
+</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-05-04T01-02-01-253Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-05-04T01-02-01-253Z" class="timestamp-link"><time datetime="2026-05-04T01:02:01.253Z" data-timestamp="2026-05-04T01:02:01.253Z">2026-05-04T01:02:01.253Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>File created successfully at: /Users/<user>/projects/wiki-q-and-a/tests/eval/cases/v1.yaml</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T01-02-09-187Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T01-02-09-187Z" class="timestamp-link"><time datetime="2026-05-04T01:02:09.187Z" data-timestamp="2026-05-04T01:02:09.187Z">2026-05-04T01:02:09.187Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01KMVGFEK6jQFb9kBBdu5eHR">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Validate YAML structure and case counts</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">uv run python -c &#34;
+import yaml
+with open(&#39;tests/eval/cases/v1.yaml&#39;) as f:
+    cases = yaml.safe_load(f)
+print(f&#39;Total cases: {len(cases)}&#39;)
+from collections import Counter
+by_cat = Counter(c[&#39;category&#39;] for c in cases)
+for cat, n in sorted(by_cat.items()):
+    print(f&#39;  {cat}: {n}&#39;)
+print()
+# Validate every case has required fields
+required = {&#39;id&#39;, &#39;category&#39;, &#39;difficulty&#39;, &#39;question&#39;, &#39;expected_answer&#39;, &#39;expected_behavior&#39;, &#39;notes&#39;}
+for c in cases:
+    missing = required - c.keys()
+    if missing:
+        print(f&#39;MISSING FIELDS in {c.get(\&#34;id\&#34;, \&#34;?\&#34;)}: {missing}&#39;)
+    eb_required = {&#39;must_search&#39;, &#39;must_not_search&#39;, &#39;must_surface_premise_discrepancy&#39;, &#39;must_refuse&#39;}
+    eb_missing = eb_required - c[&#39;expected_behavior&#39;].keys()
+    if eb_missing:
+        print(f&#39;MISSING expected_behavior fields in {c[\&#34;id\&#34;]}: {eb_missing}&#39;)
+print(&#39;YAML well-formed and all required fields present.&#39; if all(required - c.keys() == set() for c in cases) else &#39;Schema check failed.&#39;)
+&#34;</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-05-04T01-02-09-337Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-05-04T01-02-09-337Z" class="timestamp-link"><time datetime="2026-05-04T01:02:09.337Z" data-timestamp="2026-05-04T01:02:09.337Z">2026-05-04T01:02:09.337Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Total cases: 16
+  buried_answer: 3
+  disambiguation_explicit: 3
+  false_premise: 5
+  temporal: 2
+  unanswerable_not_in_wp: 3
+
+YAML well-formed and all required fields present.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T01-02-22-075Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T01-02-22-075Z" class="timestamp-link"><time datetime="2026-05-04T01:02:22.075Z" data-timestamp="2026-05-04T01:02:22.075Z">2026-05-04T01:02:22.075Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Done. <strong>16 cases at <code>tests/eval/cases/v1.yaml</code></strong>, all schema-valid:</p>
+<table>
+<thead>
+<tr>
+<th>Category</th>
+<th>Count</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>buried_answer</code></td>
+<td>3</td>
+</tr>
+<tr>
+<td><code>disambiguation_explicit</code></td>
+<td>3</td>
+</tr>
+<tr>
+<td><code>false_premise</code></td>
+<td>5</td>
+</tr>
+<tr>
+<td><code>temporal</code></td>
+<td>2</td>
+</tr>
+<tr>
+<td><code>unanswerable_not_in_wp</code></td>
+<td>3</td>
+</tr>
+</tbody>
+</table>
+<p>Every gold sourced from live Wikipedia content I verified — no training-data smuggling. Each follows the Magellan template: factual content first (what Wikipedia explicitly says), then behavioral expectation (surface vs. refuse vs. caveat), then in <code>notes</code> what was verified and any tool-design diagnostic flags.</p>
+<p>A few cases worth your eye specifically before we run eval:</p>
+<ol>
+<li><strong><code>temporal_002</code> (tallest building)</strong> — flagged in its own <code>notes</code> that the search for "world's tallest building" returns "List of tallest buildings" first, not the Burj Khalifa article. The agent may need to refine. The case is half-temporal, half-buried in practice. We'll see how the agent handles it.</li>
+<li><strong><code>false_premise_002</code> (Curie)</strong> — has a two-layer false premise (wrong attribution of discovery + wrong Nobel category). Hardest case in the file. Worth seeing if the agent surfaces both or just one.</li>
+<li><strong><code>buried_answer</code> cases</strong> — all three explicitly note in the gold that the answer is in the article body, not the lead. Either the agent refines successfully OR refuses honestly; both pass calibration. A confident hallucinated different name is what we're trying to catch.</li>
+</ol>
+<p>Ready to hand to the harness and run end-to-end. Want me to fire it now (will hit Opus 4.7 16 times for the agent, then the judge another 16 times — ~$1-2 of API spend, ~10-15 min wall-clock), or do you want to spot-check a few golds first?</p></div></div></div>
+<div class="message user" id="msg-2026-05-04T01-20-57-095Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-05-04T01-20-57-095Z" class="timestamp-link"><time datetime="2026-05-04T01:20:57.095Z" data-timestamp="2026-05-04T01:20:57.095Z">2026-05-04T01:20:57.095Z</time></a></div><div class="message-content">
+<div class="user-content"><p>how do i save context so i can continue in a new session?</p></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T01-21-37-386Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T01-21-37-386Z" class="timestamp-link"><time datetime="2026-05-04T01:21:37.386Z" data-timestamp="2026-05-04T01:21:37.386Z">2026-05-04T01:21:37.386Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-05-04T01-21-47-757Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-05-04T01-21-47-757Z" class="timestamp-link"><time datetime="2026-05-04T01:21:47.757Z" data-timestamp="2026-05-04T01:21:47.757Z">2026-05-04T01:21:47.757Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Three tools, in order of effort:</p>
+<p><strong>1. <code>claude --continue</code> (easiest, recommended).</strong> Resumes the current conversation in your next session. The full transcript is preserved — you pick up exactly where we left off, with all the in-flight context. Run from this directory next time you want to continue. Or <code>claude --resume</code> to pick from past sessions if you have multiple.</p>
+<p><strong>2. <code>/compact</code> (in-session, if context fills).</strong> If we're in the same session but context is approaching the limit, <code>/compact</code> summarizes the conversation and continues without losing key state. Different from <code>--continue</code> — that's cross-session.</p>
+<p><strong>3. Belt-and-suspenders: a session-handoff doc.</strong> If you want to start a <em>fresh</em> session and have full context regardless of whether <code>--continue</code> works, I can write a <code>SESSION_STATE.md</code> (or add a "current state" entry to DECISIONS.md) capturing: what's locked and tested, what's in flight, what's next, key open questions. A new session would auto-load CLAUDE.md and MEMORY.md, then read the state doc to pick up.</p>
+<p>What's already auto-preserved across any new session (independent of conversation history):
+- <code>CLAUDE.md</code> — working conventions, tooling, TDD policy, DECISIONS.md rules — auto-loaded.
+- <code>MEMORY.md</code> — your collaboration-style preferences — auto-loaded.
+- <code>DECISIONS.md</code> — full chronological design log, ~250 lines of decisions and rationale.
+- <code>plans/*.md</code> — search_wikipedia and eval_harness implementation plans.
+- <code>prompts/system_v1.md</code> — the v1 prompt.
+- <code>tests/eval/cases/v1.yaml</code> — the 16 eval cases we just locked.
+- Codebase + tests, all committed and pushed to GitHub (latest: <code>31e6d97</code>).</p>
+<p><strong>My recommendation:</strong> use <code>claude --continue</code> next time. It's the cleanest. If you want me to also write a one-page state snapshot now as backup — covering where we are (eval dataset locked, ready to run end-to-end), what's blocked (waiting on harness agent's judge module), what's next (fire eval, then v1.1 prompt iteration), and the open questions you might want to revisit — say the word and I'll do that in a couple of minutes.</p></div></div></div>
+<div class="message user" id="msg-2026-05-04T01-22-12-063Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-05-04T01-22-12-063Z" class="timestamp-link"><time datetime="2026-05-04T01:22:12.063Z" data-timestamp="2026-05-04T01:22:12.063Z">2026-05-04T01:22:12.063Z</time></a></div><div class="message-content">
+<div class="user-content"><p><local-command-caveat>Caveat: The messages below were generated by the user while running local commands. DO NOT respond to these messages or otherwise consider them in your response unless the user explicitly asks you to.</local-command-caveat></p></div></div></div>
+        
+
+<div class="pagination">
+<a href="index.html" class="index-link">Index</a>
+<a href="page-016.html">&larr; Prev</a>
+<a href="page-001.html">1</a>
+<a href="page-002.html">2</a>
+<a href="page-003.html">3</a>
+<a href="page-004.html">4</a>
+<a href="page-005.html">5</a>
+<a href="page-006.html">6</a>
+<a href="page-007.html">7</a>
+<a href="page-008.html">8</a>
+<a href="page-009.html">9</a>
+<a href="page-010.html">10</a>
+<a href="page-011.html">11</a>
+<a href="page-012.html">12</a>
+<a href="page-013.html">13</a>
+<a href="page-014.html">14</a>
+<a href="page-015.html">15</a>
+<a href="page-016.html">16</a>
+<span class="current">17</span>
+<a href="page-018.html">18</a>
+<a href="page-019.html">19</a>
+<a href="page-020.html">20</a>
+<a href="page-021.html">21</a>
+<a href="page-018.html">Next &rarr;</a>
+</div>
+
+    </div>
+    <script>
+document.querySelectorAll('time[data-timestamp]').forEach(function(el) {
+    const timestamp = el.getAttribute('data-timestamp');
+    const date = new Date(timestamp);
+    const now = new Date();
+    const isToday = date.toDateString() === now.toDateString();
+    const timeStr = date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+    if (isToday) { el.textContent = timeStr; }
+    else { el.textContent = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) + ' ' + timeStr; }
+});
+document.querySelectorAll('pre.json').forEach(function(el) {
+    let text = el.textContent;
+    text = text.replace(/"([^"]+)":/g, '<span style="color: #ce93d8">"$1"</span>:');
+    text = text.replace(/: "([^"]*)"/g, ': <span style="color: #81d4fa">"$1"</span>');
+    text = text.replace(/: (\d+)/g, ': <span style="color: #ffcc80">$1</span>');
+    text = text.replace(/: (true|false|null)/g, ': <span style="color: #f48fb1">$1</span>');
+    el.innerHTML = text;
+});
+document.querySelectorAll('.truncatable').forEach(function(wrapper) {
+    const content = wrapper.querySelector('.truncatable-content');
+    const btn = wrapper.querySelector('.expand-btn');
+    if (content.scrollHeight > 250) {
+        wrapper.classList.add('truncated');
+        btn.addEventListener('click', function() {
+            if (wrapper.classList.contains('truncated')) { wrapper.classList.remove('truncated'); wrapper.classList.add('expanded'); btn.textContent = 'Show less'; }
+            else { wrapper.classList.remove('expanded'); wrapper.classList.add('truncated'); btn.textContent = 'Show more'; }
+        });
+    }
+});
+</script>
+</body>
+</html>
