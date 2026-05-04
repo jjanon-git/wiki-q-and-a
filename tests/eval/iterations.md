@@ -75,11 +75,34 @@ ceiling on grounded factual cases.
    not used in prose). Drives v1.1 change (b): tighten citation rule
    to "only list sources you cited inline."
 
-3. **Behavior_checks all `na`.** All 11 deterministic checks returned
-   "not applicable" for all 34 cases. Workstream B issue — likely a
-   schema mismatch between case YAML fields and what the checks read
-   from `AgentResult`. Must be fixed before v1.1 runs or v1.1 won't
-   have behavior_check signal either.
+3. **`searched_when_required` failed on 4 unanswerable cases** —
+   Reykjavík weather, Anthropic followers, NBA last night, FOMC. Agent
+   recognized these as cases where Wikipedia couldn't help and skipped
+   the search. Dataset flag `must_search: true` was overly prescriptive
+   for intrinsically-unanswerable real-time/private/operational
+   questions. Dataset refinement (split sub-types) deferred to v1.2.
+
+### Behavior_checks pass rates (corrected analysis)
+
+| Check | Pass | Fail | NA |
+|---|---|---|---|
+| `answer_length_plausible` | 26 | 8 | 0 |
+| `did_not_search_when_prohibited` | 4 | 0 | 30 |
+| `has_bracket_citations` | 26 | 0 | 8 |
+| `has_collated_sources` | 26 | 0 | 8 |
+| `no_markdown_links` | 26 | 0 | 8 |
+| `not_excessive_searches` | 34 | 0 | 0 |
+| `output_blocks_canonical` | 34 | 0 | 0 |
+| `output_blocks_non_empty` | 34 | 0 | 0 |
+| `output_blocks_well_formed` | 34 | 0 | 0 |
+| `output_has_required_blocks` | 26 | 8 | 0 |
+| `searched_when_required` | 26 | 4 | 4 |
+
+The 8 fails on `output_has_required_blocks` and `answer_length_plausible`
+are the same 8 non-search cases driving the headline format-defect
+finding above. The harness is producing clean signal — it caught the
+format defect, the citation-quality pattern, and the must_search
+prescriptiveness issue all in one run.
 
 ### v1.1 scope
 

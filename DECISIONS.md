@@ -483,3 +483,35 @@ The agent's behavior was right. The prompt didn't tell it what to do format-wise
 - (c) Grounding rule (evidence-block-as-authoritative): claims in the answer must trace to a quoted passage in the evidence block (the user's earlier proposal).
 
 **Deferred to v1.2** (from the original 5 v1.1-planned changes captured at 16:38): per-search-motivation framing, disambiguation criteria, length-by-complexity, evidence-as-you-go. Reason: keep v1.1 narrow so each per-dim delta is attributable. Adding all 7 changes at once would muddy the iteration signal.
+
+## 2026-05-03 18:58 — Correction: behavior_checks were running fine; analysis script was the bug. New finding on must_search prescriptiveness.
+
+Retracting the "behavior_checks all reported `na`" finding from the 18:54 entry. That was a bug in my post-hoc analysis script, not in the harness. My script looked for `check.get("passed")` but the actual field is `check["status"]` (Literal `"pass" | "fail" | "na"`). All checks defaulted to the `else` branch and bucketed as `na`.
+
+Real behavior_check results from the v1 baseline run:
+
+| Check | Pass | Fail | NA |
+|---|---|---|---|
+| `answer_length_plausible` | 26 | 8 | 0 |
+| `did_not_search_when_prohibited` | 4 | 0 | 30 |
+| `has_bracket_citations` | 26 | 0 | 8 |
+| `has_collated_sources` | 26 | 0 | 8 |
+| `no_markdown_links` | 26 | 0 | 8 |
+| `not_excessive_searches` | 34 | 0 | 0 |
+| `output_blocks_canonical` | 34 | 0 | 0 |
+| `output_blocks_non_empty` | 34 | 0 | 0 |
+| `output_blocks_well_formed` | 34 | 0 | 0 |
+| `output_has_required_blocks` | 26 | 8 | 0 |
+| `searched_when_required` | 26 | 4 | 4 |
+
+The 8 fails on `output_has_required_blocks` and `answer_length_plausible` line up with the 8 non-search cases (the format defect documented in 18:54). Confirmed.
+
+**New finding**: 4 cases failed `searched_when_required` — Reykjavík weather, Anthropic followers, NBA last night, FOMC. The agent recognized these as cases where Wikipedia couldn't help and skipped the search entirely; the dataset flag `must_search: true` was overly prescriptive on these.
+
+For unanswerable_not_in_wp cases there are actually two sub-types:
+- **Search-then-refuse**: question's "unanswerability" requires checking — e.g., Marie Curie's home address (might be in some Wikipedia article; agent should search to confirm absence). Agent did search this. ✓
+- **Refuse-without-searching**: question is obviously outside Wikipedia's scope from the question alone — e.g., real-time weather, current Twitter follower counts, last night's game results. Searching wastes a call. Agent skipped these. ✓
+
+The dataset's blanket `must_search: true` for all `unanswerable_not_in_wp` and `unanswerable_too_recent` cases doesn't capture this distinction. The fix is in the dataset, not the agent or rubric: differentiate `must_search: true` (search-then-refuse) from `must_search: false` (refuse-without-searching) per case based on whether the question's unanswerability is intrinsic or requires verification.
+
+Defer this dataset refinement to the v1.2 cycle alongside the other deferred prompt changes — it's a rubric-input cleanup, not a v1.1 scope item.

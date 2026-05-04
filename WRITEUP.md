@@ -443,9 +443,16 @@ target.
   surfaced a different article whose lead had the buried fact. No need
   to add `fetch_wikipedia_article` as a second tool in v1.
 
-- **Behavior_checks all reported `na`** for all 34 cases. Workstream B
-  integration issue — must be fixed before v1.1 runs or v1.1 won't
-  have behavior_check signal either.
+- **`searched_when_required` failed on 4 unanswerable cases** —
+  Reykjavík weather, Anthropic followers, NBA last night, FOMC. The
+  agent recognized these as cases where Wikipedia couldn't help and
+  skipped the search entirely. The dataset flag `must_search: true`
+  was overly prescriptive on these — real-time / private / operational
+  data is intrinsically not on Wikipedia, and searching wastes a call.
+  Distinct from the Curie-address case (where the agent did search,
+  correctly, because the absence required verification). Dataset
+  refinement (split `unanswerable_*` into search-then-refuse vs.
+  refuse-without-searching sub-types) deferred to v1.2.
 
 ## Iteration plan and status
 
