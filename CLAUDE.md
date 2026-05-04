@@ -37,6 +37,27 @@ For eval harness code where the test would essentially duplicate the harness
 itself, exercise judgment — write the test first when it's clarifying, skip
 it when the harness's outputs are the validation.
 
+## Shared types
+
+Types passed between modules (especially across workstream boundaries — agent
+↔ eval harness, agent ↔ CLI, anything serialized to disk) use Pydantic
+`BaseModel` with `model_config = ConfigDict(frozen=True, extra="forbid")`,
+not `@dataclass(frozen=True)` or plain dicts.
+
+Reasons:
+- Validation at construction (rejects type mismatches and missing fields).
+- `model_dump_json()` / `model_validate_json()` for clean JSON round-trip
+  (results.jsonl, fixtures, calibration files).
+- Schema introspection so cross-workstream coordination doesn't require
+  reading source files.
+- `extra="forbid"` makes contract drift loud — adding a field on one side
+  without updating the contract surfaces immediately rather than silently
+  dropping it.
+
+Single source of truth: contracts live in their own module
+(`src/wiki_qa/agent_contract.py` for the agent-eval boundary). Both sides
+import; neither redefines.
+
 ## Quality gates
 
 Run formatter, linter, type checker, and tests before declaring any code

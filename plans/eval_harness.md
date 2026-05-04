@@ -33,37 +33,55 @@ Calibration: `python -m wiki_qa.eval calibrate --sample N --in <run-dir>` → wr
 
 ## Agent contract (what the harness calls)
 
+Lives at `src/wiki_qa/agent_contract.py`. Imported by both the agent
+(`agent_stub.py` during dev, `agent.py` from workstream A) and the eval
+harness — single source of truth, neither side redefines.
+
+Pydantic `BaseModel` with `model_config = ConfigDict(frozen=True, extra="forbid")`
+(see CLAUDE.md "Shared types"). Validation at construction; JSON
+round-trip via `model_dump_json()` / `model_validate_json()` for
+`results.jsonl`.
+
 ```python
 def answer(question: str, *, max_iterations: int = 5) -> AgentResult: ...
 
-@dataclass(frozen=True)
-class ToolCall:
+class ToolCall(BaseModel):
+    model_config = ConfigDict(frozen=True, extra="forbid")
     name: str
     query: str               # convenience: input["query"] for search_wikipedia
     raw_result_str: str      # exactly what we passed to the model as tool_result
                              # (XML for success, error envelope for failure)
     latency_ms: int
 
-@dataclass(frozen=True)
-class TokenUsage:
+class TokenUsage(BaseModel):
+    model_config = ConfigDict(frozen=True, extra="forbid")
     input_tokens: int
     output_tokens: int
     cache_read_tokens: int
     cache_creation_tokens: int
 
-@dataclass(frozen=True)
-class AgentResult:
+class AgentResult(BaseModel):
+    model_config = ConfigDict(frozen=True, extra="forbid")
     question: str
-    answer: str
+    evidence: str            # parsed <evidence> block content (without surrounding tags)
+    answer: str              # parsed <answer> block prose only — citations live here
+    raw_output: str          # full raw model text before parsing; debugging + judge fallback
     tool_calls: list[ToolCall]
     n_searches: int          # convenience: len(tool_calls) of search_wikipedia
     queries: list[str]       # convenience: [tc.query for tc in tool_calls]
     stop_reason: str
     usage: TokenUsage
-    raw_messages: list[dict] # full conversation, for debugging and judge input
+    raw_messages: list[dict] # full conversation, for debugging
 ```
 
-Frozen across v1; subagent codes against this.
+Frozen across v1; the agent (workstream A) and the harness (workstream B)
+both code against this.
+
+The three-way split (`evidence` / `answer` / `raw_output`) reflects the
+system prompt v1 output structure (`<evidence>` block followed by
+`<answer>` block). Behavior checks operate on `answer` (prose only); the
+judge gets `evidence` separately for groundedness scoring; `raw_output`
+preserves the original for debugging or when parsing fails.
 
 ## Dataset format
 
@@ -216,8 +234,17 @@ Some failure modes don't need an LLM. These produce a `behavior_checks` block in
 | `did_not_search_when_prohibited` | `n_searches == 0` if `expected_behavior.must_not_search` |
 | `not_excessive_searches` | `n_searches <= 5` |
 | `answer_length_plausible` | `1 < len(answer.split()) < 1000` |
-| `has_inline_citations` | answer contains `[Title]` bracket references (article-title style, NOT markdown links — the system prompt explicitly forbids `[Title](URL)`). Heuristic: regex like `\[[A-Z][^\]\n]{1,80}\]` matches at least once, AND `[Title](http` does NOT match anywhere. |
-| `has_collated_sources` | answer ends with a "Sources:" or "References:" section followed by lines in the form `Title - URL` (plain text, not markdown). |
+| `has_bracket_citations` | answer contains at least one `[Article Title]` bracket reference. Regex: `\[[A-Z][^\]\n]{1,80}\]` matches at least once. NA when `n_searches == 0`. |
+| `no_markdown_links` | answer does NOT contain any `[Title](URL)` markdown link syntax. The system prompt explicitly forbids embedding URLs inline. NA when `n_searches == 0`. Kept separate from `has_bracket_citations` because zero citations and forbidden markdown links are distinct failure modes with distinct fixes — collapsing them hides which one is firing. |
+| `has_collated_sources` | answer ends with a "Sources:" or "References:" section followed by at least one `Title - URL` plain-text line (regex `^.+? - https?://\S+\s*$`). Reject if markdown link syntax appears inside the section. NA when `n_searches == 0`. |
+| `output_has_required_blocks` | Fails when `MISSING_EVIDENCE_BLOCK` or `MISSING_ANSWER_BLOCK` fired. Model didn't emit the structure at all. Fix direction: prompt strengthening on output format. |
+| `output_blocks_well_formed` | Fails when `UNCLOSED_EVIDENCE_TAG` or `UNCLOSED_ANSWER_TAG` fired. Model attempted the structure but emitted it malformed. Distinct from missing-block; fix direction is tokenization/length investigation or a concrete example. |
+| `output_blocks_non_empty` | Fails when `EMPTY_EVIDENCE_BLOCK` or `EMPTY_ANSWER_BLOCK` fired. Structure clean, content missing. Fix direction: prompt requirement that each block carry content. |
+| `output_blocks_canonical` | Fails when `REVERSED_ORDER`, `MULTIPLE_EVIDENCE_BLOCKS`, or `MULTIPLE_ANSWER_BLOCKS` fired. Structure present but emitted oddly (post-hoc reasoning, repeated blocks). Fix direction: emphasis on evidence-first single-block structure. |
+
+The four parse-warning checks operate on `AgentResult.parse_warnings` (workstream A's `ParseWarning` StrEnum). All four always apply — the parser runs for every agent invocation. Each lists the specific codes from its cluster in `detail`. Split rather than collapsed into a single check so iteration data localizes which class of structural failure is firing — different clusters point to different prompt fixes.
+
+**Judge prompt note**: when the judge integration lands, `parse_warnings` should be passed in as **informational context** (e.g., `<parse_warnings>missing_evidence_block, empty_answer_block</parse_warnings>`), with rubric guidance that the harness already records structural-failure signal deterministically — the judge should use the warnings to *interpret* the answer (e.g. "claim unsupported because evidence block was empty" reads differently from "claim unsupported because the model hallucinated"), not apply additional penalties.
 
 **Judge-output checks** (sanity-checks on the judge itself, alongside the score parsing):
 

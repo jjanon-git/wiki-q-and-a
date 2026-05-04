@@ -233,3 +233,212 @@ Companion to the 16:23 v1 entry. That entry lists the patterns the prompt encode
 - Whether to pull the running Einstein/Nobel example out of the prompt (it leaks our eval case). Low-stakes per discussion but worth deciding before the prompt gets used in production-style demos.
 - Whether the "alternatives include..." disambiguation phrasing should switch to "let me know" once multi-turn lands.
 - Whether the search budget needs per-category tuning (e.g., 3 for simple_factual, 7 for multi_hop) or one global cap is right.
+
+## 2026-05-03 17:08 — Agent contract migrates to Pydantic; AgentResult restructured for evidence/answer split
+
+User pushback on the prior `@dataclass(frozen=True)` shape with `answer: str` plus a vague comment: "we need shared library types... why are we trying to work around things." Right call. A frozen dataclass with an ambiguous string field isn't a shared library type, and asking "what does `answer` contain?" was working around the actual problem (the field shape didn't match the new output structure).
+
+**Migration: `@dataclass(frozen=True)` → Pydantic `BaseModel` with `ConfigDict(frozen=True)`** for `ToolCall`, `TokenUsage`, `AgentResult` in `src/wiki_qa/agent_contract.py`. Pydantic was already a project dependency. Wins:
+- Validation at construction (rejects type mismatches, missing fields)
+- JSON round-trip out of the box (`model_dump_json()` / `model_validate_json()`) — relevant for `results.jsonl` write/read in the runner
+- Schema introspection — useful when the contract gets shared with workstream A
+- Clear standard for the project going forward; future shared types follow the same pattern
+
+**AgentResult restructure**: split the prior single `answer: str` into three fields reflecting the new system-prompt output:
+- `evidence: str` — parsed `<evidence>` block content (quoted passages from cited articles)
+- `answer: str` — parsed `<answer>` block prose only (the user-facing text, where citations live)
+- `raw_output: str` — original full model text before parsing; debugging surface and judge fallback if parsing yielded empty fields
+
+Three reasons for the split:
+1. Citation checks operate on prose. Today the checks were regexing across an XML envelope, which is wrong — they need `answer` as just prose.
+2. Judge needs `evidence` as a separate field for groundedness scoring, not as a substring it has to extract from raw text.
+3. `raw_output` preserves what the model actually emitted, in case parsing fails or the judge wants to verify.
+
+`evidence: str` (raw block content) for v1, not `list[EvidenceItem]` — don't over-structure until we see whether the judge benefits from it. Workstream A owns the parsing and may produce structured items naturally; revisit then.
+
+**Coordination note for workstream A**: the agent contract is no longer a thin dataclass shape. It is a Pydantic model with `evidence` / `answer` / `raw_output` as three required fields. The agent's parser owns the split between the `<evidence>` block and the `<answer>` block.
+
+## 2026-05-03 17:08 — Citation behavior checks: split, not collapsed
+
+I had proposed a single `has_bracket_citations` check that combined two assertions (brackets present AND no markdown links anywhere). User pushed back: a model producing zero citations is a different failure mode (and different fix — strengthen citation requirement in the prompt) than a model producing markdown-style citations (different fix — emphasize the format ban). Collapsing them now hides the signal. Default to separate; collapse later only if eval data shows they always co-fire.
+
+Final shape of citation-related deterministic checks:
+- `has_bracket_citations` — pass if `result.answer` contains at least one `[Article Title]` bracket reference (regex along the lines of `\[[A-Z][^\]\n]{1,80}\]`). NA when `n_searches == 0`.
+- `no_markdown_links` — pass if `result.answer` does NOT contain any `[Title](http...)` markdown link pattern. NA when `n_searches == 0`.
+- `has_collated_sources` — pass if `result.answer` ends with a `Sources:` or `References:` section followed by at least one line in `Title - URL` plain-text form (regex `^.+? - https?://\S+\s*$`); reject if markdown link syntax appears in the section. NA when `n_searches == 0`.
+
+`has_inline_citations` (the old combined name from the v1 plan) is renamed to `has_bracket_citations` to match what it actually checks. The "inline" word carried implicit markdown-link connotations from the prior citation pattern.
+
+## 2026-05-03 16:38 — System prompt v1.1 changes planned (held until v1 is baselined in eval)
+
+User reviewed `prompts/system_v1.md` and proposed five revisions. v1 is intentionally NOT being modified — we baseline it in eval first, then run v1.1 against the same dataset to see per-dimension deltas (this is the iteration story the brief explicitly asks for). Capturing the planned v1.1 spec now so it's ready to apply once v1 has run.
+
+**1. Grounding rule: tightened, not loosened (pushback on user's "substantive claims" softening).**
+
+User suggested relaxing "every factual claim must be supported" to "every *substantive* claim must be supported," reasoning that ubiquitous background facts ("Einstein was a physicist") might not be present in retrieved content and could be unfairly disallowed.
+
+I pushed back: "substantive" is a fuzzy judgment surface that's exactly the lever a confident model uses to ship training-data claims under the framing of "this isn't really substantial, it's just background." Softening weakens enforcement.
+
+Better mechanism: keep the rule strict AND adopt the user's second proposal — make the evidence block the *authoritative surface* for what may appear in the answer. Rule becomes binary and auditable: any factual claim must trace to a quoted passage in the evidence block. Edge cases like "physicist" qualifier — the lead of any relevant article will contain it (e.g., "German-born theoretical physicist" opens the Einstein article); the model puts it in evidence and uses it. Where retrieved content doesn't supply a qualifier, the model writes around it ("Einstein" not "the famous physicist Einstein"). Less verbose, more sourced.
+
+This is *tighter* than v1, not looser. Marked-inference rule still applies — inferences from evidence may go beyond what's quoted, as long as flagged.
+
+**2. Search budget: from "stay within 5" to per-search motivation.**
+
+v1 says "Stay within it" — too imprecise. Replaces with explicit per-search motivation:
+
+> Each search should be motivated by one of:
+> - a question facet you haven't searched yet,
+> - a refinement to a query that didn't return what you needed,
+> - verification of a specific claim you intend to make.
+>
+> If none of these apply, you have what you need — stop searching. The 5-call cap is a backstop for runaway behavior, not a target.
+
+Reframes the budget as a guard, not a guidance. The decision to search is principle-driven; the cap only activates when something has gone wrong.
+
+**3. Disambiguation: criteria + acknowledgment format made explicit.**
+
+v1's "most plausible reading given context" is too vague. v1.1 spells out:
+- Priority order: explicit user disambiguation > question context clues > MediaWiki default sense.
+- Acknowledgment format: "I'm interpreting X as Y; alternatives include Z, W."
+- Material-impact exception: when alternatives lead to different answers, flag prominently rather than just acknowledging at the bottom.
+
+**4. Length: tied to question complexity.**
+
+v1's "2-4 paragraphs, thorough but not comprehensive" is the user's framing-as-knee-jerk per their own words. v1.1 ties length to question type:
+
+> Match length to question complexity:
+> - Single-fact (when, where, who): 1-3 sentences.
+> - Comparative or definitional: one short paragraph.
+> - Multi-hop or synthesis: 2-4 paragraphs.
+> - Refusal or unanswerable: 1-3 sentences with the reason.
+>
+> If your evidence is thin, the answer should be short. Don't pad.
+
+Maps roughly to eval categories — `simple_factual` cases get short answers, `multi_hop` and `multi_source` get longer ones. Worth watching whether this causes the model to under-elaborate on simple questions where context genuinely helps.
+
+**5. Evidence-as-you-go (sharp catch from user).**
+
+v1 says "before writing the final answer, draft your evidence" — past-tense, post-hoc. The model has to re-scan tool_results, paraphrase from memory, lose precision. v1.1 makes evidence accumulation continuous:
+
+> After each search result, briefly note which passages address the question, which gaps remain, and what your next move is. These running notes become your `<evidence>` block when you compose the answer — do not reconstruct evidence post-hoc.
+
+Quotes are extracted while the result is fresh in the model's working set. Forces identification of load-bearing passages at the moment of search. Couples cleanly to the evidence-block-as-authoritative pattern from (1) — both make the evidence block the spine of the answer, not an afterthought.
+
+**Iteration plan**: build v1 eval baseline first (current prompt). Then create `prompts/system_v1_1.md` with all five changes applied and run the same dataset. Per-dim deltas tell us which changes helped, which hurt, and which were neutral. The pushback on (1) becomes a real test — does evidence-block-as-authoritative actually solve the "Einstein is a physicist" case in practice, or does the model start refusing common-knowledge qualifiers? Data will tell.
+
+## 2026-05-03 16:51 — Shared contracts on Pydantic, not dataclasses (and three-output AgentResult)
+
+Workstream B migrated `src/wiki_qa/agent_contract.py` from `@dataclass(frozen=True)` to Pydantic `BaseModel` with `ConfigDict(frozen=True, extra="forbid")`. Done before code was written against either form so there's no migration cost. Should have been the default from the start; convention now codified in `CLAUDE.md` under Shared types.
+
+Reasons over plain dataclasses:
+- Validation at construction (rejects type mismatches and missing fields, no silent bugs).
+- `model_dump_json()` / `model_validate_json()` for clean JSON round-trip (`results.jsonl`, fixtures, calibration files).
+- Schema introspection — cross-workstream coordination doesn't require reading source files.
+- `extra="forbid"` makes contract drift loud (adding a field on one side without updating the contract errors immediately, doesn't silently drop).
+
+Pydantic is already a project dep so no new burden. Per-construction overhead is irrelevant at our scale (~35 cases × few iterations).
+
+**Three-output `AgentResult`.** Was `answer: str`. Now:
+- `evidence: str` — content of the `<evidence>` block (no surrounding tags).
+- `answer: str` — content of the `<answer>` block (no surrounding tags).
+- `raw_output: str` — full raw model text before parsing.
+
+Maps directly onto the v1 system prompt's output structure (`<evidence>` block then `<answer>` block). The split lets the eval harness operate on parsed prose for behavior checks (e.g., `has_bracket_citations` regex on `result.answer`, not on the XML envelope) and judge inputs (the judge sees evidence + answer separately, can grade groundedness against evidence directly).
+
+`raw_output` is a safety net: if parsing fails, the eval still has the model's full text to inspect and the judge still has *something* to look at.
+
+**Parser is tolerant.** Substring/regex extraction over `xml.etree`. Model output may contain unescaped angle brackets in extracts/quotes (especially math, code, or HTML in retrieved content); strict XML parsing would fail on these and obscure the actual answer. On parse failure: `evidence=""`, `answer=""`, `raw_output` always populated. Eval and judge see the malformed output and can decide.
+
+**Parallel rename in eval behavior_checks**: `has_inline_citations` → `has_bracket_citations`, plus a separate `no_markdown_links` check. The original single check conflated two requirements that the v1 prompt actually separates: "use bracket-style title references" (positive check) and "don't use markdown link syntax" (negative check). Splitting makes failures attributable.
+
+## 2026-05-03 16:58 — Parser strictness: strict on order and multiplicity, tolerant only on content
+
+User pushback on initial parser design. I had framed parsing decisions as "tolerant beats strict" globally — accepting reversed `<answer>` then `<evidence>` order and silently taking first-of-multiple blocks. That was wrong: order is part of the system prompt contract, and silent first-wins drops information the eval needs.
+
+Untangled into two distinct decisions:
+
+**Tolerant on content (kept).** Extracts will routinely contain unescaped `<` `>` `&` (math, code, pasted-back tool result fragments). Substring/regex extraction not `xml.etree`. This is the right call — strict XML parsing would fail on legitimate model output and obscure real answers behind a parsing error.
+
+**Strict on order (reversed earlier "tolerant" framing).** The system prompt requires `<evidence>` then `<answer>`. The order isn't decorative — emitting answer-first suggests the model wrote its conclusion first and back-filled evidence to match (post-hoc rationalization, not grounding). Tolerating this would mask exactly the failure mode the evidence-block-as-authoritative pattern is meant to catch. Parser now refuses to extract on reversed order: `evidence=""`, `answer=""`, parse warning explains why. `raw_output` preserves the model's text. Eval and judge see structurally broken output and grade calibration/groundedness accordingly.
+
+**Strict on multiplicity (logged, not silently dropped).** First-block-wins is reasonable when the model accidentally emits two of the same block type (intent likely in the first), but the multiplicity has to surface. Parser appends a warning like "multiple `<evidence>` blocks emitted (2); using first" so the failure is observable. Eval can re-derive the count from `raw_output` if it wants programmatic access.
+
+**Implementation surface**: added `parse_warnings: list[str]` to the local `ParsedOutput` dataclass (not the frozen `AgentResult` contract). Agent will log warnings via `logging.warning()`. If eval later needs programmatic access to warnings, lift to the contract — single field add, low coordination cost. v1 keeps the contract narrow.
+
+The disambiguation that matters: tolerance is for *content* (data we receive); strictness is for *structure* (commitments the model made to follow). Conflating them was the original error.
+
+## 2026-05-03 17:06 — `parse_warnings` lifted onto `AgentResult` (supersedes 16:58 "kept off contract" call)
+
+Reversed. The 16:58 entry argued for keeping `parse_warnings` on a local `ParsedOutput` helper and surfacing it only via `logging.warning()`. User pushed back and was right.
+
+Why my original reasoning didn't hold:
+- "Logging covers it" — log scraping is a worse interface than a typed field for cross-run comparison and programmatic inspection.
+- "Lift later if needed" — the eval needs structural-failure signal *now* to grade calibration and to expose deterministic checks like "no parse warnings emitted." Deferring the contract change pushes complexity onto the eval and introduces a divergent code path (logs in dev, fields in prod).
+- "Low contract churn" — I was optimizing against contract change as a goal, instead of letting the data flow shape the contract. `parse_warnings` is genuinely cross-cutting (agent produces, eval consumes), so it belongs in the contract.
+
+**Change applied** in `src/wiki_qa/agent_contract.py`:
+```python
+parse_warnings: list[str] = Field(default_factory=list)
+```
+
+Default-empty so existing constructors (the harness agent's stub fixtures, etc.) don't break — they'll silently get `[]` until they decide to populate from `ParsedOutput.parse_warnings`. JSON round-trip via `model_dump_json()` / `model_validate_json()` preserves the field; `results.jsonl` carries it through.
+
+**Coordination heads-up to workstream B**: contract added one field, default `[]`. Stub fixtures don't need updates to compile but should populate when they're testing structural failure modes. Worth adding a `parse_warnings_empty` deterministic check to behavior_checks.
+
+**Meta-lesson, captured for myself**: when a piece of data crosses a workstream boundary, it belongs in the shared contract, not in workstream-private state with cross-cutting side channels. "Optimize for contract stability" is not a real goal; "optimize for honest data flow" is.
+
+## 2026-05-03 17:11 — `parse_warnings` typed as `list[ParseWarning]` StrEnum, canonical 9-value taxonomy (supersedes 17:06 `list[str]` choice)
+
+User pushback in two parts.
+
+**Part 1 (typing):** `list[str]` for categorical signals is the same anti-pattern Pydantic was meant to fix — downstream consumers substring-match on display text. Switched to `StrEnum` (`ParseWarning`) defined in `agent_contract.py`. Round-trips through JSON as plain strings (StrEnum default), validates at construction (Pydantic rejects unknown codes — verified via smoke test), refactor-safe at the type level. Trade-off accepted: lose the freeform detail the strings carried (e.g. "(3) blocks"); recover via `raw_output` if eval ever needs counts.
+
+**Part 2 (taxonomy completeness):** initial enum had only the 3 conditions that previously emitted warnings (REVERSED_ORDER, MULTIPLE_EVIDENCE_BLOCKS, MULTIPLE_ANSWER_BLOCKS). User correctly noted this missed real failure modes the parser already detected silently — missing block, unclosed tag, empty content. Eval couldn't distinguish "model didn't try" from "model tried but malformed" from "model produced empty content."
+
+Canonical list is now 9 codes (in `src/wiki_qa/agent_contract.py:24-72`):
+
+- **Order**: `REVERSED_ORDER`
+- **Multiplicity**: `MULTIPLE_EVIDENCE_BLOCKS`, `MULTIPLE_ANSWER_BLOCKS`
+- **Per-block presence** (mutually exclusive within each block type):
+  - `MISSING_EVIDENCE_BLOCK` / `MISSING_ANSWER_BLOCK` — no opening tag anywhere
+  - `UNCLOSED_EVIDENCE_TAG` / `UNCLOSED_ANSWER_TAG` — opening tag without close (model attempted, malformed)
+  - `EMPTY_EVIDENCE_BLOCK` / `EMPTY_ANSWER_BLOCK` — matched but content empty after strip
+
+The MISSING / UNCLOSED / EMPTY split per block matters because the failure interpretations differ: missing = model ignored structure; unclosed = model attempted, broke format; empty = model produced clean structure with null content. Eval may want to penalize each differently.
+
+REVERSED_ORDER and MULTIPLE_* are independent and can co-occur with the block-state codes. Not all combinations are reachable — e.g., REVERSED_ORDER takes the early-return path so missing/unclosed/empty diagnostics don't fire alongside it (both blocks were present and matched, just in wrong order).
+
+**Coordination note for workstream B**: the contract field type changed from `list[str]` to `list[ParseWarning]` and the value set expanded from 3 to 9. Stub fixtures populating the field will need to switch from raw strings to enum members. Default `[]` still works for fixtures that don't populate. Consider adding deterministic eval checks that map specific warnings to rubric-dimension penalties (e.g., `MISSING_EVIDENCE_BLOCK` → calibration and groundedness both dock points).
+
+## 2026-05-03 18:34 — Eval harness consumes ParseWarning via no_parse_warnings deterministic check
+
+Workstream A's commit changed `AgentResult.parse_warnings` from `list[str]` to `list[ParseWarning]` (StrEnum with 9 categorical codes covering missing/unclosed/empty/multiple/reversed structural anomalies). My eval-harness code never asserted on the field as `list[str]`, so no test breakage from the type change — but the whole point of the field per workstream A's note is "deterministic structural-failure signal independent of judge rubric scoring," so the harness needs to actually consume it.
+
+Added `no_parse_warnings` as the eighth deterministic check in `behavior_checks.py`:
+- Pass when `result.parse_warnings == []`
+- Fail otherwise, with `detail` listing the warning codes (e.g. `"parser emitted 2 warning(s): missing_evidence_block, missing_answer_block"`)
+- Always applies (NA never) — the parser runs for every agent invocation regardless of search behavior
+
+v1 collapses all 9 codes into one pass/fail. Workstream A's coordination note suggested mapping specific warnings to specific rubric dimensions (`MISSING_EVIDENCE_BLOCK` → groundedness + calibration penalties); deferred to a later iteration once eval data shows whether some codes are tolerable (e.g. `MULTIPLE_*` — parser took the first, recoverable from `raw_output`) while others are hard failures (`MISSING_*`). Splitting prematurely loses signal the same way collapsing prematurely does — wait for evidence.
+
+Updated `tests/unit/eval/test_behavior_checks.py` with four new tests (clean parse passes, single warning fails, multiple warnings list all codes, applies-when-no-searches), bumped the aggregate-shape test from 7 to 8 checks, and updated the runner test that asserted on shape. 98/98 unit tests green. Plan's behavior_checks table updated to document the new check.
+
+## 2026-05-03 18:48 — parse_warnings consumption split into 4 cluster checks; judge gets it as context (supersedes 18:34)
+
+Reverses the 18:34 "single collapsed `no_parse_warnings` check" call. User pushed back with the same logic that kept `has_bracket_citations` and `no_markdown_links` separate: collapsing codes that map to distinct fixes hides which one is firing across an iteration. Right argument; reversed.
+
+Final shape: 4 cluster-based checks, replacing the single check.
+
+| Check | Codes | What it signals | Fix direction |
+|---|---|---|---|
+| `output_has_required_blocks` | `MISSING_EVIDENCE_BLOCK`, `MISSING_ANSWER_BLOCK` | Model didn't emit the structure | Strengthen output-format guidance in prompt |
+| `output_blocks_well_formed` | `UNCLOSED_EVIDENCE_TAG`, `UNCLOSED_ANSWER_TAG` | Tried, emitted malformed | Tokenization/length; concrete example in prompt |
+| `output_blocks_non_empty` | `EMPTY_EVIDENCE_BLOCK`, `EMPTY_ANSWER_BLOCK` | Structure clean, content missing | Require populated content in each block |
+| `output_blocks_canonical` | `REVERSED_ORDER`, `MULTIPLE_EVIDENCE_BLOCKS`, `MULTIPLE_ANSWER_BLOCKS` | Structure present but emitted oddly | Emphasize evidence-first, single block per type |
+
+Each cluster's check fails independently; details list the exact codes that fired within that cluster. Per-case totals shift from 8 → 11 deterministic checks; aggregate-shape and summary-counts tests updated. 9 individual per-code checks rejected as too granular for the report.
+
+**Judge integration coordination**: `parse_warnings` will also be passed into the judge prompt as **informational context** (not a scoring directive) when the judge lands. The judge needs to know structural state to interpret the answer correctly — "claim unsupported because evidence block was empty" reads differently from "claim unsupported because the model hallucinated." But the deterministic checks already record structural failure as their own signal; the judge should not double-count by docking rubric points on `parse_warnings`. Captured in `plans/eval_harness.md` under behavior_checks; will be enforced in the judge prompt copy when built.
+
+107/107 unit tests green; ruff + mypy --strict clean.
