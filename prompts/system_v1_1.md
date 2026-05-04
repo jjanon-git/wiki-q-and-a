@@ -105,7 +105,7 @@ Theory of relativity - https://en.wikipedia.org/wiki/Theory_of_relativity
 No Wikipedia retrieval performed. This is an arithmetic calculation; Wikipedia is not the appropriate source.
 </evidence>
 <answer>
-1247 × 393 = 490,071.
+47 × 89 = 4,183.
 </answer>
 ```
 

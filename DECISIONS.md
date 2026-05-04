@@ -585,3 +585,24 @@ Implementation in `src/wiki_qa/eval/calibration.py`. 14 unit tests in `tests/uni
 Why YAML over markdown for human input (recap of 2026-05-03 16:24): parsing human-edited markdown is fragile (whitespace, partial fills, heterogeneous score formats). YAML keeps the input strict and the read-only markdown view separate. Two files, one purpose each.
 
 Status: workflow is end-to-end. The user's validation step (filling the YAML and reading the analyze report) is the next step; what's not built — and not in scope for v1 — is automated multi-run averaging or judge-of-judges. Both flagged as v2 candidates in WRITEUP.md.
+
+## 2026-05-03 20:36 — Prompt-example leak in v1.1 demo: fixed
+
+User observed during the `--demo` run that the negative_capability case ("What is 1247 multiplied by 393?") came back with `1247 × 393 = 490,071.` and asked why. Two issues:
+
+1. **The CLI's `format_result()` only shows `result.answer`** — not the `<evidence>` block, not `raw_output`. The model probably emitted the proper non-search evidence wrapper; we just don't surface it. Lower priority, but worth noting.
+
+2. **The bigger issue**: the v1.1 prompt's worked example for "genuinely non-search responses" used the literal string `1247 × 393 = 490,071` — and the demo asked the same question. The model was very likely regurgitating the example verbatim rather than computing. The eval baseline numbers for `negative_capability_001` are technically suspect for the same reason (the prompt example leaked the answer to the eval case).
+
+Fix: split into three distinct arithmetic problems so neither the demo nor the eval can be answered by reproducing the prompt:
+- **Prompt example** (`prompts/system_v1_1.md`): `47 × 89 = 4,183` (small, distinct)
+- **Demo question** (`src/wiki_qa/cli.py:DEMO_QUESTIONS`): `What is 4738 multiplied by 271?` (= 1,283,998)
+- **Eval case** (`tests/eval/cases/v1.yaml:negative_capability_001`): `1247 × 393 = 490,071` (unchanged)
+
+All three numerically verified via Python before the change. Live re-run of the demo math question (post-fix) shows the model now produces a worked digit-by-digit breakdown — `4738 × 271 = 4738 × 200 + 4738 × 70 + 4738 × 1 = 947,600 + 331,660 + 4,738 = 1,283,998` — confirming actual computation rather than regurgitation.
+
+**Lesson worth carrying forward**: when designing eval datasets and demos against a system prompt, *every* concrete example in the prompt is a potential leak. Worked examples are necessary (the v1 → v1.1 fix depended on a worked example for non-search responses), but they should use illustrative-but-different content from anything in the eval set or demo. Add to the writeup as a methodological note.
+
+The v1.1 eval baseline numbers stand for `negative_capability_001` (the eval case wasn't changed and the prompt example was the same when the eval ran), but the result on that one case is partly a regurgitation artifact. Future v1.x runs against this dataset will be cleaner: the prompt example is now `47 × 89` and the eval case is `1247 × 393`.
+
+`prompts/system_v1_2.md` is left as-is (it's a historical iteration artifact). If we run a v1.3 we'd start by re-cloning v1.1 with the fix already applied.

@@ -19,12 +19,14 @@ from wiki_qa.agent_contract import AgentResult
 
 # A small, deliberately diverse sample for `--demo`. One case per
 # representative category — fast enough to run as a smoke test, broad
-# enough to show the agent's range.
+# enough to show the agent's range. Each demo question is intentionally
+# different from any worked example in the system prompt so we're testing
+# the model's actual behavior, not its ability to regurgitate.
 DEMO_QUESTIONS: tuple[str, ...] = (
     "When was the Battle of Hastings?",  # simple_factual
     "Which is taller, K2 or Kangchenjunga?",  # multi_source
     "When did Magellan complete the first circumnavigation of the globe?",  # false_premise
-    "What is 1247 multiplied by 393?",  # negative_capability
+    "What is 4738 multiplied by 271?",  # negative_capability (= 1,283,998)
 )
 
 
