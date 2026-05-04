@@ -606,3 +606,23 @@ All three numerically verified via Python before the change. Live re-run of the 
 The v1.1 eval baseline numbers stand for `negative_capability_001` (the eval case wasn't changed and the prompt example was the same when the eval ran), but the result on that one case is partly a regurgitation artifact. Future v1.x runs against this dataset will be cleaner: the prompt example is now `47 × 89` and the eval case is `1247 × 393`.
 
 `prompts/system_v1_2.md` is left as-is (it's a historical iteration artifact). If we run a v1.3 we'd start by re-cloning v1.1 with the fix already applied.
+
+## 2026-05-03 20:51 — Judge calibration spot-check completed against v1.1 baseline
+
+User filled in the human scores in `eval_runs/v1_1_2026-05-04T02-06-51Z/calibration.scores.yaml` and ran `calibrate analyze`. Result captured in detail in `tests/eval/iterations.md` (Calibration section) and `WRITEUP.md` (Judge calibration: spot-checked).
+
+**Per-dimension agreement (8 cases × 5 dims, agreement = `|human − judge| ≤ 1`):**
+
+| Dim | Agree | Disagree | Rate |
+|---|---|---|---|
+| factual_accuracy | 8 | 0 | 100% |
+| groundedness | 8 | 0 | 100% |
+| citation_quality | 8 | 0 | 100% |
+| search_efficiency | 8 | 0 | 100% |
+| calibration | 7 | 1 | 88% |
+
+No dimensions flagged (all under 25% threshold). Sole disagreement: `false_premise_002` (Curie chemistry Nobel) calibration dim — human=3, judge=1, delta=+2. Judge was the more conservative party on a subtle joint-discovery nuance, which is the preferable failure mode for a grounding-quality eval.
+
+Concrete artifact: workflow demonstrated end-to-end on the v1.1 baseline. The calibration spot-check is now an actual signal in the writeup, not just a designed-but-untested process. Caveats explicit in both files: small sample (8/34), single human reviewer, single judge, no multi-run averaging — these are real limits and the result is conditional on them.
+
+Conclusion: per-dim means in `iterations.md` are trustworthy at this calibration depth. The eval design held up under spot-check. Real production validation would mean multiple SMEs and inter-rater agreement on the human side.

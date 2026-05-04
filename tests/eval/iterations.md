@@ -400,3 +400,58 @@ this eval suite was designed for prompt-engineering iteration on
 specific failure modes, not for ranking similar prompts. v1 → v1.1
 was the kind of delta this dataset measures well; v1.1 → v1.2 is
 near the floor of what it can distinguish.
+
+---
+
+## Judge calibration spot-check — 2026-05-03 (against v1.1 baseline)
+
+- **Run scored**: `eval_runs/v1_1_2026-05-04T02-06-51Z/`
+- **Sample**: 8 cases stratified by `calibrate sample --n 8 --seed 42`,
+  covering low-score (≤1) and high-score (=3) buckets across all 5
+  rubric dimensions
+- **Method**: scored each case independently, then ran
+  `calibrate analyze`
+- **Threshold**: dimension flagged for review if >25% disagreement
+  (per DECISIONS 2026-05-03 15:34)
+
+### Per-dimension agreement
+
+| Dimension | Agree | Disagree | Skipped | Rate | Flag |
+|---|---|---|---|---|---|
+| `factual_accuracy` | 8 | 0 | 0 | 100% | ok |
+| `groundedness` | 8 | 0 | 0 | 100% | ok |
+| `citation_quality` | 8 | 0 | 0 | 100% | ok |
+| `search_efficiency` | 8 | 0 | 0 | 100% | ok |
+| `calibration` | 7 | 1 | 0 | 88% | ok |
+
+Definition of agreement: `|human - judge| ≤ 1`.
+
+### Sole disagreement
+
+`false_premise_002` (Curie chemistry Nobel) — `calibration` dim:
+human=3, judge=1, delta=+2. The judge was the more conservative party
+on a subtle joint-discovery nuance built into the question. Direction
+matters: judge-stricter-than-human is the preferable failure mode for
+a grounding-quality eval (better the judge be tight than lenient).
+
+### Conclusion
+
+No dimensions flagged. Judge is calibrated against this reviewer's
+reading at this calibration depth. Per-dim means in v1, v1.1, v1.2
+sections above are trustworthy at this depth.
+
+### Caveats (load-bearing)
+
+- **n=8 of 34** — small sample. Pattern detection only.
+- **Single human reviewer** (the project author). No inter-rater
+  agreement on the human side.
+- **Single judge** (Opus 4.7 instance). No ensemble or
+  judge-of-judges check.
+- **No multi-run averaging** — each prompt was run once against the
+  dataset; judge-stochasticity is not separated from prompt-effect.
+
+The calibration result says "the judge agrees with my reading at this
+depth". It does not say "the judge is correct" or "the rubric is
+well-defined for novel cases". Real validation would require multiple
+SMEs scoring 50+ cases each with inter-rater statistics. Listed under
+"What I would do with more time" in `WRITEUP.md`.
