@@ -1,0 +1,826 @@
+# Eval dataset v1 — hand-curated stress-test cases across 10 categories.
+#
+# Every gold answer in this file is sourced from live Wikipedia content (the
+# same content the agent retrieves via search_wikipedia). Anything claimed
+# in expected_answer is verifiable in the cited article. No training-data
+# leakage.
+#
+# For multi_hop cases, each chain has been verified: the final answer is
+# NOT in the lead of the first natural search, but IS in the lead of a
+# subsequent entity's article. Multi-hop nature is genuine, not bypassable
+# by a single search.
+#
+# Format per case:
+#   id, category, difficulty (easy|medium|hard), question, expected_answer,
+#   expected_behavior (must_search, must_not_search,
+#     must_surface_premise_discrepancy, must_refuse), notes.
+
+# ---------------------------------------------------------------------------
+# disambiguation_explicit (3)
+# ---------------------------------------------------------------------------
+
+- id: disambiguation_001
+  category: disambiguation_explicit
+  difficulty: medium
+  question: "What is the largest city on the island of Java?"
+  expected_answer: |
+    Per Wikipedia (Java article infobox): the largest city on Java is
+    Jakarta (population ~10.7 million per the article's mid-2024 figure).
+    Wikipedia also notes "Indonesia's capital city, Jakarta, is on Java's
+    northwestern coast."
+
+    The user has implicitly disambiguated: "the island of Java" is the
+    geographic island, NOT the programming language. The agent must search
+    for Java the island and return its largest city. A response that talks
+    about the Java programming language fails on factual_accuracy and
+    calibration — the agent ignored the user's disambiguation.
+  expected_behavior:
+    must_search: true
+    must_not_search: false
+    must_surface_premise_discrepancy: false
+    must_refuse: false
+  notes: "Verified against live Wikipedia (Java article). Tests respect for user-implicit disambiguation."
+
+- id: disambiguation_002
+  category: disambiguation_explicit
+  difficulty: medium
+  question: "Tell me about Mercury, the Roman god."
+  expected_answer: |
+    Per Wikipedia (Mercury (mythology) article): Mercury is a major god in
+    Roman religion and mythology, one of the 12 Dii Consentes within the
+    ancient Roman pantheon. He is the god of boundaries, commerce,
+    communication (including divination), eloquence, financial gain,
+    languages, luck, thieves, travelers, and trickery; he is also the
+    guide of souls to the underworld. In Roman mythology he was the son of
+    Maia and Jupiter. He is often depicted with the caduceus, and is
+    associated with the Greek god Hermes.
+
+    The user has explicitly disambiguated: "Mercury, the Roman god". A
+    correct answer covers Mercury-the-deity. A response about the planet,
+    the element, or Freddie Mercury fails on factual_accuracy and
+    calibration — the agent ignored the user's explicit disambiguation.
+  expected_behavior:
+    must_search: true
+    must_not_search: false
+    must_surface_premise_discrepancy: false
+    must_refuse: false
+  notes: "Verified against live Wikipedia (Mercury (mythology) article). Tests respect for user-explicit disambiguation."
+
+- id: disambiguation_003
+  category: disambiguation_explicit
+  difficulty: medium
+  question: "What is Mercury?"
+  expected_answer: |
+    Per Wikipedia: a search for "Mercury" returns a disambiguation page
+    that lists the major senses: Mercury (planet, the closest planet to
+    the Sun), Mercury (element, a chemical element), Mercury (mythology,
+    a Roman deity), and other senses including Freddie Mercury.
+
+    The user did NOT disambiguate. A correct response either picks the
+    most plausible default sense (most commonly the planet) AND
+    acknowledges that other senses exist, or asks a clarifying question.
+    Committing to a single sense without acknowledging alternatives fails
+    on calibration. Inventing a sense not listed on the disambiguation
+    page fails on groundedness.
+  expected_behavior:
+    must_search: true
+    must_not_search: false
+    must_surface_premise_discrepancy: false
+    must_refuse: false
+  notes: "Verified against live Wikipedia. 'Mercury' returns the disambiguation page as top result. Tests handling of an unspecified ambiguous query."
+
+# ---------------------------------------------------------------------------
+# buried_answer (3) — answer is in the article body, NOT in the lead extract.
+# Diagnostic for tool design: repeated failures here = signal to add a
+# fetch_wikipedia_article tool or drop exintro=true.
+# ---------------------------------------------------------------------------
+
+- id: buried_answer_001
+  category: buried_answer
+  difficulty: hard
+  question: "What was Google originally called when Larry Page and Sergey Brin started it?"
+  expected_answer: |
+    Per Wikipedia (Google article body): Page and Brin originally
+    nicknamed the search engine "BackRub" because the system checked
+    backlinks to estimate the importance of a site.
+
+    A correct response identifies "BackRub". This fact is buried in the
+    article body, not in the lead extract — the agent must either refine
+    its query (e.g., "history of Google", "BackRub") to surface a different
+    article or section whose lead has the detail, or honestly admit it
+    cannot retrieve the answer from the lead it can see. Hallucinating a
+    different name or claiming "no original name existed" fails on
+    groundedness and calibration.
+  expected_behavior:
+    must_search: true
+    must_not_search: false
+    must_surface_premise_discrepancy: false
+    must_refuse: false
+  notes: "Verified against live Wikipedia. 'BackRub' is in the Google article body but not in the lead. Diagnostic for tool design."
+
+- id: buried_answer_002
+  category: buried_answer
+  difficulty: hard
+  question: "How many home runs did Babe Ruth hit in his career?"
+  expected_answer: |
+    Per Wikipedia (Babe Ruth article body): 714 career home runs. The
+    article states he finished his career with "the final six of his 714
+    home runs" in 1935.
+
+    A correct response gives 714 (or close-paraphrase: "seven hundred
+    fourteen"). The number is in the article body, not the lead extract —
+    the agent must refine its query (e.g., "Babe Ruth career statistics")
+    or admit it cannot surface the figure. A different number is a
+    factual_accuracy and groundedness failure. Vague "many home runs"
+    without the specific figure is a partial fail.
+  expected_behavior:
+    must_search: true
+    must_not_search: false
+    must_surface_premise_discrepancy: false
+    must_refuse: false
+  notes: "Verified against live Wikipedia. '714' is in the article body, not the lead. Diagnostic for tool design."
+
+- id: buried_answer_003
+  category: buried_answer
+  difficulty: hard
+  question: "What did Jeff Bezos originally want to call Amazon?"
+  expected_answer: |
+    Per Wikipedia (Amazon (company) article infobox): the company's former
+    name was "Cadabra, Inc." (1994–1995), before being renamed to Amazon.
+
+    A correct response identifies "Cadabra". The fact is in the article
+    infobox/body, not in the lead extract the agent retrieves first. The
+    agent must either refine its query (e.g., "Amazon company history")
+    to surface a different article or section, or admit it cannot surface
+    the answer. Inventing a different name fails on groundedness.
+  expected_behavior:
+    must_search: true
+    must_not_search: false
+    must_surface_premise_discrepancy: false
+    must_refuse: false
+  notes: "Verified against live Wikipedia. 'Cadabra, Inc.' is in the Amazon (company) article body/infobox, not the lead extract. Diagnostic for tool design."
+
+# ---------------------------------------------------------------------------
+# false_premise (5) — Wikipedia explicitly contradicts the question's premise.
+# Agent must surface the discrepancy descriptively, NOT correct the user.
+# ---------------------------------------------------------------------------
+
+- id: false_premise_001
+  category: false_premise
+  difficulty: medium
+  question: "When did Magellan complete the first circumnavigation of the globe?"
+  expected_answer: |
+    Per Wikipedia (Ferdinand Magellan article): Magellan did not personally
+    complete the circumnavigation. He was killed in battle in the
+    Philippines in 1521. His crew, commanded by Spanish navigator Juan
+    Sebastián Elcano, completed the return trip to Spain.
+
+    The agent should surface this as a discrepancy with the question's
+    implicit premise — for example, "Wikipedia indicates Magellan was
+    killed before completing the voyage; his crew under Elcano completed
+    the return" — without asserting the user is "wrong" or "mistaken".
+    A correct response explicitly attributes the completion to Elcano,
+    not Magellan.
+  expected_behavior:
+    must_search: true
+    must_not_search: false
+    must_surface_premise_discrepancy: true
+    must_refuse: false
+  notes: "Verified against live Wikipedia (Ferdinand Magellan article lead). False premise: that Magellan personally completed the voyage."
+
+- id: false_premise_002
+  category: false_premise
+  difficulty: hard
+  question: "What did Marie Curie discover that won her the Nobel Prize in Chemistry?"
+  expected_answer: |
+    Per Wikipedia (Marie Curie article): the 1911 Nobel Prize in Chemistry
+    was awarded "in recognition of her services to the advancement of
+    chemistry by the discovery of the elements radium and polonium, by
+    the isolation of radium and the study of the nature and compounds of
+    this remarkable element". The article also describes the underlying
+    discovery as joint work: "the Curies sought to isolate polonium and
+    radium in pure form" — i.e., the discoveries were made jointly with
+    Pierre Curie, even though the 1911 prize was awarded to Marie alone.
+
+    A correct response identifies polonium and radium (with isolation of
+    radium being the specific contribution the prize cites) and surfaces
+    the joint-discovery nuance — Wikipedia attributes the discovery to
+    "the Curies", not to Marie alone — rather than asserting sole
+    discovery. Naming a different element, or attributing the chemistry
+    prize to a different achievement, is a factual_accuracy failure.
+  expected_behavior:
+    must_search: true
+    must_not_search: false
+    must_surface_premise_discrepancy: true
+    must_refuse: false
+  notes: "Verified against live Wikipedia (Marie Curie article). Subtle false premise: the Chemistry Nobel was indeed for radium/polonium discovery, but Wikipedia attributes the underlying discovery jointly with Pierre Curie. Hard case — tests whether the agent surfaces the joint-discovery nuance."
+
+- id: false_premise_003
+  category: false_premise
+  difficulty: medium
+  question: "What was Edison's first invention, the light bulb?"
+  expected_answer: |
+    Per Wikipedia (Thomas Edison article): Edison's first patent was for
+    the electric vote recorder (1869), not the incandescent light bulb.
+    Wikipedia explicitly captions an image of "Edison's first patent with
+    a schema for the electric vote recorder."
+
+    The agent should surface the discrepancy — Wikipedia attributes
+    Edison's first patent to the vote recorder, not the light bulb —
+    without asserting the user is "wrong". Confirming the premise (saying
+    his first invention was the light bulb) is a factual_accuracy failure.
+  expected_behavior:
+    must_search: true
+    must_not_search: false
+    must_surface_premise_discrepancy: true
+    must_refuse: false
+  notes: "Verified against live Wikipedia (Thomas Edison article). False premise: that the light bulb was Edison's first invention."
+
+- id: false_premise_004
+  category: false_premise
+  difficulty: medium
+  question: "When did Bill Gates graduate from Harvard?"
+  expected_answer: |
+    Per Wikipedia (Bill Gates article): Gates did not graduate from
+    Harvard. The article states he "dropped out in 1975 to co-found and
+    lead Microsoft" and that he "left Harvard after two years while
+    Ballmer stayed and graduated magna cum laude". Wikipedia notes Gates
+    later received an honorary degree.
+
+    The agent should surface this as a discrepancy — Wikipedia attributes
+    his exit to dropping out, not graduation — without asserting the user
+    is "wrong". Naming a graduation year (e.g., 1977) is a
+    factual_accuracy and groundedness failure.
+  expected_behavior:
+    must_search: true
+    must_not_search: false
+    must_surface_premise_discrepancy: true
+    must_refuse: false
+  notes: "Verified against live Wikipedia (Bill Gates article). False premise: that Gates graduated from Harvard."
+
+- id: false_premise_005
+  category: false_premise
+  difficulty: hard
+  question: "Why was Napoleon so short, given he was only 5'2\"?"
+  expected_answer: |
+    Per Wikipedia (Napoleon article): the premise is incorrect. Wikipedia
+    explicitly states "at about 168 cm (5 ft 6 in), he was of average
+    height" for his time. The article addresses the "short Napoleon" claim
+    as a myth.
+
+    The agent should surface the discrepancy — Wikipedia gives Napoleon's
+    height as ~168 cm / 5'6" (average), not 5'2" — without asserting the
+    user is "wrong". Speculating on causes of his "shortness" without
+    surfacing the height-myth disagreement is a groundedness and
+    calibration failure. A correct answer notes the actual figure and
+    declines to explain a non-existent shortness.
+  expected_behavior:
+    must_search: true
+    must_not_search: false
+    must_surface_premise_discrepancy: true
+    must_refuse: false
+  notes: "Verified against live Wikipedia (Napoleon article). False premise: that Napoleon was 5'2\" / unusually short."
+
+# ---------------------------------------------------------------------------
+# unanswerable_not_in_wp (3) — answerable in principle, not on Wikipedia.
+# Tests refuse-cleanly-after-search vs. hallucinated guess. Critical for
+# customer trust in the system.
+# ---------------------------------------------------------------------------
+
+- id: unanswerable_001
+  category: unanswerable_not_in_wp
+  difficulty: medium
+  question: "What's the current outdoor temperature in Reykjavík?"
+  expected_answer: |
+    Wikipedia does not contain real-time weather data. The Reykjavík
+    article describes the city's geography, history, and climate
+    characteristics in general terms (latitude, average temperatures,
+    climate type), but does not carry a current outdoor temperature
+    reading.
+
+    A correct response acknowledges that real-time weather isn't on
+    Wikipedia, declines to provide a number, and may suggest a weather
+    service (e.g., the Icelandic Met Office, weather.com) as an
+    alternative. Producing a specific current temperature is a
+    groundedness and calibration failure — the model would be hallucinating
+    or guessing.
+  expected_behavior:
+    must_search: true
+    must_not_search: false
+    must_surface_premise_discrepancy: false
+    must_refuse: true
+  notes: "Verified: Wikipedia's Reykjavík article does not contain current weather data."
+
+- id: unanswerable_002
+  category: unanswerable_not_in_wp
+  difficulty: medium
+  question: "What was Marie Curie's home address in Paris?"
+  expected_answer: |
+    The Marie Curie Wikipedia article does not contain her home address.
+    Direct inspection of the full article (~118K characters) found zero
+    address-like content in the article itself: no street numbers, no
+    rue/boulevard/avenue references. The single "address" mention is
+    unrelated ("Pierre Curie gave the address", referring to a speech).
+
+    A correct response acknowledges that the Marie Curie article does
+    not contain this information, declines to provide a specific address,
+    and may note where such detail might live (biographical monographs,
+    Curie Museum / Institut Curie archives). The agent should NOT claim
+    that no Wikipedia article anywhere mentions a Curie residence — only
+    that the search did not surface one. Producing a specific street
+    address is a groundedness and calibration failure.
+  expected_behavior:
+    must_search: true
+    must_not_search: false
+    must_surface_premise_discrepancy: false
+    must_refuse: true
+  notes: "Verified directly: the Marie Curie Wikipedia article contains no home-address content (checked via wikitext fetch + pattern search). The narrower claim is supportable; the broader 'Wikipedia doesn't have it anywhere' claim is not (other articles, e.g. Curie Museum, may carry address detail)."
+
+- id: unanswerable_003
+  category: unanswerable_not_in_wp
+  difficulty: medium
+  question: "How many followers does Anthropic's official Twitter account have right now?"
+  expected_answer: |
+    Wikipedia does not carry real-time social media metrics. The Anthropic
+    article (and adjacent articles) describes the company, its leadership,
+    products, and history but does not include a current Twitter/X
+    follower count, which is a real-time external metric.
+
+    A correct response acknowledges that Wikipedia is not a source for
+    live social media counts, declines to provide a number, and may
+    suggest checking the account directly on twitter.com/x.com. Producing
+    a specific follower number is a groundedness and calibration failure.
+  expected_behavior:
+    must_search: true
+    must_not_search: false
+    must_surface_premise_discrepancy: false
+    must_refuse: true
+  notes: "Verified: Wikipedia's Anthropic-related articles do not contain real-time social media follower counts."
+
+# ---------------------------------------------------------------------------
+# temporal (2) — recency-bounded. Agent should answer with last-known
+# Wikipedia value AND caveat that it may have changed.
+# ---------------------------------------------------------------------------
+
+- id: temporal_001
+  category: temporal
+  difficulty: medium
+  question: "How many member states are in the European Union?"
+  expected_answer: |
+    Per Wikipedia (Member state of the European Union article): the EU is
+    "a supranational union of 27 member states". This figure has been 27
+    since the United Kingdom's withdrawal from the EU in January 2020.
+
+    A correct response gives 27 AND adds a caveat that this is the value
+    as of Wikipedia's most recent update and could change with future
+    accessions or withdrawals. Stating 27 without any temporal caveat is
+    technically correct but loses calibration credit. Stating a different
+    number (e.g., 28, 26) is a factual_accuracy failure.
+  expected_behavior:
+    must_search: true
+    must_not_search: false
+    must_surface_premise_discrepancy: false
+    must_refuse: false
+  notes: "Verified against live Wikipedia (Member state of the European Union article). Tests recency caveat behavior on a stable-but-temporal value."
+
+- id: temporal_002
+  category: temporal
+  difficulty: medium
+  question: "What is the most populous country in the world?"
+  expected_answer: |
+    Per Wikipedia (India article lead): "India... is... the most populous
+    country since 2023". India surpassed China in 2023 to become the
+    world's most populous country.
+
+    A correct response identifies India AND adds a caveat that this is
+    the value as of Wikipedia's most recent update — populations are
+    estimates and rankings can shift over time. Identifying China (the
+    previous holder) is a factual_accuracy failure. Identifying India
+    without a recency caveat is technically correct but loses calibration
+    credit.
+
+    Note: the agent's first search for "most populous country" returns
+    "List of countries and dependencies by population", whose lead is
+    generic methodology and does NOT directly name India. The expected
+    recovery is refining to "India" (or "India population"), whose lead
+    states the most-populous claim explicitly.
+  expected_behavior:
+    must_search: true
+    must_not_search: false
+    must_surface_premise_discrepancy: false
+    must_refuse: false
+  notes: "Verified against live Wikipedia (India article lead: 'the most populous country since 2023'). Tests recency caveat AND search refinement: first query returns generic list article; refined query surfaces the answer in India's lead."
+
+# ---------------------------------------------------------------------------
+# simple_factual (4) — single canonical fact in the article lead. Baselines.
+# Failures here mean something fundamental is broken.
+# ---------------------------------------------------------------------------
+
+- id: simple_factual_001
+  category: simple_factual
+  difficulty: easy
+  question: "When was the Eiffel Tower built?"
+  expected_answer: |
+    Per Wikipedia (Eiffel Tower article): the tower was designed and built
+    by Gustave Eiffel's company "from 1887 to 1889". A correct response
+    gives the construction span 1887–1889, or names completion year 1889.
+    Off by more than a year is a factual_accuracy failure.
+  expected_behavior:
+    must_search: true
+    must_not_search: false
+    must_surface_premise_discrepancy: false
+    must_refuse: false
+  notes: "Verified against live Wikipedia (Eiffel Tower article lead)."
+
+- id: simple_factual_002
+  category: simple_factual
+  difficulty: easy
+  question: "Who wrote Pride and Prejudice?"
+  expected_answer: |
+    Per Wikipedia (Pride and Prejudice article): the novel is by English
+    author Jane Austen, published in 1813. A correct response names Jane
+    Austen. Naming a different author is a factual_accuracy failure.
+  expected_behavior:
+    must_search: true
+    must_not_search: false
+    must_surface_premise_discrepancy: false
+    must_refuse: false
+  notes: "Verified against live Wikipedia (Pride and Prejudice article lead)."
+
+- id: simple_factual_003
+  category: simple_factual
+  difficulty: easy
+  question: "What is the capital of Australia?"
+  expected_answer: |
+    Per Wikipedia (Canberra article): "Canberra... is the capital city of
+    Australia and the largest population centre in the Australian Capital
+    Territory." A correct response names Canberra. Naming Sydney or
+    Melbourne (common confusion) is a factual_accuracy failure — Wikipedia
+    explicitly identifies Canberra.
+  expected_behavior:
+    must_search: true
+    must_not_search: false
+    must_surface_premise_discrepancy: false
+    must_refuse: false
+  notes: "Verified against live Wikipedia. 'Capital of Australia' returns the Canberra article. Tests resilience to common misconception (Sydney/Melbourne)."
+
+- id: simple_factual_004
+  category: simple_factual
+  difficulty: easy
+  question: "In what years was World War II fought?"
+  expected_answer: |
+    Per Wikipedia (World War II article lead): "World War II, or the
+    Second World War (1 September 1939 – 2 September 1945), was a global
+    conflict..." A correct response identifies 1939–1945. Off by more than
+    a year on either end is a factual_accuracy failure.
+  expected_behavior:
+    must_search: true
+    must_not_search: false
+    must_surface_premise_discrepancy: false
+    must_refuse: false
+  notes: "Verified against live Wikipedia (World War II article lead)."
+
+# ---------------------------------------------------------------------------
+# multi_source (3) — parallel info gathering from two articles, then combine.
+# ---------------------------------------------------------------------------
+
+- id: multi_source_001
+  category: multi_source
+  difficulty: medium
+  question: "Who lived longer: Charles Darwin or Isaac Newton?"
+  expected_answer: |
+    Per Wikipedia: Charles Darwin lived 1809–1882 (73 years). Isaac Newton
+    lived 1643–1727 (84 years; using the New Style/Gregorian calendar; or
+    1642–1727 in Old Style). The Newton article lead gives both calendar
+    versions: "4 January [O.S. 25 December] 1643 – 31 March [O.S. 20 March]
+    1727".
+
+    A correct response identifies Newton as longer-lived (~84 vs 73 years).
+    Naming Darwin is a factual_accuracy failure. Approximate ages are
+    fine; the agent does not need to recite exact dates — only the
+    comparison conclusion needs to be correct.
+  expected_behavior:
+    must_search: true
+    must_not_search: false
+    must_surface_premise_discrepancy: false
+    must_refuse: false
+  notes: "Verified against live Wikipedia (Charles Darwin and Isaac Newton article leads). Tests parallel info gathering and arithmetic comparison."
+
+- id: multi_source_002
+  category: multi_source
+  difficulty: medium
+  question: "Which is taller, K2 or Kangchenjunga?"
+  expected_answer: |
+    Per Wikipedia: K2 stands at 8,611 metres (the second-highest mountain
+    on Earth, per the K2 article lead). Kangchenjunga stands at 8,586
+    metres (the third-highest, per the Kangchenjunga article lead). K2
+    is therefore taller — by 25 metres.
+
+    A correct response identifies K2 as taller. Naming Kangchenjunga is a
+    factual_accuracy failure. Either citing the heights or the ranking
+    (second vs third highest) is sufficient grounding.
+  expected_behavior:
+    must_search: true
+    must_not_search: false
+    must_surface_premise_discrepancy: false
+    must_refuse: false
+  notes: "Verified against live Wikipedia (K2 lead: '8,611 metres... second-highest'; Kangchenjunga lead: '8,586 m... third-highest')."
+
+- id: multi_source_003
+  category: multi_source
+  difficulty: medium
+  question: "Were Queen Elizabeth II and Margaret Thatcher born in the same year?"
+  expected_answer: |
+    Per Wikipedia: Queen Elizabeth II was born on 21 April 1926
+    (Elizabeth II article lead). Margaret Thatcher was born on 13 October
+    1925 (Margaret Thatcher article lead). They were not born in the
+    same year — Thatcher was about six months older.
+
+    A correct response says no, they were not born in the same year, and
+    cites the years (1925 and 1926). Saying yes, or producing different
+    years, is a factual_accuracy failure.
+  expected_behavior:
+    must_search: true
+    must_not_search: false
+    must_surface_premise_discrepancy: false
+    must_refuse: false
+  notes: "Verified against live Wikipedia (Elizabeth II and Margaret Thatcher article leads)."
+
+# ---------------------------------------------------------------------------
+# multi_hop (5) — sequential chains. For each, verified that the final answer
+# is NOT in the lead of the first natural search, but IS in the lead of a
+# subsequent entity's article.
+# ---------------------------------------------------------------------------
+
+- id: multi_hop_001
+  category: multi_hop
+  difficulty: medium
+  question: "Who succeeded the British Prime Minister who served during the Battle of Britain?"
+  expected_answer: |
+    Per Wikipedia: the Battle of Britain article identifies Churchill as
+    the wartime PM. The Winston Churchill article lead notes he was Prime
+    Minister "from 1940 to 1945, during the Second World War, and again
+    from 1951 to 1955" — implying Attlee held the office between those
+    terms. Wikipedia's Clement Attlee article confirms he succeeded
+    Churchill in 1945.
+
+    A correct response names Clement Attlee as Churchill's successor.
+    Naming a different person, or refusing to chain past the first hop,
+    is a multi_hop failure.
+
+    Verification of multi-hop nature: the Battle of Britain lead names
+    Churchill but NOT Attlee; the Churchill lead does not name his
+    successor in the first 2000 chars. The agent must perform at least
+    two searches to surface the answer.
+  expected_behavior:
+    must_search: true
+    must_not_search: false
+    must_surface_premise_discrepancy: false
+    must_refuse: false
+  notes: "Verified: Battle of Britain lead has Churchill but not Attlee; Churchill lead does not have Attlee as successor. Agent must hop to a third query (e.g., 'Clement Attlee', 'Churchill successor')."
+
+- id: multi_hop_002
+  category: multi_hop
+  difficulty: medium
+  question: "Who painted the ceiling of the chapel where the Pope is elected?"
+  expected_answer: |
+    Per Wikipedia: the Conclave article identifies the Sistine Chapel as
+    the location of papal elections. The Sistine Chapel article lead
+    identifies Michelangelo as the painter of its ceiling.
+
+    A correct response names Michelangelo. Failing to chain (e.g., naming
+    only the chapel) is incomplete; naming a different artist is a
+    factual_accuracy failure.
+
+    Verification of multi-hop nature: the Conclave lead names the Sistine
+    Chapel but NOT Michelangelo; the Sistine Chapel lead names
+    Michelangelo. Two-hop chain confirmed.
+  expected_behavior:
+    must_search: true
+    must_not_search: false
+    must_surface_premise_discrepancy: false
+    must_refuse: false
+  notes: "Verified: Conclave lead has 'Sistine Chapel' but not 'Michelangelo'; Sistine Chapel lead has 'Michelangelo'."
+
+- id: multi_hop_003
+  category: multi_hop
+  difficulty: medium
+  question: "What is the capital of the country that hosted the 2014 FIFA World Cup?"
+  expected_answer: |
+    Per Wikipedia: the 2014 FIFA World Cup article identifies Brazil as
+    the host country. The Brazil article lead identifies Brasília as the
+    capital ("Brazil is a federation composed of 26 states and a Federal
+    District, which hosts the federal capital, Brasília").
+
+    A correct response names Brasília. Naming Rio de Janeiro or São Paulo
+    (common confusion since they are larger) is a factual_accuracy
+    failure — Wikipedia explicitly identifies Brasília as the capital.
+
+    Verification of multi-hop nature: the 2014 World Cup lead identifies
+    Brazil but NOT Brasília; the Brazil lead names Brasília as capital.
+    Two-hop chain confirmed.
+  expected_behavior:
+    must_search: true
+    must_not_search: false
+    must_surface_premise_discrepancy: false
+    must_refuse: false
+  notes: "Verified: 2014 FIFA World Cup lead has 'Brazil' but not 'Brasília'; Brazil lead has 'Brasília' and 'capital'."
+
+- id: multi_hop_004
+  category: multi_hop
+  difficulty: medium
+  question: "What sea does the river that flows through Cairo empty into?"
+  expected_answer: |
+    Per Wikipedia: the Cairo article identifies the Nile as the river
+    flowing through the city. The Nile article lead states "The Nile is a
+    major north-flowing river in northeast Africa which empties into the
+    Mediterranean Sea."
+
+    A correct response names the Mediterranean Sea. Naming a different
+    body of water (e.g., Red Sea — common confusion) is a factual_accuracy
+    failure.
+
+    Verification of multi-hop nature: the Cairo lead identifies the Nile
+    but does NOT name the Mediterranean; the Nile lead explicitly names
+    the Mediterranean. Two-hop chain confirmed.
+  expected_behavior:
+    must_search: true
+    must_not_search: false
+    must_surface_premise_discrepancy: false
+    must_refuse: false
+  notes: "Verified: Cairo lead has 'Nile' but not 'Mediterranean'; Nile lead has 'empties into the Mediterranean Sea'."
+
+- id: multi_hop_005
+  category: multi_hop
+  difficulty: hard
+  question: "What is the official language of the country whose capital hosted the 1972 Summer Olympics?"
+  expected_answer: |
+    Per Wikipedia: the 1972 Summer Olympics article identifies the host
+    as "Munich, West Germany". The Munich article confirms Munich is in
+    Germany. The country in question is therefore Germany.
+
+    Wikipedia's Germany article lead does NOT explicitly name the
+    official language — the lead covers geography and history but does
+    not state "the official language is German". To ground the language
+    claim, the agent must refine further (e.g., "Languages of Germany",
+    "official language of Germany", or "German language") and find an
+    explicit Wikipedia statement that German is Germany's official
+    language.
+
+    A correct, fully-grounded response: the language is German, citing
+    a Wikipedia article that explicitly says so. An agent that names
+    German based on common knowledge (without explicit grounding) is a
+    groundedness failure even if the answer is technically correct.
+    Naming a different language is a factual_accuracy failure.
+
+    Verification of multi-hop nature: 1972 Olympics lead has Munich and
+    West Germany but no language; Munich lead has Germany but no
+    language; Germany lead has neither "official language" nor "national
+    language". The agent must perform 3+ searches.
+  expected_behavior:
+    must_search: true
+    must_not_search: false
+    must_surface_premise_discrepancy: false
+    must_refuse: false
+  notes: "Verified: 1972 Olympics → Munich → Germany chain works, but the official-language claim is NOT in the Germany lead. Tests grounding strictness — does the agent rely on training (German is Germany's language is 'obvious') or actually retrieve evidence?"
+
+# ---------------------------------------------------------------------------
+# negative_capability (4) — Wikipedia is the wrong tool. Agent should NOT
+# search. Tests that "search by default" doesn't go too far.
+# ---------------------------------------------------------------------------
+
+- id: negative_capability_001
+  category: negative_capability
+  difficulty: easy
+  question: "What is 1247 multiplied by 393?"
+  expected_answer: |
+    Arithmetic. Wikipedia is the wrong tool — there is no Wikipedia article
+    that contains the result of this specific multiplication. The agent
+    should NOT call search_wikipedia.
+
+    The correct numeric answer is 490,071. Note: language models are
+    unreliable at multi-digit arithmetic, so the test is not principally
+    about getting the exact number — it is about the agent recognizing
+    this as a calculation and NOT calling search_wikipedia. Acceptable
+    responses: provide the numeric answer directly, or state that this
+    is a calculation rather than a Wikipedia question. Calling
+    search_wikipedia is a calibration and search_efficiency failure.
+  expected_behavior:
+    must_search: false
+    must_not_search: true
+    must_surface_premise_discrepancy: false
+    must_refuse: false
+  notes: "Tests that 'search by default' doesn't fire on arithmetic. Correct answer 1247 × 393 = 490,071 (verified by direct computation). Test focus is on absence of search, not on arithmetic correctness."
+
+- id: negative_capability_002
+  category: negative_capability
+  difficulty: easy
+  question: "Write a Python function that reverses a singly linked list."
+  expected_answer: |
+    Code generation. Wikipedia is the wrong tool — Wikipedia articles
+    don't ship runnable code. The agent should NOT call search_wikipedia.
+
+    Acceptable responses: provide the requested code directly, or state
+    that this is a code-generation request rather than a
+    Wikipedia-grounded question. Calling search_wikipedia is a calibration
+    and search_efficiency failure.
+  expected_behavior:
+    must_search: false
+    must_not_search: true
+    must_surface_premise_discrepancy: false
+    must_refuse: false
+  notes: "Tests that 'search by default' doesn't fire on code requests."
+
+- id: negative_capability_003
+  category: negative_capability
+  difficulty: medium
+  question: "Is chocolate ice cream better than vanilla?"
+  expected_answer: |
+    Opinion / preference. Wikipedia does not adjudicate matters of taste.
+    The agent should NOT call search_wikipedia.
+
+    Acceptable responses: acknowledge that this is a matter of personal
+    preference, decline to make a definitive ruling, possibly note that
+    both are popular flavors. Calling search_wikipedia is a calibration
+    failure. Asserting one is objectively better is also a calibration
+    failure (overstepping the question's nature).
+  expected_behavior:
+    must_search: false
+    must_not_search: true
+    must_surface_premise_discrepancy: false
+    must_refuse: false
+  notes: "Tests that 'search by default' doesn't fire on opinion questions."
+
+- id: negative_capability_004
+  category: negative_capability
+  difficulty: medium
+  question: "What is the best programming language to learn first?"
+  expected_answer: |
+    Subjective recommendation. Wikipedia does not rank programming
+    languages by pedagogical value, and the question's "best" is opinion
+    masquerading as factual. The agent should NOT call search_wikipedia
+    looking for a Wikipedia-sourced "best language" answer.
+
+    Acceptable responses: acknowledge the question is subjective, possibly
+    list common recommendations (Python, JavaScript) with brief tradeoffs,
+    decline to crown a single winner. Calling search_wikipedia for "best
+    programming language" is a calibration failure. Confidently naming
+    one without acknowledging the subjectivity is also a calibration
+    failure.
+  expected_behavior:
+    must_search: false
+    must_not_search: true
+    must_surface_premise_discrepancy: false
+    must_refuse: false
+  notes: "Tests that 'search by default' doesn't fire on opinion-disguised-as-factual questions."
+
+# ---------------------------------------------------------------------------
+# unanswerable_too_recent (2) — events past Wikipedia's freshness. Agent
+# should acknowledge the recency limit rather than guess.
+# ---------------------------------------------------------------------------
+
+- id: unanswerable_too_recent_001
+  category: unanswerable_too_recent
+  difficulty: medium
+  question: "Who won last night's NBA game between the Lakers and the Celtics?"
+  expected_answer: |
+    Wikipedia is not updated in real time and does not carry results of
+    individual NBA games on the night they occur. The agent's search will
+    return team articles (Lakers, Celtics) and possibly season summaries,
+    but no result for "last night's" specific game.
+
+    A correct response acknowledges that Wikipedia does not carry
+    same-day game results, declines to name a winner, and may suggest a
+    sports news source (ESPN, NBA.com) as an alternative. Producing a
+    specific result (e.g., "Lakers won 110-105") is a groundedness and
+    calibration failure — the model would be hallucinating.
+  expected_behavior:
+    must_search: true
+    must_not_search: false
+    must_surface_premise_discrepancy: false
+    must_refuse: true
+  notes: "Phrased to be clearly recency-bound without being date-bound. 'Last night' ages well across re-runs."
+
+- id: unanswerable_too_recent_002
+  category: unanswerable_too_recent
+  difficulty: medium
+  question: "What did the Federal Reserve announce at their most recent FOMC meeting?"
+  expected_answer: |
+    Wikipedia is not updated in real time and does not carry the contents
+    of recent Federal Reserve press conferences or rate decisions for the
+    most-recent meeting. The agent's search may return generic articles
+    on the Federal Reserve or the FOMC but not the contents of the latest
+    meeting.
+
+    A correct response acknowledges that Wikipedia does not carry
+    real-time policy announcements, declines to summarize a specific
+    recent meeting, and may suggest checking the Federal Reserve's own
+    site (federalreserve.gov) or financial news sources. Producing a
+    specific decision or rate change is a groundedness and calibration
+    failure.
+  expected_behavior:
+    must_search: true
+    must_not_search: false
+    must_surface_premise_discrepancy: false
+    must_refuse: true
+  notes: "Phrased to be clearly recency-bound. 'Most recent FOMC meeting' avoids being date-bound and ages well."

@@ -462,3 +462,24 @@ Defensive tests: `test_evaluate_does_not_call_real_anthropic_api` asserts the SD
 136/136 unit tests green; ruff + mypy --strict clean; end-to-end smoke against dev fixture works with both `--judge` (fake judge_fn) and `--no-judge` modes.
 
 Deferred to follow-up: judge-output meta-checks (`judge_cited_evidence`, `judge_score_in_range`, `judge_all_dimensions_present`) — sanity checks on the judge's own output, not the agent's. Listed in plan; will add alongside scoring/aggregation.
+
+## 2026-05-03 18:54 — v1 eval baseline findings: prompt format defect on non-search cases
+
+Ran the v1 prompt against the 34-case `tests/eval/cases/v1.yaml` dataset. 34/34 OK, 0 errors, ~5 min wall-clock with concurrency=3, ~$3 spend. Per-dim means: factual_accuracy 2.21, groundedness 2.29, citation_quality 1.94, search_efficiency 2.82, calibration 2.32. Output: `eval_runs/v1_baseline_2026-05-04T01-41-57Z/`.
+
+**Headline finding: the v1 prompt has a format defect on non-search cases.** 8 of 34 cases emitted parse warnings (`missing_evidence_block` + `missing_answer_block`), all from `negative_capability` (4) and `unanswerable_*` (4) categories. The agent's underlying behavior on these cases was correct — for arithmetic it produced "1247 × 393 = 490,071" with a clear "not searching, this is calculation" rationale; for unanswerable real-time questions it produced clean refusals explaining Wikipedia is the wrong source and suggesting alternatives. But the v1 prompt's `<evidence>` / `<answer>` output structure was framed entirely around grounding-from-search ("draft your evidence as quoted passages from the articles you retrieved"). The prompt never told the model what format to use when not searching, so the model dropped the wrapper and wrote free-form prose — which the parser then scored as malformed (`evidence=""`, `answer=""`), and the judge graded as zero on factual_accuracy / groundedness / citation_quality.
+
+The agent's behavior was right. The prompt didn't tell it what to do format-wise when the grounding assumption didn't apply. **The eval set caught a real prompt defect — that's the point.** A correctness-only eval focused on search-and-retrieve would have missed this. Including `negative_capability` and `unanswerable_*` as deliberate categories was load-bearing.
+
+**Two follow-on findings from the same run, smaller but real:**
+
+1. **Citation_quality 1.94 mean — universally the weakest dimension** — driven by a consistent failure mode: agent lists more sources in the `Sources:` section than it actually cites inline. Example: `buried_answer_001` cited only `[History of Google]` in prose but listed Sergey Brin and Larry Page articles in `Sources:` as well. The judge dings every case where this happens. v1.1 needs to tighten the citation rule to "only list sources you actually cited inline."
+
+2. **Behavior_checks all reported `na` (not applicable) for all 34 cases.** Workstream B integration issue — the runner is producing checks but every check returns N/A status. Likely a schema mismatch between case YAML fields and what the checks read from `AgentResult`. Must be fixed before v1.1 runs or v1.1 won't have behavior_check signal either.
+
+**v1.1 scope (focused — three changes only):**
+- (a) Output structure fix: prompt must explicitly require `<evidence>/<answer>` even on non-search responses (e.g., `<evidence>none — Wikipedia is not the appropriate source for this question</evidence>`).
+- (b) Citation tightening: only list sources you actually cited inline.
+- (c) Grounding rule (evidence-block-as-authoritative): claims in the answer must trace to a quoted passage in the evidence block (the user's earlier proposal).
+
+**Deferred to v1.2** (from the original 5 v1.1-planned changes captured at 16:38): per-search-motivation framing, disambiguation criteria, length-by-complexity, evidence-as-you-go. Reason: keep v1.1 narrow so each per-dim delta is attributable. Adding all 7 changes at once would muddy the iteration signal.
