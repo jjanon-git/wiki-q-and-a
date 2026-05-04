@@ -45,6 +45,23 @@ case). Each line carries the agent's parsed `evidence` / `answer`, the full
 tool-call trace, the deterministic `behavior_checks` block, and the judge's
 per-dimension scores.
 
+**Judge calibration**: validate the LLM judge against your own reading.
+
+```bash
+# 1. Sample 8 cases stratified across rubric dimensions and score buckets.
+#    Writes calibration.md (read-only context) + calibration.scores.yaml
+#    (you fill in your scores 0-3 per dimension).
+uv run python -m wiki_qa.eval calibrate sample \
+  --in eval_runs/<run-dir> --cases tests/eval/cases/v1.yaml --n 8
+
+# 2. Read calibration.md, fill in the `human` blocks of the YAML.
+
+# 3. Compute per-dimension human↔judge agreement.
+#    Agreement = |human - judge| ≤ 1.
+#    Flags any dimension with >25% disagreement as a calibration concern.
+uv run python -m wiki_qa.eval calibrate analyze --in eval_runs/<run-dir>
+```
+
 To ask the system a single question:
 
 ```bash
@@ -185,7 +202,7 @@ Honest about what's there:
 | v1 baseline eval run + numbers in writeup | ✅ |
 | Iteration cycles (v1 → v1.1 → v1.2, with per-dim deltas) | ✅ |
 | Per-iteration scoreboard (`tests/eval/iterations.md`) | ✅ |
-| Calibration workflow (`calibrate` subcommand) | ⏳ |
+| Judge calibration workflow (`calibrate sample` + `analyze`) | ✅ |
 | Judge-output meta-checks | ⏳ |
 | Video walkthrough (~5 min) | ⏳ |
 | Written rationale (`WRITEUP.md`) | ✅ |

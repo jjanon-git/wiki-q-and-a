@@ -568,3 +568,20 @@ Aggregate is flat. Behavior_checks identical to v1.1. Parse warnings 0/34 (same)
 Both worth recording as honest constraints on what the eval can do. Useful follow-on work if the project extends: dataset expansion to 10+ cases per category, OR multi-run averaging at the current scale.
 
 **Iteration story for the writeup**: v1 (baseline) → v1.1 (four targeted changes lifting every dimension) → v1.2 (two refinements that fix one local regression but flatten in aggregate). The trajectory shows the value of failure-mode-driven iteration AND its limits at near-ceiling performance — exactly the kind of self-aware story the brief asks for.
+
+## 2026-05-03 20:29 — Judge calibration workflow wired and shipped
+
+The calibration workflow planned at 2026-05-03 15:34 is now implemented and exposed via the eval CLI:
+
+- `python -m wiki_qa.eval calibrate sample --in <run-dir> --cases <glob> --n 8` — stratified sampler picks N cases from `results.jsonl` covering low/high score buckets per rubric dimension. Skips judge_failure cases. Writes:
+  - `calibration.md` — read-only markdown with question, gold, model answer, tool-call trace, judge per-dim scores+reasoning.
+  - `calibration.scores.yaml` — fillable YAML with judge scores pre-populated and `human` blocks null-valued.
+- `python -m wiki_qa.eval calibrate analyze --in <run-dir>` — reads the filled YAML, computes per-dim agreement (`|human - judge| ≤ 1` = agree, per the design rule), prints a per-dim pass-rate report, and surfaces specific cases where disagreements were flagged. Threshold for calibration concern is 25% disagreement on a dimension (per 2026-05-03 15:34).
+
+Implementation in `src/wiki_qa/eval/calibration.py`. 14 unit tests in `tests/unit/eval/test_calibration.py` covering: stratification (low/high coverage per dim), determinism (same seed → same sample), edge cases (empty pool, undersized pool, judge-failures excluded), agreement counting (perfect, within-1, >1 deltas, null-as-skipped).
+
+**Concrete artifact produced**: ran the sampler against `eval_runs/v1_1_2026-05-04T02-06-51Z/` (the validated v1.1 baseline). Sample includes a mix of the strongest cases (e.g. `disambiguation_003` "What is Mercury?" — judge gave 3/3/3/3/3) and weaker ones (e.g. `false_premise_002` Curie chemistry Nobel — calibration scored 1, factual_accuracy 3). Stratification gave coverage across dimensions and score levels without manual selection.
+
+Why YAML over markdown for human input (recap of 2026-05-03 16:24): parsing human-edited markdown is fragile (whitespace, partial fills, heterogeneous score formats). YAML keeps the input strict and the read-only markdown view separate. Two files, one purpose each.
+
+Status: workflow is end-to-end. The user's validation step (filling the YAML and reading the analyze report) is the next step; what's not built — and not in scope for v1 — is automated multi-run averaging or judge-of-judges. Both flagged as v2 candidates in WRITEUP.md.
