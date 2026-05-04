@@ -2,7 +2,19 @@
 
 A Wikipedia-grounded QA system built on Claude, with an eval harness measuring
 5 rubric dimensions and 11 deterministic behavior checks. Submitted as an
-Anthropic take-home; see `WRITEUP.md` for the design rationale.
+Anthropic take-home; see [WRITEUP.md](WRITEUP.md) for the design rationale.
+
+## Constraints satisfied
+
+- **Anthropic API only.** Default model is Claude Opus 4.7
+  (`claude-opus-4-7`), overridable via `WIKI_QA_AGENT_MODEL` /
+  `WIKI_QA_JUDGE_MODEL` env vars for downgrade experiments.
+- **No hosted search/RAG tools.** `search_wikipedia` is implemented from
+  scratch against the MediaWiki action API; see
+  [`src/wiki_qa/wikipedia.py`](src/wiki_qa/wikipedia.py).
+- **Wikipedia source is live MediaWiki.** Single round-trip per call
+  (search + lead-section extracts in one query via the `generator=search` +
+  `prop=extracts` pattern).
 
 ## What's here
 
@@ -12,9 +24,9 @@ Anthropic take-home; see `WRITEUP.md` for the design rationale.
   (`behavior_checks`) running alongside.
 - A YAML dataset of hand-curated stress tests across 10 failure-mode
   categories.
-- A decision log (`DECISIONS.md`) that captures the prompt-engineering and
-  eval-design reasoning chronologically — the writeup is reconstructed from
-  this rather than from memory.
+- A decision log ([DECISIONS.md](DECISIONS.md)) that captures the
+  prompt-engineering and eval-design reasoning chronologically. The writeup
+  is reconstructed from this rather than from memory.
 
 ## Quick start
 
@@ -29,11 +41,11 @@ uv sync
 cp .env.example .env
 # edit .env, paste your ANTHROPIC_API_KEY
 
-# 4. Run the eval suite against the dev cases (3 placeholder cases, full judge)
-uv run python -m wiki_qa.eval run --cases tests/eval/cases/dev.yaml --concurrency 1
+# 4. Run the v1 eval suite (34 cases, full judge, ~5 min at concurrency=3)
+uv run python -m wiki_qa.eval run --cases tests/eval/cases/v1.yaml
 
 # Or skip the LLM judge and run only the deterministic behavior checks:
-uv run python -m wiki_qa.eval run --cases tests/eval/cases/dev.yaml --no-judge
+uv run python -m wiki_qa.eval run --cases tests/eval/cases/v1.yaml --no-judge
 ```
 
 Results land in `eval_runs/<UTC-timestamp>/results.jsonl` (one JSON line per
@@ -52,8 +64,8 @@ uv run python -m wiki_qa.eval calibrate sample \
 
 # 2. Read calibration.md, fill in the `human` blocks of the YAML.
 
-# 3. Compute per-dimension human↔judge agreement.
-#    Agreement = |human - judge| ≤ 1.
+# 3. Compute per-dimension human/judge agreement.
+#    Agreement = |human - judge| <= 1.
 #    Flags any dimension with >25% disagreement as a calibration concern.
 uv run python -m wiki_qa.eval calibrate analyze --in eval_runs/<run-dir>
 ```
@@ -67,7 +79,7 @@ uv run python -m wiki_qa "When was the Battle of Hastings?"
 # Verbose mode (also shows token usage and stop reason)
 uv run python -m wiki_qa -v "Which is taller, K2 or Kangchenjunga?"
 
-# Demo mode — runs four sample questions across representative
+# Demo mode runs four sample questions across representative
 # categories (simple_factual, multi_source, false_premise,
 # negative_capability). ~30-60s total.
 uv run python -m wiki_qa --demo
@@ -79,28 +91,23 @@ applicable), the count and queries of any searches made with their
 latencies, and any `parse_warnings` the response parser emitted (none
 on a clean run).
 
-## Constraints satisfied
-
-- **Anthropic API only.** Default model is Claude Opus 4.7
-  (`claude-opus-4-7`), overridable via `WIKI_QA_AGENT_MODEL` /
-  `WIKI_QA_JUDGE_MODEL` env vars for downgrade experiments.
-- **No hosted search/RAG tools.** `search_wikipedia` is implemented from
-  scratch against the MediaWiki action API; see `src/wiki_qa/wikipedia.py`.
-- **Wikipedia source is live MediaWiki.** Single round-trip per call
-  (search + lead-section extracts in one query via the `generator=search` +
-  `prop=extracts` pattern).
-
 ## Repo layout
 
 ```
-prompts/system_v1.md              system prompt (the artifact we iterate on)
+prompts/                          system prompt across iterations
+  system_v1.md                    baseline
+  system_v1_1.md                  in production
+  system_v1_2.md                  preserved for iteration history
 plans/                            design docs (search, eval harness)
 DECISIONS.md                      append-only chronological decision log
+WRITEUP.md                        consolidated design rationale
+transcripts/                      Claude Code transcripts from development
+eval_runs/                        per-iteration results.jsonl + calibration artifacts
 
 src/wiki_qa/
   agent_contract.py               frozen Pydantic shared types (ToolCall,
                                   TokenUsage, AgentResult, ParseWarning)
-  agent.py                        Claude tool-use loop (workstream A)
+  agent.py                        Claude tool-use loop
   agent_stub.py                   fixture-driven stub for harness dev
   wikipedia.py                    MediaWiki client (with retries)
   formatting.py                   tool-result XML formatter
@@ -118,6 +125,7 @@ src/wiki_qa/
 tests/
   eval/
     rubric.md                     5-dim rubric (judge prompt + humans share)
+    iterations.md                 per-iteration scoreboard with deltas
     cases/                        YAML dataset, split per category
     fixtures/                     canned agent outputs for the stub
   unit/                           ~150 unit tests; no real API calls
@@ -145,7 +153,7 @@ The runner:
    `ParseWarning` enum (missing / unclosed / empty / non-canonical
    structural anomalies).
 3. Then invokes the **LLM judge** (Opus 4.7 by default) which scores
-   five dimensions 0–3:
+   five dimensions 0-3:
    - `factual_accuracy`
    - `groundedness`
    - `citation_quality`
@@ -154,9 +162,9 @@ The runner:
 
    The judge sees a deliberate subset of `AgentResult`: the question, gold
    answer, expected_behavior flags, parsed evidence/answer, parse_warnings
-   (as informational context — see `tests/eval/rubric.md` and
-   `src/wiki_qa/eval/judge.py`), and the full `tool_calls` trace.
-   `raw_output` and `raw_messages` are excluded.
+   (as informational context, see [`tests/eval/rubric.md`](tests/eval/rubric.md)
+   and [`src/wiki_qa/eval/judge.py`](src/wiki_qa/eval/judge.py)), and the
+   full `tool_calls` trace. `raw_output` and `raw_messages` are excluded.
 
 4. Per-case error isolation: a blow-up at case 20 cannot abort the run.
    Results are sorted by `case_id` before write, so concurrency=1 and
@@ -164,45 +172,24 @@ The runner:
 
 ## Design rationale
 
-- **`prompts/system_v1.md` / `system_v1_1.md` / `system_v1_2.md`** —
-  the system prompt across iterations. The agent currently loads the
-  most recent validated version by default; older versions are kept
-  as immutable artifacts for reproducibility and per-version eval
-  comparison. See `tests/eval/iterations.md` for per-version per-dim
-  deltas.
-- **`plans/`** — design docs, written before implementation.
-  - `plans/search_wikipedia.md`: tool definition, return shape,
-    edge-case handling, MediaWiki strategy.
-  - `plans/eval_harness.md`: dataset shape, rubric, judge prompt
-    structure, deterministic checks, calibration workflow.
-- **`DECISIONS.md`** — append-only chronological log: every prompt
-  change, eval observation, design pivot, and reversed call. Each entry
-  notes alternatives considered, the choice, and the reasoning. The
-  formal writeup will be reconstructed from this log.
-- **`tests/eval/rubric.md`** — the rubric in the form the judge sees;
-  also intended to be the human-readable reference during calibration.
-
-## Status
-
-Honest about what's there:
-
-| Piece | Status |
-|---|---|
-| `search_wikipedia` tool + MediaWiki client | ✅ |
-| Agent loop (Opus 4.7, tool use) | ✅ |
-| System prompt — v1, v1.1, v1.2 with iteration log | ✅ |
-| Eval harness: dataset loader, behavior_checks, runner, judge | ✅ |
-| Eval CLI (`python -m wiki_qa.eval run`) | ✅ |
-| Interactive CLI (`python -m wiki_qa "<question>"`, `--demo`) | ✅ |
-| Full 34-case v1 dataset (10 categories) | ✅ |
-| v1 baseline eval run + numbers in writeup | ✅ |
-| Iteration cycles (v1 → v1.1 → v1.2, with per-dim deltas) | ✅ |
-| Per-iteration scoreboard (`tests/eval/iterations.md`) | ✅ |
-| Judge calibration workflow (`calibrate sample` + `analyze`) | ✅ |
-| Judge-output meta-checks | ⏳ |
-| Video walkthrough (~5 min) | ⏳ |
-| Written rationale (`WRITEUP.md`) | ✅ |
-| AI transcripts export | ⏳ |
+- **System prompt** (`prompts/system_v1*.md`) - v1.1 in production; v1 and
+  v1.2 preserved for iteration history. See
+  [`tests/eval/iterations.md`](tests/eval/iterations.md) for per-version
+  per-dimension deltas.
+- **[`plans/`](plans/)** - design docs, written before implementation.
+  - [`plans/search_wikipedia.md`](plans/search_wikipedia.md): tool definition,
+    return shape, edge-case handling, MediaWiki strategy.
+  - [`plans/eval_harness.md`](plans/eval_harness.md): dataset shape, rubric,
+    judge prompt structure, deterministic checks, calibration workflow.
+- **[`DECISIONS.md`](DECISIONS.md)** - append-only chronological log: every
+  prompt change, eval observation, design pivot, and reversed call. Each entry
+  notes alternatives considered, the choice, and the reasoning. The formal
+  writeup is reconstructed from this log.
+- **[`WRITEUP.md`](WRITEUP.md)** - consolidated design rationale organized
+  thematically. The doc to read first if you want the design choices and
+  reasoning without the chronology.
+- **[`tests/eval/rubric.md`](tests/eval/rubric.md)** - the rubric in the form
+  the judge sees; also the human-readable reference during calibration.
 
 ## Conventions
 
@@ -211,16 +198,16 @@ Honest about what's there:
   All gates green on commit.
 - Shared library types are Pydantic `BaseModel` with `frozen=True,
   extra="forbid"` (per `CLAUDE.md` "Shared types"). Single source of
-  truth for the agent ↔ harness contract is
-  `src/wiki_qa/agent_contract.py`.
+  truth for the agent / harness contract is
+  [`src/wiki_qa/agent_contract.py`](src/wiki_qa/agent_contract.py).
 - `DECISIONS.md` is append-only; reversed decisions get a superseding
   entry, never an in-place edit.
 
 ## Time spent
 
-[TODO: fill in once we cut v1.]
+5 hours over 7 elapsed hours.
 
 ## License & intent
 
 Take-home submission for an Anthropic prompt-engineering interview. Not a
-production system — see "Status" for what's deliberately not built out.
+production system.

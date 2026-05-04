@@ -80,7 +80,7 @@ For the eval cases, I designed the failure-mode taxonomy, the per-category count
 
 For the system prompt, I drafted the initial version, the agent suggested edits, and I accepted or rejected each. The reversed false-premise framing in choice 4 above is the representative example of where I rejected an AI suggestion on customer-tone grounds and the change rippled through the rubric, the dataset flag name, and the prompt's edge-cases section.
 
-Transcripts: [TODO: link to the Claude Code transcript artifact when generated.]
+The Claude Code transcripts from development are rendered at https://htmlpreview.github.io/?https://github.com/jjanon-git/wiki-q-and-a/blob/main/transcripts/redacted/combined-html/index.html, three sessions concatenated chronologically into 105 prompts across 21 pages. The redaction pass scrubbed 850 local path prefixes and 20 email addresses, and verified no API key bodies were present.
 
 ## Time spent
 
