@@ -5,6 +5,9 @@ Entry point: `python -m wiki_qa "<question>"` or `wiki-qa "<question>"`
 
 The CLI is intentionally thin — it loads `.env`, calls `agent.answer()`,
 and prints the result. All the substantive behavior lives in the agent.
+Live progress events from the agent are mirrored to stderr while the
+formatted answer goes to stdout, so piping (`> out.txt`) captures the
+answer cleanly.
 """
 
 from __future__ import annotations
@@ -16,6 +19,37 @@ import click
 from dotenv import load_dotenv
 
 from wiki_qa.agent_contract import AgentResult
+
+
+def _print_progress(event: Any) -> None:
+    """Render a single ProgressEvent to stderr.
+
+    Glyphs are deliberate: → for outbound, ← for inbound, · for in-flight
+    (model thinking), ✏ for answer composition, ✓ for terminal. Single-line
+    per event so the trace stays scannable across multiple turns.
+    """
+    kind = event.kind
+    iteration = event.iteration
+    if kind == "iteration_start":
+        # max_iterations is on the event for any future caller that wants
+        # the budget cap, but the CLI deliberately doesn't display it —
+        # most questions finish in 2 turns and the cap doesn't help users.
+        click.echo(f"  · turn {iteration} — consulting Claude", err=True)
+    elif kind == "search_start":
+        click.echo(f"  → searching: {event.query!r}", err=True)
+    elif kind == "search_done":
+        if event.error:
+            click.echo(f"  ← search error: {event.error}", err=True)
+        else:
+            click.echo(
+                f"  ← {event.n_results} result(s) in {event.latency_ms}ms",
+                err=True,
+            )
+    elif kind == "composing_answer":
+        click.echo("  ✏ composing answer (no further searches)", err=True)
+    elif kind == "complete":
+        click.echo(f"  ✓ done ({event.stop_reason})", err=True)
+
 
 # A small, deliberately diverse sample for `--demo`. One case per
 # representative category — fast enough to run as a smoke test, broad
@@ -71,12 +105,18 @@ def format_result(result: AgentResult, *, verbose: bool = False) -> str:
 
 
 def _ask_one(question: str, *, verbose: bool, agent_fn: Any | None = None) -> AgentResult:
-    """Dispatch a single question to the agent. `agent_fn` is injectable for tests."""
+    """Dispatch a single question to the agent. `agent_fn` is injectable for tests.
+
+    Production calls pass `progress=_print_progress` so the user sees live
+    activity while the agent works. Tests inject their own agent_fn that
+    ignores progress.
+    """
     if agent_fn is None:
         from wiki_qa.agent import answer as agent_answer
 
-        agent_fn = agent_answer
-    result: AgentResult = agent_fn(question)
+        result: AgentResult = agent_answer(question, progress=_print_progress)
+    else:
+        result = agent_fn(question)
     return result
 
 

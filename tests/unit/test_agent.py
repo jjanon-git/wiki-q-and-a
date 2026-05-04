@@ -18,7 +18,7 @@ from typing import Any
 
 import pytest
 
-from wiki_qa.agent import answer
+from wiki_qa.agent import ProgressEvent, answer
 from wiki_qa.agent_contract import ParseWarning
 from wiki_qa.wikipedia import SearchResult, WikipediaSearchError
 
@@ -443,3 +443,155 @@ class TestParseFailuresFlowToAgentResult:
         assert result.stop_reason == "max_iterations"
         assert ParseWarning.MISSING_EVIDENCE_BLOCK in result.parse_warnings
         assert ParseWarning.MISSING_ANSWER_BLOCK in result.parse_warnings
+
+
+# ---------- Progress event taxonomy ----------
+
+
+class TestProgressEvents:
+    """The progress callback is the agent's only way to surface live activity
+    to the CLI. Order and field-population are observable contracts: the CLI
+    relies on `query` being set on `search_start`, `latency_ms` and either
+    `n_results` or `error` being set on `search_done`, and `stop_reason` on
+    `complete`."""
+
+    def _capture(
+        self, fake_search: Callable[[Callable[..., list[SearchResult]]], None]
+    ) -> tuple[list[ProgressEvent], FakeClient]:
+        events: list[ProgressEvent] = []
+        # Default fake_search; tests can override after this returns.
+        fake_search(lambda *_, **__: [])
+        client = FakeClient([_text("<evidence>e</evidence><answer>a</answer>")])
+        return events, client
+
+    def test_no_progress_callback_is_silent(
+        self, fake_search: Callable[[Callable[..., list[SearchResult]]], None]
+    ) -> None:
+        # Sanity: the agent must work the same way when no progress is passed.
+        # Eval harness depends on this — it never passes progress.
+        fake_search(lambda *_, **__: [])
+        client = FakeClient([_text("<evidence>e</evidence><answer>a</answer>")])
+        result = answer("q", client=client)  # no progress arg
+        assert result.answer == "a"
+
+    def test_single_turn_emits_iteration_compose_complete(
+        self, fake_search: Callable[[Callable[..., list[SearchResult]]], None]
+    ) -> None:
+        events: list[ProgressEvent] = []
+        fake_search(lambda *_, **__: [])
+        client = FakeClient([_text("<evidence>e</evidence><answer>a</answer>")])
+        answer("q", client=client, progress=events.append)
+
+        kinds = [e.kind for e in events]
+        # composing_answer fires before complete whenever the API returns
+        # text-only — gives the CLI an explicit "no more searches, drafting"
+        # marker for the silent stretch while the model generates final text.
+        assert kinds == ["iteration_start", "composing_answer", "complete"]
+        assert events[0].iteration == 1
+        assert events[-1].stop_reason == "end_turn"
+
+    def test_single_search_emits_full_sequence(
+        self, fake_search: Callable[[Callable[..., list[SearchResult]]], None]
+    ) -> None:
+        events: list[ProgressEvent] = []
+        fake_search(lambda *_, **__: [_result(), _result(title="Other"), _result(title="Third")])
+        client = FakeClient(
+            [
+                _tool_use(query="Battle of Hastings"),
+                _text("<evidence>e</evidence><answer>1066</answer>"),
+            ]
+        )
+        answer("q", client=client, progress=events.append)
+
+        kinds = [e.kind for e in events]
+        assert kinds == [
+            "iteration_start",
+            "search_start",
+            "search_done",
+            "iteration_start",
+            "composing_answer",
+            "complete",
+        ]
+        # search_start carries the query
+        assert events[1].query == "Battle of Hastings"
+        # search_done carries n_results + latency, no error
+        assert events[2].n_results == 3
+        assert events[2].latency_ms is not None and events[2].latency_ms >= 0
+        assert events[2].error is None
+        # iterations are 1-indexed
+        assert events[0].iteration == 1
+        assert events[3].iteration == 2
+        # composing_answer fires from the same turn as the text-only API call
+        assert events[4].iteration == 2
+
+    def test_composing_answer_does_not_fire_on_max_iterations_exit(
+        self, fake_search: Callable[[Callable[..., list[SearchResult]]], None]
+    ) -> None:
+        # When the loop exits via the budget cap, the model never returned
+        # text-only — there's no answer being composed. composing_answer must
+        # NOT fire in that path, otherwise the CLI shows a misleading
+        # "drafting" line for a question the agent failed to finish.
+        fake_search(lambda *_, **__: [_result()])
+        events: list[ProgressEvent] = []
+        client = FakeClient(
+            [
+                _tool_use(tool_id="t1", query="q1"),
+                _tool_use(tool_id="t2", query="q2"),
+            ]
+        )
+        answer("q", client=client, max_iterations=1, progress=events.append)
+
+        kinds = [e.kind for e in events]
+        assert "composing_answer" not in kinds
+        assert kinds[-1] == "complete"
+        assert events[-1].stop_reason == "max_iterations"
+
+    def test_search_error_populates_error_field(
+        self, fake_search: Callable[[Callable[..., list[SearchResult]]], None]
+    ) -> None:
+        def failing(*_: Any, **__: Any) -> list[SearchResult]:
+            raise WikipediaSearchError("rate limit exceeded")
+
+        fake_search(failing)
+        events: list[ProgressEvent] = []
+        client = FakeClient(
+            [
+                _tool_use(query="x"),
+                _text("<evidence>e</evidence><answer>recovered</answer>"),
+            ]
+        )
+        answer("q", client=client, progress=events.append)
+
+        done_events = [e for e in events if e.kind == "search_done"]
+        assert len(done_events) == 1
+        assert done_events[0].error is not None
+        assert "rate limit" in done_events[0].error
+        assert done_events[0].n_results is None
+
+    def test_max_iterations_emits_complete_with_max_iterations_stop_reason(
+        self, fake_search: Callable[[Callable[..., list[SearchResult]]], None]
+    ) -> None:
+        fake_search(lambda *_, **__: [_result()])
+        events: list[ProgressEvent] = []
+        client = FakeClient(
+            [
+                _tool_use(tool_id="t1", query="q1"),
+                _tool_use(tool_id="t2", query="q2"),
+            ]
+        )
+        answer("q", client=client, max_iterations=1, progress=events.append)
+
+        complete_events = [e for e in events if e.kind == "complete"]
+        assert len(complete_events) == 1
+        assert complete_events[0].stop_reason == "max_iterations"
+
+    def test_max_iterations_field_is_propagated(
+        self, fake_search: Callable[[Callable[..., list[SearchResult]]], None]
+    ) -> None:
+        fake_search(lambda *_, **__: [])
+        events: list[ProgressEvent] = []
+        client = FakeClient([_text("<evidence>e</evidence><answer>a</answer>")])
+        answer("q", client=client, max_iterations=7, progress=events.append)
+
+        # Every event should carry max_iterations=7
+        assert all(e.max_iterations == 7 for e in events)

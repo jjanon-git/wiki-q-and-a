@@ -16,16 +16,56 @@ from __future__ import annotations
 import logging
 import os
 import time
+from collections.abc import Callable
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 import anthropic
+from pydantic import BaseModel, ConfigDict
 
 from wiki_qa.agent_contract import AgentResult, TokenUsage, ToolCall
 from wiki_qa.formatting import format_error_for_model, format_results_for_model
 from wiki_qa.parser import parse_evidence_and_answer
 from wiki_qa.tools import SEARCH_WIKIPEDIA_TOOL
 from wiki_qa.wikipedia import WikipediaSearchError, search_wikipedia
+
+
+class ProgressEvent(BaseModel):
+    """Out-of-band notification fired by the agent loop as it works.
+
+    Surfaced via the `progress=` callback on `answer()` so callers (CLI,
+    notebooks) can show a live activity trace without changing the
+    `AgentResult` contract or relying on logging side effects. Eval
+    harness ignores by passing `progress=None` (default).
+
+    Field semantics:
+    - `iteration`: 1-indexed position in the search loop. Always set.
+    - Per-event optional fields: only the ones relevant to the event
+      kind are populated.
+    """
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    kind: Literal[
+        "iteration_start",
+        "search_start",
+        "search_done",
+        "composing_answer",
+        "complete",
+    ]
+    iteration: int
+    max_iterations: int
+    # search_start
+    query: str | None = None
+    # search_done
+    n_results: int | None = None
+    latency_ms: int | None = None
+    error: str | None = None
+    # complete
+    stop_reason: str | None = None
+
+
+ProgressCallback = Callable[[ProgressEvent], None]
 
 _DEFAULT_MODEL = "claude-opus-4-7"
 AGENT_MODEL_ENV_VAR = "WIKI_QA_AGENT_MODEL"
@@ -56,6 +96,7 @@ def answer(
     max_iterations: int = 5,
     system_prompt: str | None = None,
     client: Any = None,
+    progress: ProgressCallback | None = None,
 ) -> AgentResult:
     """Answer a question by looping over search_wikipedia calls until the model returns text.
 
@@ -65,6 +106,10 @@ def answer(
     type signature is too strict for the dict-shaped messages we hand it
     (which are valid at the API level), and because the test fakes are
     duck-typed rather than subclasses of `anthropic.Anthropic`.
+
+    `progress` is an optional callback fired at iteration boundaries and
+    around tool calls so a CLI can show live activity. Out-of-band — does
+    not affect `AgentResult`. Eval harness omits this kwarg.
     """
     if client is None:
         client = anthropic.Anthropic()
@@ -85,7 +130,19 @@ def answer(
     stop_reason = "unknown"
     final_text = ""
 
-    for _ in range(max_iterations):
+    def _emit(event: ProgressEvent) -> None:
+        if progress is not None:
+            progress(event)
+
+    for iter_idx in range(max_iterations):
+        iteration_num = iter_idx + 1  # 1-indexed for human-readable progress
+        _emit(
+            ProgressEvent(
+                kind="iteration_start",
+                iteration=iteration_num,
+                max_iterations=max_iterations,
+            )
+        )
         # Type as Any: the SDK's response.content is a union of >12 block types,
         # only two of which we handle (text, tool_use). Mypy can't narrow on the
         # `.type` string check because narrowing across unions that wide isn't
@@ -113,8 +170,27 @@ def answer(
         raw_messages.append({"role": "assistant", "content": assistant_content})
 
         if not tool_use_blocks:
+            # The API returned text-only — Claude finalized the answer
+            # without requesting another search. Surface this explicitly so
+            # the user knows the silent stretch was answer-composition, not
+            # the agent stalling between searches.
+            _emit(
+                ProgressEvent(
+                    kind="composing_answer",
+                    iteration=iteration_num,
+                    max_iterations=max_iterations,
+                )
+            )
             text_blocks = [b.text for b in response.content if b.type == "text"]
             final_text = "\n".join(text_blocks)
+            _emit(
+                ProgressEvent(
+                    kind="complete",
+                    iteration=iteration_num,
+                    max_iterations=max_iterations,
+                    stop_reason=stop_reason,
+                )
+            )
             break
 
         # Append assistant turn (with tool_use) to messages so the next turn
@@ -126,13 +202,36 @@ def answer(
             if block.name == "search_wikipedia":
                 query = block.input.get("query", "")
                 queries.append(query)
+                _emit(
+                    ProgressEvent(
+                        kind="search_start",
+                        iteration=iteration_num,
+                        max_iterations=max_iterations,
+                        query=query,
+                    )
+                )
                 start = time.perf_counter()
+                error_str: str | None = None
+                n_results: int | None = None
                 try:
                     results = search_wikipedia(query)
                     raw_result_str = format_results_for_model(query, results)
+                    n_results = len(results)
                 except WikipediaSearchError as e:
                     raw_result_str = format_error_for_model(query=query, reason=str(e))
+                    error_str = str(e)
                 latency_ms = int((time.perf_counter() - start) * 1000)
+                _emit(
+                    ProgressEvent(
+                        kind="search_done",
+                        iteration=iteration_num,
+                        max_iterations=max_iterations,
+                        query=query,
+                        n_results=n_results,
+                        latency_ms=latency_ms,
+                        error=error_str,
+                    )
+                )
                 tool_calls.append(
                     ToolCall(
                         name="search_wikipedia",
@@ -155,6 +254,14 @@ def answer(
     else:
         # Loop exhausted without a text-only turn breaking out
         stop_reason = "max_iterations"
+        _emit(
+            ProgressEvent(
+                kind="complete",
+                iteration=max_iterations,
+                max_iterations=max_iterations,
+                stop_reason=stop_reason,
+            )
+        )
         logger.warning(
             "agent hit max_iterations=%d for question=%r without producing a final answer",
             max_iterations,

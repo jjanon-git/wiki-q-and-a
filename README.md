@@ -208,7 +208,7 @@ The runner:
 
 ## Time spent
 
-5 hours over 7 elapsed hours.
+5.5 hours of focused work over 23 elapsed hours.
 
 ## License & intent
 
