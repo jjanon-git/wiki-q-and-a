@@ -515,3 +515,29 @@ For unanswerable_not_in_wp cases there are actually two sub-types:
 The dataset's blanket `must_search: true` for all `unanswerable_not_in_wp` and `unanswerable_too_recent` cases doesn't capture this distinction. The fix is in the dataset, not the agent or rubric: differentiate `must_search: true` (search-then-refuse) from `must_search: false` (refuse-without-searching) per case based on whether the question's unanswerability is intrinsic or requires verification.
 
 Defer this dataset refinement to the v1.2 cycle alongside the other deferred prompt changes — it's a rubric-input cleanup, not a v1.1 scope item.
+
+## 2026-05-03 19:13 — v1.1 eval results: all dimensions improved, 0 parse warnings, 0 fails on previously-failing checks
+
+Re-ran the same 34-case dataset against `prompts/system_v1_1.md`. Run: `eval_runs/v1_1_2026-05-04T02-06-51Z/`. Full per-dim and per-category breakdown is in `tests/eval/iterations.md`.
+
+**Per-dim deltas (v1 → v1.1):**
+- factual_accuracy: 2.21 → 2.94 (+0.74)
+- groundedness: 2.29 → 2.74 (+0.44)
+- citation_quality: 1.94 → 2.85 (+0.91)
+- search_efficiency: 2.82 → 2.88 (+0.06)
+- calibration: 2.32 → 2.82 (+0.50)
+
+**Behavior_checks:** every previously-failing check now at 0 fails. `output_has_required_blocks` 8→0, `answer_length_plausible` 8→0, `searched_when_required` 4→0. Parse warnings 8/34 → 0/34.
+
+**Attribution** (best-guess; see iterations.md for full reasoning):
+- **Change #1 (output structure for non-search)**: strong attribution. Drove the bulk of factual_accuracy and calibration gains by eliminating empty parsed answers on the 8 non-search cases.
+- **Change #2 (citation tightening)**: strong attribution on grounded categories. Per-category citation_quality gains of +0.25 to +0.80 across `simple_factual`, `multi_hop`, `false_premise`, `buried_answer`.
+- **Change #3 (evidence-block-as-authoritative)**: weak / mixed. Hard to isolate from #1 because both affect grounding. On grounded categories the rule was either neutral or caused small regressions (`buried_answer` groundedness 3.00→2.33, `disambiguation_explicit` 3.00→2.67) where v1.1 model added marked or implicit inferences the judge didn't credit. The rule is doing what it's supposed to (tightening); the cost is a few points where the model went slightly beyond evidence.
+- **Change #4 (verify absence by searching)**: strong attribution. The 4 `searched_when_required` failures became passes. Combined with #1, drove the unanswerable categories' improvements.
+
+**Three regressions worth flagging:**
+1. `buried_answer` groundedness (3.00→2.33). Two cases lost a point because the v1.1 model added context not in retrieved content (e.g., "Aaron and Bonds breaking the record" for Babe Ruth). Stricter rule biting back where it should — feature, not bug. But a v1.2 candidate: clearer guidance on the marked-inference path so the model can flag-and-include rather than add-and-get-dinged.
+2. `disambiguation_explicit` groundedness (3.00→2.67). Same pattern (minor unsupported addition: "Surabaya being on Java"). Same root cause.
+3. `multi_source` search_efficiency (3.00→2.67). One case (Elizabeth/Thatcher) did 4 searches instead of 2 in v1.1. Possibly the verify-absence rule causing over-thoroughness on a grounded case. n=3 — could be noise. Watch in v1.2.
+
+**v1.2 scope candidates:** the original four deferred changes (per-search motivation, disambiguation criteria, length-by-complexity, evidence-as-you-go) plus the marked-inference clarification surfaced by the buried_answer regressions.

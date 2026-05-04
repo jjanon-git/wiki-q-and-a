@@ -474,13 +474,33 @@ iteration cycles:
 If two iterations don't move a dimension, that's evidence the rubric
 or model itself is the bottleneck — switch axis.
 
-**Current status:** v1 baseline locked. v1.1 in draft (output structure
-fix for non-search responses; citation tightening; evidence-block-as-
-authoritative grounding rule). Other v1.1-planned changes (per-search
-motivation, disambiguation criteria, length-by-complexity, evidence-
-as-you-go) deferred to v1.2 to keep per-dim deltas attributable.
+**Current status:** v1 baseline + v1.1 both run. v1.1 included four
+focused changes: output structure for non-search, citation tightening,
+evidence-block-as-authoritative, and verify-absence-by-searching (added
+mid-iteration when v1 surfaced the `searched_when_required` failure
+mode).
 
-Per-iteration tracking lives in `tests/eval/iterations.md`.
+**v1.1 per-dim deltas vs v1:**
+
+| Dimension | v1 | v1.1 | Δ |
+|---|---|---|---|
+| factual_accuracy | 2.21 | 2.94 | **+0.74** |
+| groundedness | 2.29 | 2.74 | +0.44 |
+| citation_quality | 1.94 | 2.85 | **+0.91** |
+| search_efficiency | 2.82 | 2.88 | +0.06 |
+| calibration | 2.32 | 2.82 | +0.50 |
+
+Every previously-failing behavior check is now at zero failures
+(`output_has_required_blocks` 8→0, `answer_length_plausible` 8→0,
+`searched_when_required` 4→0). Parse warnings 8/34 → 0/34. Three small
+regressions in `buried_answer` and `disambiguation_explicit` groundedness
+(stricter evidence-as-authoritative rule biting back when the model
+added context beyond retrieved content) — captured for v1.2.
+
+Per-iteration tracking lives in `tests/eval/iterations.md`. Full
+attribution (which change drove which delta) is in that file's v1.1
+entry — the wins map cleanly to the failure modes each change
+targeted.
 
 ## Limitations and future work
 
