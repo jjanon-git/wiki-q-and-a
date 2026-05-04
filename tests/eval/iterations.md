@@ -282,3 +282,121 @@ findings:
 - **Dataset refinement on `unanswerable_*`** — not needed anymore;
   v1.1's verify-absence rule converted this from a dataset issue to a
   prompt fix.
+
+---
+
+## v1.2 — 2026-05-03 19:58 UTC
+
+- **Prompt version**: `prompts/system_v1_2.md`
+- **Dataset version**: `tests/eval/cases/v1.yaml` (same 34 cases as v1, v1.1)
+- **Models**: agent = `claude-opus-4-7`, judge = `claude-opus-4-7`
+- **Run**: `eval_runs/v1_2_2026-05-04T02-44-39Z/`
+- **Wall-clock**: ~5 min (concurrency=3)
+- **Spend**: ~$3
+- **Errors**: 0/34
+
+### Two changes from v1.1
+
+1. **Marked-inference rule tightened to binary.** Every claim must
+   either (a) trace to evidence, (b) be marked with the inference
+   syntax, OR (c) not appear in the answer. Targeted the v1.1
+   `buried_answer` and `disambiguation_explicit` groundedness
+   regressions.
+2. **Evidence-as-you-go.** Build the evidence block incrementally
+   during search rather than reconstructing it post-hoc.
+
+### Per-dimension means — v1 → v1.1 → v1.2
+
+| Dimension | v1 | v1.1 | v1.2 | Δ v1.1→v1.2 | Δ v1→v1.2 |
+|---|---|---|---|---|---|
+| factual_accuracy | 2.21 | 2.94 | 2.88 | −0.06 | +0.68 |
+| groundedness | 2.29 | 2.74 | 2.65 | −0.09 | +0.35 |
+| citation_quality | 1.94 | 2.85 | 2.82 | −0.03 | +0.88 |
+| search_efficiency | 2.82 | 2.88 | 2.88 | 0.00 | +0.06 |
+| calibration | 2.32 | 2.82 | 2.85 | +0.03 | +0.53 |
+
+### Per-category × per-dimension — v1.2 absolute
+
+| Category | n | factual | grounded | citation | search | calibration |
+|---|---|---|---|---|---|---|
+| `simple_factual` | 4 | 3.00 | 3.00 | 3.00 | 3.00 | 3.00 |
+| `multi_hop` | 5 | 3.00 | 2.80 | 2.80 | 3.00 | 3.00 |
+| `multi_source` | 3 | 3.00 | 3.00 | 3.00 | 2.67 | 3.00 |
+| `disambiguation_explicit` | 3 | 3.00 | 2.33 | 3.00 | 3.00 | 3.00 |
+| `buried_answer` | 3 | 2.33 | **3.00** | 3.00 | 2.67 | 3.00 |
+| `false_premise` | 5 | 2.80 | 2.80 | 3.00 | 2.80 | 2.60 |
+| `temporal` | 2 | 3.00 | 3.00 | 3.00 | 3.00 | 2.00 |
+| `negative_capability` | 4 | 3.00 | 2.00 | 2.00 | 3.00 | 3.00 |
+| `unanswerable_not_in_wp` | 3 | 2.67 | 2.00 | 2.67 | 2.67 | 2.67 |
+| `unanswerable_too_recent` | 2 | 3.00 | 2.50 | 3.00 | 3.00 | 3.00 |
+
+### Per-category × per-dimension — v1.1 → v1.2 deltas
+
+| Category | n | factual | grounded | citation | search | calibration |
+|---|---|---|---|---|---|---|
+| `simple_factual` | 4 | 0 | 0 | 0 | 0 | 0 |
+| `multi_hop` | 5 | 0 | −0.20 | 0 | 0 | 0 |
+| `multi_source` | 3 | 0 | 0 | 0 | 0 | 0 |
+| `disambiguation_explicit` | 3 | 0 | −0.33 | +0.33 | 0 | 0 |
+| `buried_answer` | 3 | −0.33 | **+0.67** | 0 | 0 | 0 |
+| `false_premise` | 5 | −0.20 | 0 | 0 | −0.20 | 0 |
+| `temporal` | 2 | 0 | 0 | 0 | 0 | 0 |
+| `negative_capability` | 4 | 0 | −0.25 | −0.25 | 0 | 0 |
+| `unanswerable_not_in_wp` | 3 | 0 | −0.33 | −0.33 | 0 | +0.33 |
+| `unanswerable_too_recent` | 2 | 0 | −0.50 | 0 | +0.50 | 0 |
+
+### Behavior_checks: identical to v1.1
+
+Every previously-failing check still at 0 fails. Every check pass count
+unchanged. Parse warnings 0/34 (same).
+
+### Honest read
+
+v1.2's deltas are within judge-noise at this dataset size. With
+per-category n=2-3 in many places, a single judgment shifting one
+point = 0.33-0.50 delta — meaning we can't statistically distinguish
+a v1.2 prompt regression from a v1.1 prompt regression with this
+sample.
+
+**One clear local win**: `buried_answer` groundedness recovered from
+2.33 (v1.1) to 3.00 (v1.2). This was the regression v1.2 change #1
+(marked-inference tightening) was specifically aimed at. The model
+now properly avoids unmarked additions on buried_answer cases. Cost:
+factual_accuracy on the same category dropped 0.33 — a single case
+where the stricter rule prevented the model from reaching a fully
+correct answer.
+
+**Aggregate**: v1.1 had already gotten most grounded categories to
+ceiling (3.00 across simple_factual, multi_hop, multi_source,
+disambiguation, false_premise factual). v1.2's room to improve in
+those was zero; the small declines elsewhere are most likely judge
+variance, not prompt regressions.
+
+**Decision**: v1.1 remains the production default in
+`src/wiki_qa/agent.py`. v1.2 is preserved as `prompts/system_v1_2.md`
+for reference. To distinguish v1.1 vs v1.2 statistically would
+require either a larger dataset (each category at 10+ cases for stable
+per-dim means) or multi-run averaging on the same dataset (run each
+prompt 3-5 times against the same cases to average out judge variance).
+Both deferred — at this scale the iteration story is what's
+informative, not the v1.2 final number.
+
+### Methodological caveats now load-bearing
+
+This iteration surfaces a real limitation of the eval methodology
+worth being honest about:
+
+1. **Small-n per category** means deltas under ~0.3 are inside
+   judge-noise. Useful for detecting big failures (v1's 8/34 parse
+   warnings) and big wins (v1 → v1.1 jumps). Not useful for
+   distinguishing two reasonable prompts at near-ceiling performance.
+2. **Single-run averaging** doesn't separate prompt-effect from
+   judge-stochasticity. A prompt change that happens to produce a
+   slightly different answer the judge marks differently looks like a
+   regression even if the prompt itself is fine.
+
+Both knowable from the start; v1.2 made them concrete. The takeaway:
+this eval suite was designed for prompt-engineering iteration on
+specific failure modes, not for ranking similar prompts. v1 → v1.1
+was the kind of delta this dataset measures well; v1.1 → v1.2 is
+near the floor of what it can distinguish.

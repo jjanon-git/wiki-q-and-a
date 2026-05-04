@@ -541,3 +541,30 @@ Re-ran the same 34-case dataset against `prompts/system_v1_1.md`. Run: `eval_run
 3. `multi_source` search_efficiency (3.00→2.67). One case (Elizabeth/Thatcher) did 4 searches instead of 2 in v1.1. Possibly the verify-absence rule causing over-thoroughness on a grounded case. n=3 — could be noise. Watch in v1.2.
 
 **v1.2 scope candidates:** the original four deferred changes (per-search motivation, disambiguation criteria, length-by-complexity, evidence-as-you-go) plus the marked-inference clarification surfaced by the buried_answer regressions.
+
+## 2026-05-03 19:58 — v1.2 eval results: flat vs v1.1 in aggregate; clean local win on buried_answer; eval-design limitation surfaced
+
+Re-ran the same 34-case dataset against `prompts/system_v1_2.md`. Run: `eval_runs/v1_2_2026-05-04T02-44-39Z/`. Full per-dim and per-category breakdown is in `tests/eval/iterations.md`.
+
+**Per-dim deltas (v1.1 → v1.2):**
+- factual_accuracy: 2.94 → 2.88 (−0.06)
+- groundedness: 2.74 → 2.65 (−0.09)
+- citation_quality: 2.85 → 2.82 (−0.03)
+- search_efficiency: 2.88 → 2.88 (0.00)
+- calibration: 2.82 → 2.85 (+0.03)
+
+Aggregate is flat. Behavior_checks identical to v1.1. Parse warnings 0/34 (same).
+
+**One clean local win**: `buried_answer` groundedness 2.33 → 3.00. The marked-inference tightening worked exactly as intended on the failure mode it targeted (model no longer adds unmarked priors). Cost: factual_accuracy on the same category dropped 0.33 — a single case where the stricter rule prevented reaching a fully correct answer.
+
+**Other deltas inside judge-noise.** With per-category n=2-3 in most places, a single judgment shifting one point produces a 0.33-0.50 delta. We can't statistically distinguish v1.2 from v1.1 at the per-dim level given this sample size.
+
+**Decision**: keep v1.1 as the production default (already pointed at by `_SYSTEM_PROMPT_PATH`). v1.2 is preserved as an artifact at `prompts/system_v1_2.md`. Net read: v1.1 had already gotten most categories to ceiling on the targeted failure modes; v1.2's room-to-improve was small and the dataset can't distinguish near-ceiling prompts.
+
+**Methodological limitation now surfaced.** Two issues that were knowable from the start but only become concrete here:
+1. **Small-n per category** means deltas under ~0.3 are inside judge-noise. The eval suite was designed for prompt-engineering iteration on specific failure modes (v1 → v1.1 was that kind of delta), not for ranking similar near-ceiling prompts.
+2. **Single-run averaging** conflates prompt-effect with judge-stochasticity. Multi-run averaging on the same dataset (3-5 runs per prompt) would let us separate the two.
+
+Both worth recording as honest constraints on what the eval can do. Useful follow-on work if the project extends: dataset expansion to 10+ cases per category, OR multi-run averaging at the current scale.
+
+**Iteration story for the writeup**: v1 (baseline) → v1.1 (four targeted changes lifting every dimension) → v1.2 (two refinements that fix one local regression but flatten in aggregate). The trajectory shows the value of failure-mode-driven iteration AND its limits at near-ceiling performance — exactly the kind of self-aware story the brief asks for.

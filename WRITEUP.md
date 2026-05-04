@@ -345,25 +345,19 @@ separate.
 
 ## What this eval measures — and what it doesn't
 
-The v1 eval measures correctness: factual_accuracy, groundedness,
-citation_quality, search_efficiency, calibration. These are the
-dimensions that determine whether the answer is right. They don't
-measure voice or tone — whether uncertainty is expressed with
-confidence or apologetically, whether surfacing a false premise feels
-respectful or corrective, whether the agent's prose has the warmth
-that distinguishes a thoughtful response from a merely competent one.
-This gap is real and deliberate. Voice failures don't surface cleanly
-in Wikipedia QA categories — they live in conversational shapes
-(frustrated users, ambiguous emotional contexts, situations requiring
-graceful uncertainty) that aren't represented in the dataset. Adding a
-voice dimension would require both case expansion and judge
-calibration against human-scored examples, since voice scoring is
-more subjective than correctness scoring and the LLM judge would need
-a more calibrated rubric to score it reliably. v2 would address this.
-For v1, the calibration dimension partially captures voice-adjacent
-behavior — "surface the discrepancy without correcting" is partly a
-voice question — but the rubric isn't designed to score voice as a
-first-class concern.
+v1 measures correctness across five dimensions: factual_accuracy, 
+groundedness, citation_quality, search_efficiency, calibration. 
+It doesn't measure voice — whether uncertainty reads as confident 
+or apologetic, whether surfacing a false premise feels respectful or 
+corrective, whether the prose has warmth.
+This is a deliberate gap. Wikipedia QA cases don't surface voice failures. 
+Voice failures live in conversational shapes the dataset doesn't cover: 
+frustrated users, emotional contexts, situations requiring graceful uncertainty. 
+Scoring voice also requires more careful judge calibration than scoring 
+correctness, since voice is more subjective.
+v2 would add a tone dimension and expand the dataset with conversational 
+cases. For v1, the calibration dimension absorbs some voice-adjacent behavior, 
+but voice isn't a first-class concern in the rubric.
 
 ## v1 baseline findings
 

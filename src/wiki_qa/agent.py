@@ -28,8 +28,13 @@ from wiki_qa.tools import SEARCH_WIKIPEDIA_TOOL
 from wiki_qa.wikipedia import WikipediaSearchError, search_wikipedia
 
 _DEFAULT_MODEL = "claude-opus-4-7"
+AGENT_MODEL_ENV_VAR = "WIKI_QA_AGENT_MODEL"
 _MAX_TOKENS = 4096
-_SYSTEM_PROMPT_PATH = Path(__file__).resolve().parent.parent.parent / "prompts" / "system_v1.md"
+# Default points at the most recent validated prompt version. v1.1 is the
+# current baseline — it dropped parse_warnings to 0/34 and lifted every
+# rubric dimension over v1. v1.2 (in flight) overrides via the
+# `system_prompt=` argument until validated.
+_SYSTEM_PROMPT_PATH = Path(__file__).resolve().parent.parent.parent / "prompts" / "system_v1_1.md"
 
 logger = logging.getLogger(__name__)
 
@@ -66,7 +71,7 @@ def answer(
     if system_prompt is None:
         system_prompt = _load_system_prompt()
 
-    model = os.environ.get("WIKI_QA_AGENT_MODEL", _DEFAULT_MODEL)
+    model = os.environ.get(AGENT_MODEL_ENV_VAR, _DEFAULT_MODEL)
 
     messages: list[dict[str, Any]] = [{"role": "user", "content": question}]
     raw_messages: list[dict[str, Any]] = [{"role": "user", "content": question}]
