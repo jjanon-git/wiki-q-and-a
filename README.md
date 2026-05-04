@@ -188,6 +188,9 @@ The runner:
 - **[`WRITEUP.md`](WRITEUP.md)** - consolidated design rationale organized
   thematically. The doc to read first if you want the design choices and
   reasoning without the chronology.
+- **[Claude Code transcripts](https://htmlpreview.github.io/?https://github.com/jjanon-git/wiki-q-and-a/blob/main/transcripts/redacted/combined-html/index.html)** -
+  three development sessions concatenated chronologically (105 prompts across
+  21 pages). Redacted for local paths and email addresses before submission.
 - **[`tests/eval/rubric.md`](tests/eval/rubric.md)** - the rubric in the form
   the judge sees; also the human-readable reference during calibration.
 
